@@ -1,0 +1,51 @@
+plugins {
+    id 'fabric-loom' version '1.7-SNAPSHOT'
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    mappings loom.layered() {
+        officialMojangMappings()
+        parchment("org.parchmentmc.data:parchment-${parchment_minecraft_version}:${parchment_mappings_version}@zip")
+    }
+    
+    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+    
+    implementation project(':common')
+}
+
+base {
+    archivesName = "${mod_id}-fabric"
+}
+
+loom {
+    runs {
+        client {
+            client()
+            runDir "run"
+        }
+        server {
+            server()
+            runDir "run"
+        }
+    }
+}
+
+tasks.named('jar', Jar) {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from project(':common').sourceSets.main.output
+}
+
+processResources {
+    var modVersion = project.version
+    var mcVersion = project.minecraft_version
+
+    inputs.property "version", modVersion
+    inputs.property "minecraft_version", mcVersion
+
+    filesMatching("fabric.mod.json") {
+        expand "version": modVersion,
+               "minecraft_version": mcVersion
+    }
+}

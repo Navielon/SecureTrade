@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "securetrade",
+  "version": "${version}",
+  "name": "Secure Trade",
+  "description": "Trade items with other players from anywhere, without running back to base or meeting in the same dimension. Secure Trade adds chat-based trade requests, a shared trade screen, locked offers, and a short completion countdown.",
+  "authors": [
+    "Navielon"
+  ],
+  "contact": {
+    "homepage": "https://github.com/Navielon/SecureTrade",
+    "sources": "https://github.com/Navielon/SecureTrade"
+  },
+  "license": "MIT",
+  "icon": "mod_icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.securetrade.FabricSecureTradeMod"
+    ],
+    "client": [
+      "com.securetrade.FabricClientInitializer"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "${minecraft_version}",
+    "fabric-api": "*"
+  }
+}

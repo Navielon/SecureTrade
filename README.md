@@ -48,22 +48,6 @@ Server configuration is stored in `config/securetrade-server.toml`.
 | `countdownSeconds` | Integer | `3` | Seconds to wait after both players lock their offers. |
 | `enableTradeLogging` | Boolean | `true` | Writes completed trades to `logs/securetrade.log`. |
 
-## Build
-
-Requirements:
-
-- Java 21 or newer
-- Minecraft 1.21.1
-- NeoForge 1.21.1
-
-Build from source:
-
-```bash
-./gradlew build
-```
-
-The compiled jar is written to `build/libs/`.
-
 ## License
 
 Secure Trade is released under the MIT License. See [LICENSE](LICENSE) for details.

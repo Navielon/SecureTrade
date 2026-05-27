@@ -36,17 +36,17 @@ displayName="${mod_name}" #mandatory
 #displayURL="https://change.me.to.your.mods.homepage.example.invalid/" #optional
 
 # A file name (in the root of the mod JAR) containing a logo for display
-#logoFile="examplemod.png" #optional
+logoFile="mod_icon.png" #optional
 
 # A text field displayed in the mod UI
 #credits="" #optional
 
 # The authors of the mod, displayed in the mod UI (optional)
-#authors=""
+authors="Navielon"
 
 # The description text for the mod (multi line!) (#mandatory)
 description='''
-A secure player-to-player trading mod for NeoForge. Allows players to safely trade items through a secure GUI with countdowns, sound effects, trading slots visual confirmation, trade logging, and distance checks.
+Direct player-to-player trading for Minecraft servers. Send a request with /trade, accept it in chat, lock both offers, and complete the exchange after a short countdown. Trades work across distance and dimensions by default, with server-side configuration for limits, cooldowns, logging, and timeouts.
 '''
 
 # The [[mixins]] block allows you to declare your mixin config to FML so that it gets loaded.

@@ -1,73 +1,69 @@
 # Secure Trade
 
-[![Platform](https://img.shields.io/badge/Loader-NeoForge-orange.svg)](https://neoforged.net/)
-[![Minecraft Version](https://img.shields.io/badge/Minecraft-1.21.1-brightgreen.svg)](https://minecraft.net/)
+<p align="center">
+  <img src="mod_icon.png" alt="Secure Trade icon" width="160">
+</p>
+
+[![Loader](https://img.shields.io/badge/Loader-NeoForge-orange.svg)](https://neoforged.net/)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.1-brightgreen.svg)](https://minecraft.net/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-A lightweight, secure, and professional player-to-player trading mod for **Minecraft (NeoForge 1.21.1)**. Designed with multiplayer servers in mind to eliminate dupe exploits, scamming, and spam.
+Secure Trade adds a direct player-to-player trade screen for Minecraft servers.
 
----
+Send a request with `/trade <player>`, let the other player accept it in chat, and both players receive a shared trade menu. Each side places items into their offer, locks it, and the exchange completes after a short countdown.
 
-## 🌟 Key Features
+By default, trades are not limited by distance or dimension. Players can trade from spawn, from separate bases, or across the Nether, End, and Overworld. Server owners can still configure distance limits, request timeouts, cooldowns, transaction logging, and the final countdown.
 
-* 🔒 **Dupe & Scam Protection**: Server-authoritative inventory checks. Players cannot change their offered items after locking without resetting the trade validation.
-* ⏱️ **3-Second Countdown**: A synchronized visual and auditory countdown starts once both players lock. The trade can be aborted at any point before completion.
-* 🔊 **Immersive Sounds**: Native sound effects accompany locks, ticking seconds (with rising pitch), completion, and trade cancellations.
-* 🟩 **Visual Locking Overlay**: Locked side inventories are highlighted with a translucent green tint (`0x3500FF00`) for clear visual confirmation.
-* 🚫 **Anti-Spam Cooldown**: Prevents command spamming. If a trade is denied or expires, a configurable cooldown prevents the sender from spamming the target player.
-* 🤝 **Mutual Trade Requests**: If Player A requests Player B, and Player B requests Player A, the trade session starts immediately without needing `/trade accept`.
-* 🛡️ **Concurrent Trade Safety**:
-  * Only one incoming pending request is allowed per player at a time.
-  * Active players in a trade are set to "Busy" and cannot receive or accept other requests.
-* 📡 **Distance & Dimension Constraints**: Trades are automatically cancelled if players walk too far apart or travel to different dimensions.
-* 📝 **Transaction Logging**: Logs all successful transactions to `logs/securetrade.log` detailing coordinates, player UUIDs, and items traded.
+## Features
 
----
+- Player-to-player trades through a shared GUI.
+- Chat-based trade requests with clickable accept and deny actions.
+- Offer locking for both sides before completion.
+- Automatic readiness reset when offered items change.
+- Configurable countdown before the trade is executed.
+- Optional distance limit for servers that want local-only trading.
+- Cross-dimension trading by default.
+- Request cooldowns to reduce spam.
+- One active trade or pending request per player.
+- Optional transaction logging to `logs/securetrade.log`.
+- English and Russian localization.
 
-## ⌨️ Commands
+## Commands
 
-* `/trade <player>` - Sends a trade request to a player. If both players request each other, the trade menu opens immediately.
-* `/trade accept` - Accepts the pending trade request.
-* `/trade deny` - Denies the pending trade request.
+| Command | Description |
+| --- | --- |
+| `/trade <player>` | Sends a trade request. If both players request each other, the trade opens immediately. |
+| `/trade accept` | Accepts the current pending trade request. |
+| `/trade deny` | Denies the current pending trade request. |
 
----
+## Configuration
 
-## ⚙️ Configuration
+Server configuration is stored in `config/securetrade-server.toml`.
 
-The server configuration file can be found in your server or local directory under `config/securetrade-server.toml`.
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `requestTimeoutSeconds` | Integer | `60` | Seconds before an unanswered trade request expires. |
+| `tradeCooldownSeconds` | Integer | `10` | Seconds before a player can send another request to the same target. |
+| `maxTradeDistance` | Double | `-1.0` | Maximum distance in blocks. Use `-1.0` for no distance or dimension limit. |
+| `countdownSeconds` | Integer | `3` | Seconds to wait after both players lock their offers. |
+| `enableTradeLogging` | Boolean | `true` | Writes completed trades to `logs/securetrade.log`. |
 
-| Config Parameter | Type | Default | Description |
-|---|---|---|---|
-| `requestTimeoutSeconds` | Integer | `60` | Time in seconds before an unanswered trade request expires. |
-| `tradeCooldownSeconds` | Integer | `10` | Cooldown in seconds before a player can request a trade with the *same* player again. |
-| `maxTradeDistance` | Double | `-1.0` | Max distance in blocks allowed between trading players (`-1.0` for infinite). |
-| `countdownSeconds` | Integer | `3` | Seconds to count down before executing the trade after both players are ready. |
-| `enableTradeLogging` | Boolean | `true` | Log all successful trades in `logs/securetrade.log`. |
+## Build
 
----
+Requirements:
 
-## 🌐 Localization
+- Java 21 or newer
+- Minecraft 1.21.1
+- NeoForge 1.21.1
 
-Full translation support is included for:
-* 🇺🇸 **English** (`en_us.json`)
-* 🇷🇺 **Russian** (`ru_ru.json`)
+Build from source:
 
----
-
-## 🛠️ Build & Installation
-
-### Requirements
-* Java 21 or higher
-* NeoForge (1.21.1)
-
-### Building from Source
-Clone the repository and run the build script:
 ```bash
 ./gradlew build
 ```
-The compiled `.jar` file will be generated in `build/libs/`.
 
----
+The compiled jar is written to `build/libs/`.
 
-## 📄 License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## License
+
+Secure Trade is released under the MIT License. See [LICENSE](LICENSE) for details.

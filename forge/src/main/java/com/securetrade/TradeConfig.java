@@ -1,22 +1,22 @@
 package com.securetrade;
 
-import net.minecraftforge.common.ModConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec;
 
 public class TradeConfig {
-    public static final ModConfigSpec SPEC;
+    public static final ForgeConfigSpec SPEC;
 
-    public static final ModConfigSpec.IntValue REQUEST_TIMEOUT_SECONDS;
-    public static final ModConfigSpec.DoubleValue MAX_TRADE_DISTANCE;
-    public static final ModConfigSpec.BooleanValue ENABLE_TRADE_LOGGING;
-    public static final ModConfigSpec.IntValue COUNTDOWN_SECONDS;
-    public static final ModConfigSpec.IntValue TRADE_COOLDOWN_SECONDS;
-    public static final ModConfigSpec.ConfigValue<java.util.List<? extends String>> BLACKLISTED_ITEMS;
-    public static final ModConfigSpec.ConfigValue<java.util.List<? extends String>> ALLOWED_DIMENSIONS;
-    public static final ModConfigSpec.ConfigValue<java.util.List<? extends String>> BLOCKED_DIMENSIONS;
-    public static final ModConfigSpec.IntValue MAX_HISTORY_ENTRIES;
+    public static final ForgeConfigSpec.IntValue REQUEST_TIMEOUT_SECONDS;
+    public static final ForgeConfigSpec.DoubleValue MAX_TRADE_DISTANCE;
+    public static final ForgeConfigSpec.BooleanValue ENABLE_TRADE_LOGGING;
+    public static final ForgeConfigSpec.IntValue COUNTDOWN_SECONDS;
+    public static final ForgeConfigSpec.IntValue TRADE_COOLDOWN_SECONDS;
+    public static final ForgeConfigSpec.ConfigValue<java.util.List<? extends String>> BLACKLISTED_ITEMS;
+    public static final ForgeConfigSpec.ConfigValue<java.util.List<? extends String>> ALLOWED_DIMENSIONS;
+    public static final ForgeConfigSpec.ConfigValue<java.util.List<? extends String>> BLOCKED_DIMENSIONS;
+    public static final ForgeConfigSpec.IntValue MAX_HISTORY_ENTRIES;
 
     static {
-        ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
+        ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
 
         builder.comment("Secure Trade Configuration").push("general");
 

@@ -3,7 +3,7 @@ plugins {
 }
 
 minecraft {
-    mappings channel: 'parchment', version: "${project.parchment_mappings_version}-${project.parchment_minecraft_version}"
+    mappings channel: 'official', version: "${minecraft_version}"
 }
 
 dependencies {

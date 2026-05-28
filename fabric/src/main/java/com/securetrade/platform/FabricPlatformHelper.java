@@ -4,9 +4,11 @@ import com.securetrade.FabricTradeConfig;
 import com.securetrade.network.TradeLockPacket;
 import com.securetrade.network.TradeStateSyncPacket;
 import com.securetrade.network.TradeXPChangePacket;
+import java.util.List;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 
 public class FabricPlatformHelper implements IPlatformHelper {
     @Override
@@ -22,6 +24,11 @@ public class FabricPlatformHelper implements IPlatformHelper {
     @Override
     public void sendStateSync(ServerPlayer player, boolean myLock, boolean otherLock, int countdownSeconds, int myXP, int otherXP) {
         ServerPlayNetworking.send(player, new TradeStateSyncPacket(myLock, otherLock, countdownSeconds, myXP, otherXP));
+    }
+
+    @Override
+    public boolean containsPlatformContainerItems(ItemStack stack, List<String> blacklist, int depth) {
+        return false;
     }
 
     @Override

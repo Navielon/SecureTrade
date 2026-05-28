@@ -93,8 +93,8 @@ public class TradeCommand {
         }
 
         // Dimension Restrictions Check
-        String senderDim = sender.level().dimension().location().toString();
-        String targetDim = target.level().dimension().location().toString();
+        String senderDim = sender.level().dimension().identifier().toString();
+        String targetDim = target.level().dimension().identifier().toString();
 
         if (!isDimensionAllowed(senderDim)) {
             TradeMessages.error(sender, Component.translatable("securetrade.error_blocked_dimension_self"));
@@ -178,13 +178,13 @@ public class TradeCommand {
 
         Component acceptText = Component.translatable("securetrade.accept_button")
                 .withStyle(Style.EMPTY.withColor(0x55FF55).withBold(true)
-                        .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/trade accept"))
-                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("securetrade.accept_hover"))));
+                        .withClickEvent(new ClickEvent.RunCommand("/trade accept"))
+                        .withHoverEvent(new HoverEvent.ShowText(Component.translatable("securetrade.accept_hover"))));
 
         Component denyText = Component.translatable("securetrade.deny_button")
                 .withStyle(Style.EMPTY.withColor(0xFF5555).withBold(true)
-                        .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/trade deny"))
-                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("securetrade.deny_hover"))));
+                        .withClickEvent(new ClickEvent.RunCommand("/trade deny"))
+                        .withHoverEvent(new HoverEvent.ShowText(Component.translatable("securetrade.deny_hover"))));
 
         target.sendSystemMessage(TradeMessages.format(
                 Component.translatable("securetrade.wants_to_trade", TradeMessages.playerName(sender))
@@ -220,7 +220,7 @@ public class TradeCommand {
 
         pendingRequests.remove(target.getUUID());
 
-        ServerPlayer sender = target.server.getPlayerList().getPlayer(request.senderId);
+        ServerPlayer sender = target.level().getServer().getPlayerList().getPlayer(request.senderId);
         if (sender == null) {
             TradeMessages.error(target, Component.translatable("securetrade.sender_offline"));
             return 0;
@@ -233,8 +233,8 @@ public class TradeCommand {
         }
 
         // Dimension Restrictions Check at Acceptance
-        String targetDim = target.level().dimension().location().toString();
-        String senderDim = sender.level().dimension().location().toString();
+        String targetDim = target.level().dimension().identifier().toString();
+        String senderDim = sender.level().dimension().identifier().toString();
 
         if (!isDimensionAllowed(targetDim)) {
             TradeMessages.error(target, Component.translatable("securetrade.error_blocked_dimension_self"));
@@ -297,7 +297,7 @@ public class TradeCommand {
             tradeCooldowns.put(new CooldownKey(request.senderId, target.getUUID()), now + cooldownTime);
         }
 
-        ServerPlayer sender = target.server.getPlayerList().getPlayer(request.senderId);
+        ServerPlayer sender = target.level().getServer().getPlayerList().getPlayer(request.senderId);
         if (sender != null) {
             TradeMessages.warning(sender, Component.translatable("securetrade.target_denied", TradeMessages.playerName(target)));
         }

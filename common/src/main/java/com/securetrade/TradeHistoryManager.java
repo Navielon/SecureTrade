@@ -11,7 +11,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -54,7 +54,7 @@ public class TradeHistoryManager {
 
     public static void recordTrade(ServerPlayer p1, ServerPlayer p2, net.minecraft.world.SimpleContainer inv1, net.minecraft.world.SimpleContainer inv2, int p1XP, int p2XP) {
         try {
-            MinecraftServer server = p1.getServer();
+            MinecraftServer server = p1.level().getServer();
             if (server == null) return;
             
             Path historyFile = server.getWorldPath(LevelResource.ROOT).resolve("securetrade-history.json");
@@ -126,7 +126,7 @@ public class TradeHistoryManager {
 
     public static void showHistory(ServerPlayer player) {
         try {
-            MinecraftServer server = player.getServer();
+            MinecraftServer server = player.level().getServer();
             if (server == null) return;
 
             Path historyFile = server.getWorldPath(LevelResource.ROOT).resolve("securetrade-history.json");
@@ -213,7 +213,7 @@ public class TradeHistoryManager {
         return Component.empty()
                 .append(Component.literal(item.count + "x ").withStyle(ChatFormatting.GRAY))
                 .append(itemName)
-                .withStyle(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText)));
+                .withStyle(style -> style.withHoverEvent(new HoverEvent.ShowText(hoverText)));
     }
 
     private static MutableComponent resolveItemName(ItemInfo item) {
@@ -222,8 +222,8 @@ public class TradeHistoryManager {
         }
 
         try {
-            ResourceLocation id = ResourceLocation.parse(item.id);
-            Item resolvedItem = BuiltInRegistries.ITEM.get(id);
+            Identifier id = Identifier.parse(item.id);
+            Item resolvedItem = BuiltInRegistries.ITEM.get(id).map(reference -> reference.value()).orElse(Items.AIR);
             if (resolvedItem != Items.AIR || "minecraft:air".equals(item.id)) {
                 return Component.translatable(resolvedItem.getDescriptionId());
             }

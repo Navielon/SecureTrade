@@ -17,7 +17,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;
 import com.securetrade.client.TradeScreen;
@@ -34,7 +34,7 @@ public class FabricSecureTradeMod implements ModInitializer {
         // Register MenuType
         TradeMenuType.set(Registry.register(
                 BuiltInRegistries.MENU,
-                ResourceLocation.fromNamespaceAndPath(MODID, "trade_menu"),
+                Identifier.fromNamespaceAndPath(MODID, "trade_menu"),
                 new MenuType<>(TradeMenu::new, FeatureFlags.DEFAULT_FLAGS)
         ));
 
@@ -44,9 +44,9 @@ public class FabricSecureTradeMod implements ModInitializer {
         });
 
         // Register Network Packets
-        PayloadTypeRegistry.playC2S().register(TradeLockPacket.TYPE, TradeLockPacket.STREAM_CODEC);
-        PayloadTypeRegistry.playC2S().register(TradeXPChangePacket.TYPE, TradeXPChangePacket.STREAM_CODEC);
-        PayloadTypeRegistry.playS2C().register(TradeStateSyncPacket.TYPE, TradeStateSyncPacket.STREAM_CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(TradeLockPacket.TYPE, TradeLockPacket.STREAM_CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(TradeXPChangePacket.TYPE, TradeXPChangePacket.STREAM_CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(TradeStateSyncPacket.TYPE, TradeStateSyncPacket.STREAM_CODEC);
 
         // Register Server-Side Packet Receivers
         ServerPlayNetworking.registerGlobalReceiver(TradeLockPacket.TYPE, (payload, context) -> {

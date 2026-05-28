@@ -1,26 +1,49 @@
 package com.securetrade.platform;
 
 import com.securetrade.TradeConfig;
+import com.securetrade.TradeItemValidator;
 import com.securetrade.network.TradeLockPacket;
 import com.securetrade.network.TradeStateSyncPacket;
 import com.securetrade.network.TradeXPChangePacket;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.List;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 public class NeoForgePlatformHelper implements IPlatformHelper {
     @Override
     public void sendLockPacket(boolean locked) {
-        PacketDistributor.sendToServer(new TradeLockPacket(locked));
+        ClientPacketDistributor.sendToServer(new TradeLockPacket(locked));
     }
 
     @Override
     public void sendXPChangePacket(int xpPoints) {
-        PacketDistributor.sendToServer(new TradeXPChangePacket(xpPoints));
+        ClientPacketDistributor.sendToServer(new TradeXPChangePacket(xpPoints));
     }
 
     @Override
     public void sendStateSync(ServerPlayer player, boolean myLock, boolean otherLock, int countdownSeconds, int myXP, int otherXP) {
         PacketDistributor.sendToPlayer(player, new TradeStateSyncPacket(myLock, otherLock, countdownSeconds, myXP, otherXP));
+    }
+
+    @Override
+    public boolean containsPlatformContainerItems(ItemStack stack, List<String> blacklist, int depth) {
+        try {
+            Class<?> capabilitiesClass = Class.forName("net.neoforged.neoforge.capabilities.Capabilities$ItemHandler");
+            Class<?> itemCapabilityClass = Class.forName("net.neoforged.neoforge.capabilities.ItemCapability");
+            Field itemHandlerField = capabilitiesClass.getField("ITEM");
+            Object itemHandlerCapability = itemHandlerField.get(null);
+            Method getCapability = stack.getClass().getMethod("getCapability", itemCapabilityClass);
+            Object handler = getCapability.invoke(stack, itemHandlerCapability);
+            return TradeItemValidator.containsHandlerItems(handler, blacklist, depth);
+        } catch (ClassNotFoundException | NoSuchMethodException ignored) {
+            return false;
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            return false;
+        }
     }
 
     @Override

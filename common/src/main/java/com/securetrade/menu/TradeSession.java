@@ -155,8 +155,12 @@ public class TradeSession {
     }
 
     private void playNotifySound(net.minecraft.sounds.SoundEvent sound, float volume, float pitch) {
-        player1.playNotifySound(sound, SoundSource.MASTER, volume, pitch);
-        player2.playNotifySound(sound, SoundSource.MASTER, volume, pitch);
+        playNotifySound(player1, sound, volume, pitch);
+        playNotifySound(player2, sound, volume, pitch);
+    }
+
+    private static void playNotifySound(ServerPlayer player, net.minecraft.sounds.SoundEvent sound, float volume, float pitch) {
+        player.level().playSound(null, player.getX(), player.getY(), player.getZ(), sound, SoundSource.MASTER, volume, pitch);
     }
 
     private void playAbortedSound() {
@@ -271,12 +275,12 @@ public class TradeSession {
         transferItems(inventory2, player2);
 
         if (isPlayerOnline(player1)) {
-            player1.playNotifySound(SoundEvents.DISPENSER_FAIL, SoundSource.MASTER, 1.0f, 1.0f);
+            playNotifySound(player1, SoundEvents.DISPENSER_FAIL, 1.0f, 1.0f);
             TradeMessages.warning(player1, Component.translatable("securetrade.trade_cancelled"));
             if (player1.containerMenu instanceof TradeMenu) player1.closeContainer();
         }
         if (isPlayerOnline(player2)) {
-            player2.playNotifySound(SoundEvents.DISPENSER_FAIL, SoundSource.MASTER, 1.0f, 1.0f);
+            playNotifySound(player2, SoundEvents.DISPENSER_FAIL, 1.0f, 1.0f);
             TradeMessages.warning(player2, Component.translatable("securetrade.trade_cancelled"));
             if (player2.containerMenu instanceof TradeMenu) player2.closeContainer();
         }

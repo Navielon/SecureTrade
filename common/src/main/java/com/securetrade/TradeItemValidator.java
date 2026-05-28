@@ -5,12 +5,11 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.BundleContents;
-import net.minecraft.world.item.component.ItemContainerContents;
 
 public final class TradeItemValidator {
     private static final int MAX_NESTED_DEPTH = 8;
@@ -54,25 +53,32 @@ public final class TradeItemValidator {
             return true;
         }
 
-        ItemContainerContents containerContents = stack.get(DataComponents.CONTAINER);
-        if (containerContents != null) {
-            for (ItemStack nestedStack : containerContents.nonEmptyItems()) {
-                if (containsBlacklistedItem(nestedStack, blacklist, depth + 1)) {
-                    return true;
+        // 1.20.1: read container contents from NBT (BlockEntityTag.Items for shulkers etc.)
+        CompoundTag tag = stack.getTag();
+        if (tag != null) {
+            CompoundTag blockEntityTag = tag.getCompound("BlockEntityTag");
+            if (blockEntityTag.contains("Items")) {
+                ListTag items = blockEntityTag.getList("Items", 10); // 10 = TAG_COMPOUND
+                for (int i = 0; i < items.size(); i++) {
+                    ItemStack nestedStack = ItemStack.of(items.getCompound(i));
+                    if (containsBlacklistedItem(nestedStack, blacklist, depth + 1)) {
+                        return true;
+                    }
+                }
+            }
+            // Fallback: top-level Items list (some mods/containers)
+            if (tag.contains("Items")) {
+                ListTag items = tag.getList("Items", 10);
+                for (int i = 0; i < items.size(); i++) {
+                    ItemStack nestedStack = ItemStack.of(items.getCompound(i));
+                    if (containsBlacklistedItem(nestedStack, blacklist, depth + 1)) {
+                        return true;
+                    }
                 }
             }
         }
 
-        BundleContents bundleContents = stack.get(DataComponents.BUNDLE_CONTENTS);
-        if (bundleContents != null) {
-            for (ItemStack nestedStack : bundleContents.items()) {
-                if (containsBlacklistedItem(nestedStack, blacklist, depth + 1)) {
-                    return true;
-                }
-            }
-        }
-
-        if (containsNeoForgeItemHandlerItems(stack, blacklist, depth + 1)) {
+        if (containsForgeItemHandlerItems(stack, blacklist, depth + 1)) {
             return true;
         }
 
@@ -83,15 +89,20 @@ public final class TradeItemValidator {
         return false;
     }
 
-    private static boolean containsNeoForgeItemHandlerItems(ItemStack stack, List<String> blacklist, int depth) {
+    private static boolean containsForgeItemHandlerItems(ItemStack stack, List<String> blacklist, int depth) {
         try {
-            Class<?> capabilitiesClass = Class.forName("net.neoforged.neoforge.capabilities.Capabilities$ItemHandler");
-            Class<?> itemCapabilityClass = Class.forName("net.neoforged.neoforge.capabilities.ItemCapability");
-            Field itemHandlerField = capabilitiesClass.getField("ITEM");
+            Class<?> forgeCapabilitiesClass = Class.forName("net.minecraftforge.common.capabilities.ForgeCapabilities");
+            Class<?> capabilityClass = Class.forName("net.minecraftforge.common.capabilities.Capability");
+            Field itemHandlerField = forgeCapabilitiesClass.getField("ITEM_HANDLER");
             Object itemHandlerCapability = itemHandlerField.get(null);
-            Method getCapability = stack.getClass().getMethod("getCapability", itemCapabilityClass);
-            Object handler = getCapability.invoke(stack, itemHandlerCapability);
-            return containsHandlerItems(handler, blacklist, depth);
+            Method getCapability = stack.getClass().getMethod("getCapability", capabilityClass);
+            Object lazyOptional = getCapability.invoke(stack, itemHandlerCapability);
+            Method resolve = lazyOptional.getClass().getMethod("resolve");
+            Object optional = resolve.invoke(lazyOptional);
+            if (!(optional instanceof Optional<?> opt) || opt.isEmpty()) {
+                return false;
+            }
+            return containsHandlerItems(opt.get(), blacklist, depth);
         } catch (ClassNotFoundException | NoSuchMethodException ignored) {
             return false;
         } catch (ReflectiveOperationException | RuntimeException ignored) {

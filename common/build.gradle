@@ -5,3 +5,7 @@ plugins {
 minecraft {
     mappings channel: 'parchment', version: "${project.parchment_mappings_version}-${project.parchment_minecraft_version}"
 }
+
+dependencies {
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+}

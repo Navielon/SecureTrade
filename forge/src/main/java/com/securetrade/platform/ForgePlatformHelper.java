@@ -2,25 +2,25 @@ package com.securetrade.platform;
 
 import com.securetrade.TradeConfig;
 import com.securetrade.network.TradeLockPacket;
+import com.securetrade.network.TradeNetwork;
 import com.securetrade.network.TradeStateSyncPacket;
 import com.securetrade.network.TradeXPChangePacket;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.PacketDistributor;
 
-public class NeoForgePlatformHelper implements IPlatformHelper {
+public class ForgePlatformHelper implements IPlatformHelper {
     @Override
     public void sendLockPacket(boolean locked) {
-        PacketDistributor.sendToServer(new TradeLockPacket(locked));
+        TradeNetwork.sendToServer(new TradeLockPacket(locked));
     }
 
     @Override
     public void sendXPChangePacket(int xpPoints) {
-        PacketDistributor.sendToServer(new TradeXPChangePacket(xpPoints));
+        TradeNetwork.sendToServer(new TradeXPChangePacket(xpPoints));
     }
 
     @Override
     public void sendStateSync(ServerPlayer player, boolean myLock, boolean otherLock, int countdownSeconds, int myXP, int otherXP) {
-        PacketDistributor.sendToPlayer(player, new TradeStateSyncPacket(myLock, otherLock, countdownSeconds, myXP, otherXP));
+        TradeNetwork.sendToPlayer(player, new TradeStateSyncPacket(myLock, otherLock, countdownSeconds, myXP, otherXP));
     }
 
     @Override

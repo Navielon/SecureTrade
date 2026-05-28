@@ -1,27 +1,36 @@
 package com.securetrade.platform;
 
+import com.securetrade.FabricSecureTradeMod;
 import com.securetrade.FabricTradeConfig;
 import com.securetrade.network.TradeLockPacket;
 import com.securetrade.network.TradeStateSyncPacket;
 import com.securetrade.network.TradeXPChangePacket;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 
 public class FabricPlatformHelper implements IPlatformHelper {
     @Override
     public void sendLockPacket(boolean locked) {
-        ClientPlayNetworking.send(new TradeLockPacket(locked));
+        FriendlyByteBuf buf = PacketByteBufs.create();
+        new TradeLockPacket(locked).write(buf);
+        ClientPlayNetworking.send(FabricSecureTradeMod.TRADE_LOCK_ID, buf);
     }
 
     @Override
     public void sendXPChangePacket(int xpPoints) {
-        ClientPlayNetworking.send(new TradeXPChangePacket(xpPoints));
+        FriendlyByteBuf buf = PacketByteBufs.create();
+        new TradeXPChangePacket(xpPoints).write(buf);
+        ClientPlayNetworking.send(FabricSecureTradeMod.TRADE_XP_CHANGE_ID, buf);
     }
 
     @Override
     public void sendStateSync(ServerPlayer player, boolean myLock, boolean otherLock, int countdownSeconds, int myXP, int otherXP) {
-        ServerPlayNetworking.send(player, new TradeStateSyncPacket(myLock, otherLock, countdownSeconds, myXP, otherXP));
+        FriendlyByteBuf buf = PacketByteBufs.create();
+        new TradeStateSyncPacket(myLock, otherLock, countdownSeconds, myXP, otherXP).write(buf);
+        ServerPlayNetworking.send(player, FabricSecureTradeMod.TRADE_STATE_SYNC_ID, buf);
     }
 
     @Override

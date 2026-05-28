@@ -86,7 +86,7 @@ public class TradeScreen extends AbstractContainerScreen<TradeMenu> {
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         updateDynamicWidgetText();
 
-        this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
+        this.renderBackground(guiGraphics);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
         int x = (this.width - this.imageWidth) / 2;
@@ -305,7 +305,7 @@ public class TradeScreen extends AbstractContainerScreen<TradeMenu> {
         int x = (this.width - this.imageWidth) / 2;
         int y = (this.height - this.imageHeight) / 2;
 
-        ResourceLocation generic54 = ResourceLocation.withDefaultNamespace("textures/gui/container/generic_54.png");
+        ResourceLocation generic54 = new ResourceLocation("minecraft", "textures/gui/container/generic_54.png");
 
         guiGraphics.blit(generic54, x, y, 0, 0, this.imageWidth, 4 * 18 + 17);
         guiGraphics.blit(generic54, x, y + 4 * 18 + 17, 0, 126, this.imageWidth, 96);

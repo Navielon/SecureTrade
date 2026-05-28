@@ -1,6 +1,6 @@
 package com.securetrade;
 
-import net.neoforged.neoforge.common.ModConfigSpec;
+import net.minecraftforge.common.ModConfigSpec;
 
 public class TradeConfig {
     public static final ModConfigSpec SPEC;

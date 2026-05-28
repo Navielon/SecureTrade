@@ -2,17 +2,18 @@ package com.securetrade;
 
 import com.securetrade.menu.TradeSessionManager;
 import com.securetrade.command.TradeCommand;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.server.ServerStoppingEvent;
-import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.minecraftforge.event.server.ServerStoppingEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.event.TickEvent;
 
-@EventBusSubscriber(modid = SecureTradeMod.MODID)
+@Mod.EventBusSubscriber(modid = SecureTradeMod.MODID)
 public class TradeEvents {
     private static int cleanupTicks = 0;
 
     @SubscribeEvent
-    public static void onServerTick(ServerTickEvent.Post event) {
+    public static void onServerTick(TickEvent.ServerTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) return;
         TradeSessionManager.tick();
         cleanupTicks++;
         if (cleanupTicks >= 1200) {

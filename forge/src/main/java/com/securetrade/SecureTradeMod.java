@@ -5,16 +5,18 @@ import com.securetrade.command.TradeCommand;
 import com.securetrade.menu.TradeMenu;
 import com.securetrade.menu.TradeMenuType;
 import com.securetrade.network.TradeNetwork;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
-import net.neoforged.neoforge.event.RegisterCommandsEvent;
-import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
-import net.neoforged.neoforge.registries.DeferredRegister;
-import net.neoforged.neoforge.registries.DeferredHolder;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.RegisterCommandsEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.ModLoadingContext;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
 import org.slf4j.Logger;
 
 @Mod(SecureTradeMod.MODID)
@@ -22,26 +24,24 @@ public class SecureTradeMod {
     public static final String MODID = "securetrade";
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(BuiltInRegistries.MENU, MODID);
+    public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(ForgeRegistries.MENU_TYPES, MODID);
 
-    public static final DeferredHolder<MenuType<?>, MenuType<TradeMenu>> TRADE_MENU = MENUS.register("trade_menu", () -> {
-        MenuType<TradeMenu> type = IMenuTypeExtension.create((windowId, inv, data) -> new TradeMenu(windowId, inv));
+    public static final RegistryObject<MenuType<TradeMenu>> TRADE_MENU = MENUS.register("trade_menu", () -> {
+        MenuType<TradeMenu> type = new MenuType<>(TradeMenu::new, FeatureFlags.DEFAULT_FLAGS);
         TradeMenuType.set(type);
         return type;
     });
 
-    public SecureTradeMod(IEventBus modEventBus, net.neoforged.fml.ModContainer container) {
-        container.registerConfig(net.neoforged.fml.config.ModConfig.Type.SERVER, TradeConfig.SPEC);
+    public SecureTradeMod() {
+        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+
+        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, TradeConfig.SPEC);
 
         MENUS.register(modEventBus);
-        
-        modEventBus.addListener(this::registerNetworking);
-        
-        NeoForge.EVENT_BUS.addListener(this::onRegisterCommands);
-    }
 
-    private void registerNetworking(final RegisterPayloadHandlersEvent event) {
-        TradeNetwork.register(event.registrar(MODID));
+        TradeNetwork.register();
+
+        MinecraftForge.EVENT_BUS.addListener(this::onRegisterCommands);
     }
 
     private void onRegisterCommands(RegisterCommandsEvent event) {

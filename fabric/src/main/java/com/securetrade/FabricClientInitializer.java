@@ -14,13 +14,15 @@ public class FabricClientInitializer implements ClientModInitializer {
         // Register Screen
         MenuScreens.register(TradeMenuType.get(), TradeScreen::new);
 
-        // Register Client-Side Packet Receivers
-        ClientPlayNetworking.registerGlobalReceiver(TradeStateSyncPacket.TYPE, (payload, context) -> {
-            context.client().execute(() -> {
-                if (context.client().player != null && context.client().player.containerMenu instanceof TradeMenu tradeMenu) {
-                    tradeMenu.updateFields(payload.myLock(), payload.otherLock(), payload.countdownSeconds(), payload.myXP(), payload.otherXP());
-                }
-            });
-        });
+        // Register Client-Side Packet Receivers (S2C)
+        ClientPlayNetworking.registerGlobalReceiver(FabricSecureTradeMod.TRADE_STATE_SYNC_ID,
+                (client, handler, buf, responseSender) -> {
+                    TradeStateSyncPacket packet = new TradeStateSyncPacket(buf);
+                    client.execute(() -> {
+                        if (client.player != null && client.player.containerMenu instanceof TradeMenu tradeMenu) {
+                            tradeMenu.updateFields(packet.myLock(), packet.otherLock(), packet.countdownSeconds(), packet.myXP(), packet.otherXP());
+                        }
+                    });
+                });
     }
 }

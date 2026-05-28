@@ -222,9 +222,9 @@ public class TradeHistoryManager {
         }
 
         try {
-            ResourceLocation id = ResourceLocation.parse(item.id);
+            ResourceLocation id = new ResourceLocation(item.id);
             Item resolvedItem = BuiltInRegistries.ITEM.get(id);
-            if (resolvedItem != Items.AIR || "minecraft:air".equals(item.id)) {
+            if (resolvedItem != null && (resolvedItem != Items.AIR || "minecraft:air".equals(item.id))) {
                 return Component.translatable(resolvedItem.getDescriptionId());
             }
         } catch (Exception ignored) {

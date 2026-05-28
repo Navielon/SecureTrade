@@ -1,20 +1,23 @@
 package com.securetrade.network;
 
-import io.netty.buffer.ByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.FriendlyByteBuf;
 
-public record TradeLockPacket(boolean locked) implements CustomPacketPayload {
-    public static final CustomPacketPayload.Type<TradeLockPacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("securetrade", "trade_lock"));
-    public static final StreamCodec<ByteBuf, TradeLockPacket> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.BOOL, TradeLockPacket::locked,
-            TradeLockPacket::new
-    );
+public class TradeLockPacket {
+    private final boolean locked;
 
-    @Override
-    public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
-        return TYPE;
+    public TradeLockPacket(boolean locked) {
+        this.locked = locked;
+    }
+
+    public TradeLockPacket(FriendlyByteBuf buf) {
+        this.locked = buf.readBoolean();
+    }
+
+    public void write(FriendlyByteBuf buf) {
+        buf.writeBoolean(this.locked);
+    }
+
+    public boolean locked() {
+        return this.locked;
     }
 }

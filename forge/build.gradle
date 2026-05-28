@@ -7,7 +7,7 @@ minecraft {
 
     runs {
         client {
-            workingDirectory project.file('run')
+            workingDirectory project.file('run/client')
             property 'forge.logging.console.level', 'debug'
             mods {
                 "${mod_id}" {
@@ -17,18 +17,12 @@ minecraft {
             }
         }
         client2 {
-            workingDirectory project.file('run')
-            property 'forge.logging.console.level', 'debug'
+            parent runs.client
+            workingDirectory project.file('run/client2')
             args '--username', 'Dev2'
-            mods {
-                "${mod_id}" {
-                    source sourceSets.main
-                    source project(':common').sourceSets.main
-                }
-            }
         }
         server {
-            workingDirectory project.file('run')
+            workingDirectory project.file('run/server')
             property 'forge.logging.console.level', 'debug'
             args '--nogui'
             mods {

@@ -357,7 +357,7 @@ public class TradeScreen extends AbstractContainerScreen<TradeMenu> {
 
         int sliderX = this.leftPos + XP_BAR_X;
         int sliderW = XP_BAR_WIDTH;
-        double pct = (mouseX - sliderX) / (double) sliderW;
+        double pct = (mouseX - (sliderX + 1)) / (double)(sliderW - 2);
         pct = Math.max(0.0, Math.min(1.0, pct));
 
         int newXP = (int) (pct * totalXP);

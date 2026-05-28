@@ -203,6 +203,12 @@ public class TradeScreen extends AbstractContainerScreen<TradeMenu> {
             this.sliderValue = totalXP > 0 ? (float) this.menu.myXP / totalXP : 0.0f;
         }
 
+        if (this.menu.countdownSeconds > 0) {
+            drawStatusWell(guiGraphics, x, y);
+            drawScaledCenteredText(guiGraphics, String.valueOf(this.menu.countdownSeconds), x + 88, y + 40, 2.0f, 0x55FF55, false);
+            return;
+        }
+
         int myLevel = XPMath.getLevelForXp(this.menu.myXP);
         int otherLevel = XPMath.getLevelForXp(this.menu.otherXP);
         String myText = this.menu.myXP > 0 ? "-" + this.menu.myXP + " XP" : "0 XP";
@@ -308,7 +314,7 @@ public class TradeScreen extends AbstractContainerScreen<TradeMenu> {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (button == 0 && this.xpTabSelected && isOverMySlider(mouseX, mouseY)) {
+        if (button == 0 && this.xpTabSelected && this.menu.countdownSeconds <= 0 && isOverMySlider(mouseX, mouseY)) {
             this.isDraggingSlider = true;
             updateXPFromSlider(mouseX);
             return true;
@@ -326,7 +332,7 @@ public class TradeScreen extends AbstractContainerScreen<TradeMenu> {
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        if (this.isDraggingSlider && button == 0) {
+        if (this.isDraggingSlider && button == 0 && this.menu.countdownSeconds <= 0) {
             updateXPFromSlider(mouseX);
             return true;
         }

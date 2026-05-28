@@ -3,6 +3,7 @@ package com.securetrade.menu;
 import com.securetrade.platform.Services;
 import com.securetrade.TradeLogger;
 import com.securetrade.TradeHistoryManager;
+import com.securetrade.TradeItemValidator;
 import com.securetrade.TradeMessages;
 import com.securetrade.XPMath;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -164,7 +165,7 @@ public class TradeSession {
         }
 
         // Verify blacklist before transferring items
-        if (hasBlacklistedItems(inventory1) || hasBlacklistedItems(inventory2)) {
+        if (TradeItemValidator.containsBlacklistedItems(inventory1) || TradeItemValidator.containsBlacklistedItems(inventory2)) {
             cancelTrade();
             return;
         }
@@ -254,22 +255,6 @@ public class TradeSession {
             }
         }
         sb.append("]");
-    }
-
-    private boolean hasBlacklistedItems(SimpleContainer container) {
-        java.util.List<String> blacklist = Services.PLATFORM.getBlacklistedItems();
-        if (blacklist == null || blacklist.isEmpty()) return false;
-
-        for (int i = 0; i < container.getContainerSize(); i++) {
-            ItemStack stack = container.getItem(i);
-            if (!stack.isEmpty()) {
-                String itemId = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
-                if (blacklist.contains(itemId)) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     public void cancelTrade() {

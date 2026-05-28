@@ -1,5 +1,6 @@
 package com.securetrade.menu;
 
+import com.securetrade.TradeItemValidator;
 import com.securetrade.platform.Services;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -93,9 +94,7 @@ public class TradeMenu extends AbstractContainerMenu {
     }
 
     private boolean isBlacklisted(ItemStack stack) {
-        if (stack.isEmpty()) return false;
-        String itemId = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
-        return Services.PLATFORM.getBlacklistedItems().contains(itemId);
+        return TradeItemValidator.containsBlacklistedItem(stack);
     }
 
     @Override

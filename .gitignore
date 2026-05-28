@@ -42,3 +42,4 @@ repo/
 ### Local tooling ###
 .superpowers/
 run-process-logs/
+art/

@@ -234,7 +234,7 @@ public class TradeScreen extends AbstractContainerScreen<TradeMenu> {
 
     private void drawCenteredText(GuiGraphicsExtractor graphics, String text, int centerX, int y, int color, boolean shadow) {
         int textWidth = this.font.width(text);
-        graphics.text(this.font, text, centerX - textWidth / 2, y, color, shadow);
+        graphics.text(this.font, text, centerX - textWidth / 2, y, opaqueTextColor(color), shadow);
     }
 
     private void drawScaledCenteredText(GuiGraphicsExtractor graphics, String text, int centerX, int y, float scale, int color) {
@@ -245,8 +245,12 @@ public class TradeScreen extends AbstractContainerScreen<TradeMenu> {
         int textWidth = this.font.width(text);
         graphics.pose().pushMatrix();
         graphics.pose().scale(scale, scale);
-        graphics.text(this.font, text, (int) ((centerX - textWidth * scale / 2.0f) / scale), (int) (y / scale), color, shadow);
+        graphics.text(this.font, text, (int) ((centerX - textWidth * scale / 2.0f) / scale), (int) (y / scale), opaqueTextColor(color), shadow);
         graphics.pose().popMatrix();
+    }
+
+    private static int opaqueTextColor(int color) {
+        return (color & 0xFF000000) == 0 ? color | 0xFF000000 : color;
     }
 
     private boolean isOverItemsHint(double mouseX, double mouseY) {
@@ -283,12 +287,12 @@ public class TradeScreen extends AbstractContainerScreen<TradeMenu> {
 
     @Override
     protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-        int myColor = this.menu.myLock ? 0x00AA00 : 4210752;
-        int otherColor = this.menu.otherLock ? 0x00AA00 : 4210752;
+        int myColor = this.menu.myLock ? 0xFF00AA00 : 0xFF404040;
+        int otherColor = this.menu.otherLock ? 0xFF00AA00 : 0xFF404040;
 
         graphics.text(this.font, Component.translatable("securetrade.gui.me"), 8, 6, myColor, false);
         graphics.text(this.font, Component.translatable("securetrade.gui.them"), 116, 6, otherColor, false);
-        graphics.text(this.font, this.playerInventoryTitle, 8, this.imageHeight - 94, 4210752, false);
+        graphics.text(this.font, this.playerInventoryTitle, 8, this.imageHeight - 94, 0xFF404040, false);
 
         if (this.menu.otherXP > this.lastOtherXP && this.menu.otherXP > 0 && !this.xpTabSelected) {
             this.xpTabSelected = true;

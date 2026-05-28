@@ -23,17 +23,19 @@ loom {
     runs {
         client {
             client()
-            runDir "run"
+            runDir "run/client"
+            programArg "--username"
+            programArg "Dev"
         }
         client2 {
             client()
-            runDir "run"
+            runDir "run/client2"
             programArg "--username"
             programArg "Dev2"
         }
         server {
             server()
-            runDir "run"
+            runDir "run/server"
         }
     }
 }

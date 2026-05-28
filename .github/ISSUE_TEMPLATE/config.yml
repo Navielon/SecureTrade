@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Secure Trade on CurseForge
+    url: https://www.curseforge.com/minecraft/mc-mods/secure-trade
+    about: Download the latest CurseForge release.
+  - name: Secure Trade on Modrinth
+    url: https://modrinth.com/mod/secure-trade
+    about: Download the latest Modrinth release.

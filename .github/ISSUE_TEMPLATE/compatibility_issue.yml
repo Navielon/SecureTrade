@@ -1,0 +1,80 @@
+name: Compatibility issue
+description: Report a conflict with another mod, modpack, permission plugin, or custom server setup.
+title: "[Compatibility]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form when Secure Trade works by itself, but has problems with another mod or server setup.
+
+  - type: input
+    id: minecraft-version
+    attributes:
+      label: Minecraft version
+      placeholder: "Example: 1.21.1"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: loader
+    attributes:
+      label: Mod loader
+      options:
+        - Fabric
+        - NeoForge
+    validations:
+      required: true
+
+  - type: input
+    id: mod-version
+    attributes:
+      label: Secure Trade version
+      placeholder: "Example: 1.1.0"
+    validations:
+      required: true
+
+  - type: input
+    id: affected-mod
+    attributes:
+      label: Affected mod, modpack, or plugin
+      placeholder: "Example: Sophisticated Backpacks"
+    validations:
+      required: true
+
+  - type: textarea
+    id: compatibility-problem
+    attributes:
+      label: What is the compatibility problem?
+      description: Describe the conflict and what Secure Trade does incorrectly.
+      placeholder: "Example: A blacklisted item can still be traded when it is inside ..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Include the item, container, command, or server rule involved.
+      placeholder: |
+        1. Install ...
+        2. Put ...
+        3. Start a trade
+        4. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: mod-list
+    attributes:
+      label: Mod list
+      description: Paste the relevant mod list or link the modpack.
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Attach or paste latest.log if available.
+      render: text

@@ -1,0 +1,36 @@
+name: Feature request
+description: Suggest an improvement or new feature for Secure Trade.
+title: "[Feature]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the suggestion. Please explain the use case, not only the solution.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: Describe the gameplay, server, or modpack situation where this would help.
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: Describe what you would like Secure Trade to do.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: If you have tried another workaround or mod, describe it here.
+
+  - type: textarea
+    id: extra-context
+    attributes:
+      label: Additional context
+      description: Screenshots, examples, server rules, or modpack details can help.

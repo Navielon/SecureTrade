@@ -30,7 +30,7 @@ By default, trades work across any distance and dimension. Server owners can kee
 - One active trade or pending request per player.
 - Trade history command for checking recent exchanges.
 - Optional async transaction logging to `logs/securetrade.log`.
-- English and Russian localization.
+- Localization for 23 languages, including English, Russian, Portuguese, German, Spanish, Chinese, French, Polish, Japanese, Korean, Turkish, Italian, Ukrainian, Dutch, Czech, Indonesian, Vietnamese, Arabic, Swedish, Finnish, and Hungarian.
 - Fabric and NeoForge support for Minecraft 1.21.1.
 
 ## Commands

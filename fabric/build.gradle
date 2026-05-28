@@ -8,10 +8,10 @@ dependencies {
         officialMojangMappings()
         parchment("org.parchmentmc.data:parchment-${parchment_minecraft_version}:${parchment_mappings_version}@zip")
     }
-    
+
     modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
-    
+
     implementation project(':common')
 }
 
@@ -24,6 +24,12 @@ loom {
         client {
             client()
             runDir "run"
+        }
+        client2 {
+            client()
+            runDir "run"
+            programArg "--username"
+            programArg "Dev2"
         }
         server {
             server()
@@ -47,5 +53,15 @@ processResources {
     filesMatching("fabric.mod.json") {
         expand "version": modVersion,
                "minecraft_version": mcVersion
+    }
+}
+
+sourceSets {
+    main {
+        resources {
+            srcDirs += [
+                project(':common').file('src/main/resources')
+            ]
+        }
     }
 }

@@ -7,15 +7,21 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 public class TradeNetwork {
     public static void register(PayloadRegistrar registrar) {
-        registrar.playBidirectional(
+        // FIX #6: Use directional registration instead of Bidirectional
+        registrar.playToServer(
                 TradeLockPacket.TYPE,
                 TradeLockPacket.STREAM_CODEC,
                 TradeNetwork::handleLockPacket
         );
-        registrar.playBidirectional(
+        registrar.playToClient(
                 TradeStateSyncPacket.TYPE,
                 TradeStateSyncPacket.STREAM_CODEC,
                 TradeNetwork::handleStateSyncPacket
+        );
+        registrar.playToServer(
+                TradeXPChangePacket.TYPE,
+                TradeXPChangePacket.STREAM_CODEC,
+                TradeNetwork::handleXPChangePacket
         );
     }
 
@@ -28,12 +34,23 @@ public class TradeNetwork {
         });
     }
 
+    private static void handleXPChangePacket(TradeXPChangePacket payload, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            Player player = context.player();
+            if (player.containerMenu instanceof TradeMenu tradeMenu) {
+                tradeMenu.setOfferedXP(player, payload.xpPoints());
+            }
+        });
+    }
+
     private static void handleStateSyncPacket(TradeStateSyncPacket payload, IPayloadContext context) {
         context.enqueueWork(() -> {
             Player player = context.player();
             if (player.containerMenu instanceof TradeMenu tradeMenu) {
-                tradeMenu.updateClientState(payload.myLock(), payload.otherLock(), payload.countdownSeconds());
+                // FIX #5: Use updateFields on client side (no re-send)
+                tradeMenu.updateFields(payload.myLock(), payload.otherLock(), payload.countdownSeconds(), payload.myXP(), payload.otherXP());
             }
         });
     }
+
 }

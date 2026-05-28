@@ -3,6 +3,7 @@ package com.securetrade;
 import com.mojang.logging.LogUtils;
 import com.securetrade.command.TradeCommand;
 import com.securetrade.menu.TradeMenu;
+import com.securetrade.menu.TradeMenuType;
 import com.securetrade.network.TradeNetwork;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.inventory.MenuType;
@@ -25,7 +26,7 @@ public class SecureTradeMod {
 
     public static final DeferredHolder<MenuType<?>, MenuType<TradeMenu>> TRADE_MENU = MENUS.register("trade_menu", () -> {
         MenuType<TradeMenu> type = IMenuTypeExtension.create((windowId, inv, data) -> new TradeMenu(windowId, inv));
-        com.securetrade.menu.TradeMenuType.TRADE_MENU = type;
+        TradeMenuType.set(type);
         return type;
     });
 

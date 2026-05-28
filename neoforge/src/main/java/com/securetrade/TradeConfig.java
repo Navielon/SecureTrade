@@ -4,12 +4,16 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 
 public class TradeConfig {
     public static final ModConfigSpec SPEC;
-    
+
     public static final ModConfigSpec.IntValue REQUEST_TIMEOUT_SECONDS;
     public static final ModConfigSpec.DoubleValue MAX_TRADE_DISTANCE;
     public static final ModConfigSpec.BooleanValue ENABLE_TRADE_LOGGING;
     public static final ModConfigSpec.IntValue COUNTDOWN_SECONDS;
     public static final ModConfigSpec.IntValue TRADE_COOLDOWN_SECONDS;
+    public static final ModConfigSpec.ConfigValue<java.util.List<? extends String>> BLACKLISTED_ITEMS;
+    public static final ModConfigSpec.ConfigValue<java.util.List<? extends String>> ALLOWED_DIMENSIONS;
+    public static final ModConfigSpec.ConfigValue<java.util.List<? extends String>> BLOCKED_DIMENSIONS;
+    public static final ModConfigSpec.IntValue MAX_HISTORY_ENTRIES;
 
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
@@ -35,6 +39,22 @@ public class TradeConfig {
         TRADE_COOLDOWN_SECONDS = builder
                 .comment("Cooldown in seconds before a player can send another trade request to the same player")
                 .defineInRange("tradeCooldownSeconds", 10, 0, 3600);
+
+        BLACKLISTED_ITEMS = builder
+                .comment("List of item IDs that cannot be traded")
+                .defineListAllowEmpty("blacklistedItems", java.util.List.of("minecraft:bedrock"), o -> o instanceof String);
+
+        ALLOWED_DIMENSIONS = builder
+                .comment("List of dimension IDs where trading is allowed (leave empty to allow all)")
+                .defineListAllowEmpty("allowedDimensions", java.util.List.of(), o -> o instanceof String);
+
+        BLOCKED_DIMENSIONS = builder
+                .comment("List of dimension IDs where trading is blocked (leave empty to block none)")
+                .defineListAllowEmpty("blockedDimensions", java.util.List.of(), o -> o instanceof String);
+
+        MAX_HISTORY_ENTRIES = builder
+                .comment("Maximum number of trade history entries to keep")
+                .defineInRange("maxHistoryEntries", 5, 1, 100);
 
         builder.pop();
         SPEC = builder.build();

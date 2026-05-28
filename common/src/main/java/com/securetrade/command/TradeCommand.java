@@ -3,6 +3,9 @@ package com.securetrade.command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.securetrade.platform.Services;
 import com.securetrade.menu.TradeMenu;
+import com.securetrade.TradeHistoryManager;
+import com.securetrade.TradeMessages;
+import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
@@ -65,6 +68,8 @@ public class TradeCommand {
                         .executes(context -> acceptTrade(context.getSource())))
                 .then(Commands.literal("deny")
                         .executes(context -> denyTrade(context.getSource())))
+                .then(Commands.literal("history")
+                        .executes(context -> showHistory(context.getSource())))
         );
     }
 
@@ -73,17 +78,30 @@ public class TradeCommand {
         if (sender == null) return 0;
 
         if (sender.getUUID().equals(target.getUUID())) {
-            sender.sendSystemMessage(Component.translatable("securetrade.cannot_trade_self"));
+            TradeMessages.error(sender, Component.translatable("securetrade.cannot_trade_self"));
             return 0;
         }
 
         // Busy Check: Check if either player is already trading
         if (sender.containerMenu instanceof TradeMenu) {
-            sender.sendSystemMessage(Component.translatable("securetrade.error_already_trading"));
+            TradeMessages.error(sender, Component.translatable("securetrade.error_already_trading"));
             return 0;
         }
         if (target.containerMenu instanceof TradeMenu) {
-            sender.sendSystemMessage(Component.translatable("securetrade.error_target_already_trading", target.getScoreboardName()));
+            TradeMessages.error(sender, Component.translatable("securetrade.error_target_already_trading", TradeMessages.playerName(target)));
+            return 0;
+        }
+
+        // Dimension Restrictions Check
+        String senderDim = sender.level().dimension().location().toString();
+        String targetDim = target.level().dimension().location().toString();
+
+        if (!isDimensionAllowed(senderDim)) {
+            TradeMessages.error(sender, Component.translatable("securetrade.error_blocked_dimension_self"));
+            return 0;
+        }
+        if (!isDimensionAllowed(targetDim)) {
+            TradeMessages.error(sender, Component.translatable("securetrade.error_blocked_dimension_target"));
             return 0;
         }
 
@@ -91,12 +109,12 @@ public class TradeCommand {
         double maxDist = Services.PLATFORM.getMaxTradeDistance();
         if (maxDist > 0) {
             if (!sender.level().dimension().equals(target.level().dimension())) {
-                sender.sendSystemMessage(Component.translatable("securetrade.error_different_dimensions"));
+                TradeMessages.error(sender, Component.translatable("securetrade.error_different_dimensions"));
                 return 0;
             }
             double distSq = sender.distanceToSqr(target);
             if (distSq > maxDist * maxDist) {
-                sender.sendSystemMessage(Component.translatable("securetrade.error_too_far"));
+                TradeMessages.error(sender, Component.translatable("securetrade.error_too_far"));
                 return 0;
             }
         }
@@ -122,9 +140,9 @@ public class TradeCommand {
         // If target still has an active pending request from someone else
         if (targetPending != null) {
             if (targetPending.senderId.equals(sender.getUUID())) {
-                sender.sendSystemMessage(Component.translatable("securetrade.error_already_requested"));
+                TradeMessages.warning(sender, Component.translatable("securetrade.error_already_requested"));
             } else {
-                sender.sendSystemMessage(Component.translatable("securetrade.error_target_has_pending"));
+                TradeMessages.warning(sender, Component.translatable("securetrade.error_target_has_pending"));
             }
             return 0;
         }
@@ -135,7 +153,7 @@ public class TradeCommand {
         if (cooldownExpire != null) {
             if (now < cooldownExpire) {
                 int secsLeft = (int) Math.ceil((cooldownExpire - now) / 1000.0);
-                sender.sendSystemMessage(Component.translatable("securetrade.error_cooldown", secsLeft, target.getScoreboardName()));
+                TradeMessages.warning(sender, Component.translatable("securetrade.error_cooldown", secsLeft, TradeMessages.playerName(target)));
                 return 0;
             } else {
                 tradeCooldowns.remove(cooldownKey);
@@ -146,8 +164,8 @@ public class TradeCommand {
         TradeRequest senderPending = pendingRequests.get(sender.getUUID());
         if (senderPending != null && senderPending.senderId.equals(target.getUUID()) && now <= senderPending.expirationTime) {
             pendingRequests.remove(sender.getUUID());
-            target.sendSystemMessage(Component.translatable("securetrade.trade_accepted"));
-            sender.sendSystemMessage(Component.translatable("securetrade.target_accepted", target.getScoreboardName()));
+            TradeMessages.success(target, Component.translatable("securetrade.trade_accepted"));
+            TradeMessages.success(sender, Component.translatable("securetrade.target_accepted", TradeMessages.playerName(target)));
             TradeMenu.openTrade(sender, target);
             return 1;
         }
@@ -156,20 +174,22 @@ public class TradeCommand {
         long expireAt = now + (Services.PLATFORM.getRequestTimeoutSeconds() * 1000L);
         pendingRequests.put(target.getUUID(), new TradeRequest(sender.getUUID(), expireAt));
 
-        sender.sendSystemMessage(Component.translatable("securetrade.request_sent", target.getScoreboardName()));
+        TradeMessages.info(sender, Component.translatable("securetrade.request_sent", TradeMessages.playerName(target)));
 
         Component acceptText = Component.translatable("securetrade.accept_button")
-                .withStyle(Style.EMPTY.withColor(0x00FF00)
+                .withStyle(Style.EMPTY.withColor(0x55FF55).withBold(true)
                         .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/trade accept"))
                         .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("securetrade.accept_hover"))));
 
         Component denyText = Component.translatable("securetrade.deny_button")
-                .withStyle(Style.EMPTY.withColor(0xFF0000)
+                .withStyle(Style.EMPTY.withColor(0xFF5555).withBold(true)
                         .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/trade deny"))
                         .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("securetrade.deny_hover"))));
 
-        target.sendSystemMessage(Component.translatable("securetrade.wants_to_trade", sender.getScoreboardName())
-                .append(" ").append(acceptText).append(" ").append(denyText));
+        target.sendSystemMessage(TradeMessages.format(
+                Component.translatable("securetrade.wants_to_trade", TradeMessages.playerName(sender))
+                        .append(" ").append(acceptText).append(" ").append(denyText),
+                ChatFormatting.YELLOW));
 
         return 1;
     }
@@ -180,7 +200,7 @@ public class TradeCommand {
 
         // Busy Check: is target already trading?
         if (target.containerMenu instanceof TradeMenu) {
-            target.sendSystemMessage(Component.translatable("securetrade.error_already_trading"));
+            TradeMessages.error(target, Component.translatable("securetrade.error_already_trading"));
             return 0;
         }
 
@@ -194,7 +214,7 @@ public class TradeCommand {
                     tradeCooldowns.put(new CooldownKey(request.senderId, target.getUUID()), request.expirationTime + cooldownTime);
                 }
             }
-            target.sendSystemMessage(Component.translatable("securetrade.no_pending_requests"));
+            TradeMessages.warning(target, Component.translatable("securetrade.no_pending_requests"));
             return 0;
         }
 
@@ -202,13 +222,26 @@ public class TradeCommand {
 
         ServerPlayer sender = target.server.getPlayerList().getPlayer(request.senderId);
         if (sender == null) {
-            target.sendSystemMessage(Component.translatable("securetrade.sender_offline"));
+            TradeMessages.error(target, Component.translatable("securetrade.sender_offline"));
             return 0;
         }
 
         // Busy Check: is sender already trading?
         if (sender.containerMenu instanceof TradeMenu) {
-            target.sendSystemMessage(Component.translatable("securetrade.error_target_already_trading", sender.getScoreboardName()));
+            TradeMessages.error(target, Component.translatable("securetrade.error_target_already_trading", TradeMessages.playerName(sender)));
+            return 0;
+        }
+
+        // Dimension Restrictions Check at Acceptance
+        String targetDim = target.level().dimension().location().toString();
+        String senderDim = sender.level().dimension().location().toString();
+
+        if (!isDimensionAllowed(targetDim)) {
+            TradeMessages.error(target, Component.translatable("securetrade.error_blocked_dimension_self"));
+            return 0;
+        }
+        if (!isDimensionAllowed(senderDim)) {
+            TradeMessages.error(target, Component.translatable("securetrade.error_blocked_dimension_target"));
             return 0;
         }
 
@@ -217,14 +250,14 @@ public class TradeCommand {
         if (maxDist > 0) {
             if (!sender.level().dimension().equals(target.level().dimension()) || 
                 sender.distanceToSqr(target) > maxDist * maxDist) {
-                target.sendSystemMessage(Component.translatable("securetrade.error_too_far"));
-                sender.sendSystemMessage(Component.translatable("securetrade.error_too_far"));
+                TradeMessages.error(target, Component.translatable("securetrade.error_too_far"));
+                TradeMessages.error(sender, Component.translatable("securetrade.error_too_far"));
                 return 0;
             }
         }
 
-        target.sendSystemMessage(Component.translatable("securetrade.trade_accepted"));
-        sender.sendSystemMessage(Component.translatable("securetrade.target_accepted", target.getScoreboardName()));
+        TradeMessages.success(target, Component.translatable("securetrade.trade_accepted"));
+        TradeMessages.success(sender, Component.translatable("securetrade.target_accepted", TradeMessages.playerName(target)));
 
         // Open Trade Menu for both players
         TradeMenu.openTrade(sender, target);
@@ -238,7 +271,7 @@ public class TradeCommand {
 
         // Busy Check: is target already trading?
         if (target.containerMenu instanceof TradeMenu) {
-            target.sendSystemMessage(Component.translatable("securetrade.error_already_trading"));
+            TradeMessages.error(target, Component.translatable("securetrade.error_already_trading"));
             return 0;
         }
 
@@ -252,7 +285,7 @@ public class TradeCommand {
                     tradeCooldowns.put(new CooldownKey(request.senderId, target.getUUID()), request.expirationTime + cooldownTime);
                 }
             }
-            target.sendSystemMessage(Component.translatable("securetrade.no_pending_requests"));
+            TradeMessages.warning(target, Component.translatable("securetrade.no_pending_requests"));
             return 0;
         }
 
@@ -266,10 +299,44 @@ public class TradeCommand {
 
         ServerPlayer sender = target.server.getPlayerList().getPlayer(request.senderId);
         if (sender != null) {
-            sender.sendSystemMessage(Component.translatable("securetrade.target_denied", target.getScoreboardName()));
+            TradeMessages.warning(sender, Component.translatable("securetrade.target_denied", TradeMessages.playerName(target)));
         }
-        target.sendSystemMessage(Component.translatable("securetrade.trade_denied"));
+        TradeMessages.warning(target, Component.translatable("securetrade.trade_denied"));
 
         return 1;
+    }
+
+    private static boolean isDimensionAllowed(String dimensionId) {
+        java.util.List<String> allowed = Services.PLATFORM.getAllowedDimensions();
+        java.util.List<String> blocked = Services.PLATFORM.getBlockedDimensions();
+
+        if (allowed != null && !allowed.isEmpty()) {
+            return allowed.contains(dimensionId);
+        }
+        if (blocked != null && !blocked.isEmpty()) {
+            return !blocked.contains(dimensionId);
+        }
+        return true;
+    }
+
+    private static int showHistory(CommandSourceStack source) {
+        ServerPlayer player = source.getPlayer();
+        if (player == null) return 0;
+
+        TradeHistoryManager.showHistory(player);
+        return 1;
+    }
+
+    // FIX #4: Clear all cached data on server stop to prevent memory leaks
+    public static void clearAll() {
+        pendingRequests.clear();
+        tradeCooldowns.clear();
+    }
+
+    // FIX #4: Periodic cleanup of expired entries (called from server tick)
+    public static void pruneExpired() {
+        long now = System.currentTimeMillis();
+        pendingRequests.entrySet().removeIf(entry -> now > entry.getValue().expirationTime);
+        tradeCooldowns.entrySet().removeIf(entry -> now > entry.getValue());
     }
 }

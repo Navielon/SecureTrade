@@ -25,4 +25,13 @@ public class TradeSessionManager {
             session.tick();
         }
     }
+
+    // FIX #9: Cancel all active sessions and clear the list (called on server stop)
+    public static synchronized void cancelAllAndClear() {
+        List<TradeSession> copy = new ArrayList<>(activeSessions);
+        for (TradeSession session : copy) {
+            session.cancelTrade();
+        }
+        activeSessions.clear();
+    }
 }

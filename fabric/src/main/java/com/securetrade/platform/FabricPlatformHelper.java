@@ -3,6 +3,7 @@ package com.securetrade.platform;
 import com.securetrade.FabricTradeConfig;
 import com.securetrade.network.TradeLockPacket;
 import com.securetrade.network.TradeStateSyncPacket;
+import com.securetrade.network.TradeXPChangePacket;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.level.ServerPlayer;
@@ -14,8 +15,13 @@ public class FabricPlatformHelper implements IPlatformHelper {
     }
 
     @Override
-    public void sendStateSync(ServerPlayer player, boolean myLock, boolean otherLock, int countdownSeconds) {
-        ServerPlayNetworking.send(player, new TradeStateSyncPacket(myLock, otherLock, countdownSeconds));
+    public void sendXPChangePacket(int xpPoints) {
+        ClientPlayNetworking.send(new TradeXPChangePacket(xpPoints));
+    }
+
+    @Override
+    public void sendStateSync(ServerPlayer player, boolean myLock, boolean otherLock, int countdownSeconds, int myXP, int otherXP) {
+        ServerPlayNetworking.send(player, new TradeStateSyncPacket(myLock, otherLock, countdownSeconds, myXP, otherXP));
     }
 
     @Override
@@ -41,5 +47,25 @@ public class FabricPlatformHelper implements IPlatformHelper {
     @Override
     public boolean isLoggingEnabled() {
         return FabricTradeConfig.enableTradeLogging;
+    }
+
+    @Override
+    public java.util.List<String> getBlacklistedItems() {
+        return FabricTradeConfig.blacklistedItems;
+    }
+
+    @Override
+    public java.util.List<String> getAllowedDimensions() {
+        return FabricTradeConfig.allowedDimensions;
+    }
+
+    @Override
+    public java.util.List<String> getBlockedDimensions() {
+        return FabricTradeConfig.blockedDimensions;
+    }
+
+    @Override
+    public int getMaxHistoryEntries() {
+        return FabricTradeConfig.maxHistoryEntries;
     }
 }

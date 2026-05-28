@@ -3,6 +3,7 @@ package com.securetrade.platform;
 import com.securetrade.TradeConfig;
 import com.securetrade.network.TradeLockPacket;
 import com.securetrade.network.TradeStateSyncPacket;
+import com.securetrade.network.TradeXPChangePacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 
@@ -13,8 +14,13 @@ public class NeoForgePlatformHelper implements IPlatformHelper {
     }
 
     @Override
-    public void sendStateSync(ServerPlayer player, boolean myLock, boolean otherLock, int countdownSeconds) {
-        PacketDistributor.sendToPlayer(player, new TradeStateSyncPacket(myLock, otherLock, countdownSeconds));
+    public void sendXPChangePacket(int xpPoints) {
+        PacketDistributor.sendToServer(new TradeXPChangePacket(xpPoints));
+    }
+
+    @Override
+    public void sendStateSync(ServerPlayer player, boolean myLock, boolean otherLock, int countdownSeconds, int myXP, int otherXP) {
+        PacketDistributor.sendToPlayer(player, new TradeStateSyncPacket(myLock, otherLock, countdownSeconds, myXP, otherXP));
     }
 
     @Override
@@ -40,5 +46,25 @@ public class NeoForgePlatformHelper implements IPlatformHelper {
     @Override
     public boolean isLoggingEnabled() {
         return TradeConfig.ENABLE_TRADE_LOGGING.get();
+    }
+
+    @Override
+    public java.util.List<String> getBlacklistedItems() {
+        return (java.util.List<String>) TradeConfig.BLACKLISTED_ITEMS.get();
+    }
+
+    @Override
+    public java.util.List<String> getAllowedDimensions() {
+        return (java.util.List<String>) TradeConfig.ALLOWED_DIMENSIONS.get();
+    }
+
+    @Override
+    public java.util.List<String> getBlockedDimensions() {
+        return (java.util.List<String>) TradeConfig.BLOCKED_DIMENSIONS.get();
+    }
+
+    @Override
+    public int getMaxHistoryEntries() {
+        return TradeConfig.MAX_HISTORY_ENTRIES.get();
     }
 }

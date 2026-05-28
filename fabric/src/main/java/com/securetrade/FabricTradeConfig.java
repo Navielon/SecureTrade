@@ -18,6 +18,10 @@ public class FabricTradeConfig {
     public static boolean enableTradeLogging = true;
     public static int countdownSeconds = 3;
     public static int tradeCooldownSeconds = 10;
+    public static java.util.List<String> blacklistedItems = new java.util.ArrayList<>(java.util.List.of("minecraft:bedrock"));
+    public static java.util.List<String> allowedDimensions = new java.util.ArrayList<>();
+    public static java.util.List<String> blockedDimensions = new java.util.ArrayList<>();
+    public static int maxHistoryEntries = 5;
 
     public static void load() {
         try {
@@ -55,8 +59,20 @@ public class FabricTradeConfig {
                             case "tradeCooldownSeconds":
                                 tradeCooldownSeconds = Math.max(0, Math.min(3600, Integer.parseInt(val)));
                                 break;
+                            case "blacklistedItems":
+                                blacklistedItems = parseList(val);
+                                break;
+                            case "allowedDimensions":
+                                allowedDimensions = parseList(val);
+                                break;
+                            case "blockedDimensions":
+                                blockedDimensions = parseList(val);
+                                break;
+                            case "maxHistoryEntries":
+                                maxHistoryEntries = Math.max(1, Math.min(100, Integer.parseInt(val)));
+                                break;
                         }
-                    } catch (NumberFormatException e) {
+                    } catch (Exception e) {
                         LOGGER.error("Failed to parse config value for key: " + key + ", value: " + val, e);
                     }
                 }
@@ -64,6 +80,27 @@ public class FabricTradeConfig {
         } catch (IOException e) {
             LOGGER.error("Failed to load securetrade-server.toml", e);
         }
+    }
+
+    private static java.util.List<String> parseList(String val) {
+        java.util.List<String> list = new java.util.ArrayList<>();
+        val = val.trim();
+        if (val.startsWith("[") && val.endsWith("]")) {
+            val = val.substring(1, val.length() - 1);
+            if (!val.trim().isEmpty()) {
+                String[] items = val.split(",");
+                for (String item : items) {
+                    item = item.trim();
+                    if ((item.startsWith("\"") && item.endsWith("\"")) || (item.startsWith("'") && item.endsWith("'"))) {
+                        item = item.substring(1, item.length() - 1);
+                    }
+                    if (!item.isEmpty()) {
+                        list.add(item);
+                    }
+                }
+            }
+        }
+        return list;
     }
 
     private static void writeDefaultConfig() {
@@ -87,7 +124,19 @@ public class FabricTradeConfig {
                     "countdownSeconds = 3\n" +
                     "\n" +
                     "# Cooldown in seconds before a player can send another trade request to the same player\n" +
-                    "tradeCooldownSeconds = 10\n";
+                    "tradeCooldownSeconds = 10\n" +
+                    "\n" +
+                    "# List of item IDs that cannot be traded\n" +
+                    "blacklistedItems = [\"minecraft:bedrock\"]\n" +
+                    "\n" +
+                    "# List of dimension IDs where trading is allowed (leave empty to allow all)\n" +
+                    "allowedDimensions = []\n" +
+                    "\n" +
+                    "# List of dimension IDs where trading is blocked (leave empty to block none)\n" +
+                    "blockedDimensions = []\n" +
+                    "\n" +
+                    "# Maximum number of trade history entries to keep\n" +
+                    "maxHistoryEntries = 5\n";
 
             Files.writeString(CONFIG_PATH, defaultConfig);
         } catch (IOException e) {

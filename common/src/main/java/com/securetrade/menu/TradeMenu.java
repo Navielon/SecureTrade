@@ -19,13 +19,15 @@ public class TradeMenu extends AbstractContainerMenu {
     public boolean myLock = false;
     public boolean otherLock = false;
     public int countdownSeconds = -1;
+    public int myXP = 0;
+    public int otherXP = 0;
     
     private final Container myContainer;
     private final Container otherContainer;
 
     // Client-side constructor
     public TradeMenu(int containerId, Inventory playerInventory) {
-        super(TradeMenuType.TRADE_MENU, containerId);
+        super(TradeMenuType.get(), containerId);
         this.session = null;
         this.isPlayer1 = true;
         this.myContainer = new SimpleContainer(12);
@@ -35,7 +37,7 @@ public class TradeMenu extends AbstractContainerMenu {
 
     // Server-side constructor
     public TradeMenu(int containerId, Inventory playerInventory, TradeSession session, boolean isPlayer1) {
-        super(TradeMenuType.TRADE_MENU, containerId);
+        super(TradeMenuType.get(), containerId);
         this.session = session;
         this.isPlayer1 = isPlayer1;
         this.myContainer = isPlayer1 ? session.inventory1 : session.inventory2;
@@ -48,6 +50,10 @@ public class TradeMenu extends AbstractContainerMenu {
         for (int row = 0; row < 4; ++row) {
             for (int col = 0; col < 3; ++col) {
                 this.addSlot(new Slot(myContainer, col + row * 3, 8 + col * 18, 18 + row * 18) {
+                    @Override
+                    public boolean mayPlace(ItemStack stack) {
+                        return !stack.isEmpty() && !isBlacklisted(stack);
+                    }
                     @Override
                     public void setChanged() {
                         super.setChanged();
@@ -86,23 +92,40 @@ public class TradeMenu extends AbstractContainerMenu {
         }
     }
 
+    private boolean isBlacklisted(ItemStack stack) {
+        if (stack.isEmpty()) return false;
+        String itemId = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+        return Services.PLATFORM.getBlacklistedItems().contains(itemId);
+    }
+
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
         ItemStack itemstack = ItemStack.EMPTY;
         Slot slot = this.slots.get(index);
+
+        // FIX #13: Explicitly block Shift-click from partner's slots (12-23)
+        if (index >= 12 && index < 24) {
+            return ItemStack.EMPTY;
+        }
+
         if (slot != null && slot.hasItem()) {
             ItemStack itemstack1 = slot.getItem();
             itemstack = itemstack1.copy();
             
-            // From Trade slots to Player Inventory
-            if (index < 24) {
+            // From My Trade slots (0-11) to Player Inventory
+            if (index < 12) {
                 if (!this.moveItemStackTo(itemstack1, 24, this.slots.size(), true)) {
                     return ItemStack.EMPTY;
                 }
             } 
             // From Player Inventory to My Trade slots (0-11)
-            else if (!this.moveItemStackTo(itemstack1, 0, 12, false)) {
-                return ItemStack.EMPTY;
+            else {
+                if (isBlacklisted(itemstack1)) {
+                    return ItemStack.EMPTY;
+                }
+                if (!this.moveItemStackTo(itemstack1, 0, 12, false)) {
+                    return ItemStack.EMPTY;
+                }
             }
 
             if (itemstack1.isEmpty()) {
@@ -119,6 +142,7 @@ public class TradeMenu extends AbstractContainerMenu {
         return true;
     }
 
+
     @Override
     public void removed(Player player) {
         super.removed(player);
@@ -133,14 +157,31 @@ public class TradeMenu extends AbstractContainerMenu {
         }
     }
 
-    public void updateClientState(boolean myLock, boolean otherLock, int countdownSeconds) {
+    public void setOfferedXP(Player player, int xp) {
+        if (session != null && player instanceof ServerPlayer serverPlayer) {
+            session.setOfferedXP(serverPlayer, xp);
+        }
+    }
+
+    // FIX #5: Client-only method to update local fields from server sync packet
+    public void updateFields(boolean myLock, boolean otherLock, int countdownSeconds, int myXP, int otherXP) {
         this.myLock = myLock;
         this.otherLock = otherLock;
         this.countdownSeconds = countdownSeconds;
-        // Broadcast packet to client if server
+        this.myXP = myXP;
+        this.otherXP = otherXP;
+    }
+
+    // FIX #5: Server-only method to sync state to client
+    public void syncToClient(boolean myLock, boolean otherLock, int countdownSeconds, int myXP, int otherXP) {
+        this.myLock = myLock;
+        this.otherLock = otherLock;
+        this.countdownSeconds = countdownSeconds;
+        this.myXP = myXP;
+        this.otherXP = otherXP;
         if (session != null) {
             ServerPlayer myPlayer = isPlayer1 ? session.player1 : session.player2;
-            Services.PLATFORM.sendStateSync(myPlayer, myLock, otherLock, countdownSeconds);
+            Services.PLATFORM.sendStateSync(myPlayer, myLock, otherLock, countdownSeconds, myXP, otherXP);
         }
     }
 

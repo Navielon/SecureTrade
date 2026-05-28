@@ -1,6 +1,8 @@
 package com.securetrade.platform;
 
+import java.util.List;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 
 public interface IPlatformHelper {
     // Client-to-Server: Send packet when player clicks Lock/Ready
@@ -11,6 +13,9 @@ public interface IPlatformHelper {
 
     // Server-to-Client: Sync trade state (locks, countdown, offered XP) to specific player
     void sendStateSync(ServerPlayer player, boolean myLock, boolean otherLock, int countdownSeconds, int myXP, int otherXP);
+
+    // Loader-specific nested item storage checks, such as Forge item handler capabilities.
+    boolean containsPlatformContainerItems(ItemStack stack, List<String> blacklist, int depth);
 
     // Config Getters
     double getMaxTradeDistance();

@@ -1,7 +1,6 @@
 package com.securetrade;
 
 import com.securetrade.platform.Services;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
@@ -39,7 +38,7 @@ public final class TradeItemValidator {
         return false;
     }
 
-    private static boolean containsBlacklistedItem(ItemStack stack, List<String> blacklist, int depth) {
+    public static boolean containsBlacklistedItem(ItemStack stack, List<String> blacklist, int depth) {
         if (stack.isEmpty()) {
             return false;
         }
@@ -78,7 +77,7 @@ public final class TradeItemValidator {
             }
         }
 
-        if (containsForgeItemHandlerItems(stack, blacklist, depth + 1)) {
+        if (Services.PLATFORM.containsPlatformContainerItems(stack, blacklist, depth + 1)) {
             return true;
         }
 
@@ -87,27 +86,6 @@ public final class TradeItemValidator {
         }
 
         return false;
-    }
-
-    private static boolean containsForgeItemHandlerItems(ItemStack stack, List<String> blacklist, int depth) {
-        try {
-            Class<?> forgeCapabilitiesClass = Class.forName("net.minecraftforge.common.capabilities.ForgeCapabilities");
-            Class<?> capabilityClass = Class.forName("net.minecraftforge.common.capabilities.Capability");
-            Field itemHandlerField = forgeCapabilitiesClass.getField("ITEM_HANDLER");
-            Object itemHandlerCapability = itemHandlerField.get(null);
-            Method getCapability = stack.getClass().getMethod("getCapability", capabilityClass);
-            Object lazyOptional = getCapability.invoke(stack, itemHandlerCapability);
-            Method resolve = lazyOptional.getClass().getMethod("resolve");
-            Object optional = resolve.invoke(lazyOptional);
-            if (!(optional instanceof Optional<?> opt) || opt.isEmpty()) {
-                return false;
-            }
-            return containsHandlerItems(opt.get(), blacklist, depth);
-        } catch (ClassNotFoundException | NoSuchMethodException ignored) {
-            return false;
-        } catch (ReflectiveOperationException | RuntimeException ignored) {
-            return false;
-        }
     }
 
     private static boolean containsSophisticatedBackpackItems(ItemStack stack, List<String> blacklist, int depth) {
@@ -130,7 +108,7 @@ public final class TradeItemValidator {
         }
     }
 
-    private static boolean containsHandlerItems(Object handler, List<String> blacklist, int depth) throws ReflectiveOperationException {
+    public static boolean containsHandlerItems(Object handler, List<String> blacklist, int depth) throws ReflectiveOperationException {
         if (handler == null) {
             return false;
         }

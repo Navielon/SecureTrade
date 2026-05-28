@@ -1,11 +1,17 @@
 package com.securetrade.platform;
 
 import com.securetrade.TradeConfig;
+import com.securetrade.TradeItemValidator;
 import com.securetrade.network.TradeLockPacket;
 import com.securetrade.network.TradeNetwork;
 import com.securetrade.network.TradeStateSyncPacket;
 import com.securetrade.network.TradeXPChangePacket;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Optional;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 
 public class ForgePlatformHelper implements IPlatformHelper {
     @Override
@@ -21,6 +27,28 @@ public class ForgePlatformHelper implements IPlatformHelper {
     @Override
     public void sendStateSync(ServerPlayer player, boolean myLock, boolean otherLock, int countdownSeconds, int myXP, int otherXP) {
         TradeNetwork.sendToPlayer(player, new TradeStateSyncPacket(myLock, otherLock, countdownSeconds, myXP, otherXP));
+    }
+
+    @Override
+    public boolean containsPlatformContainerItems(ItemStack stack, List<String> blacklist, int depth) {
+        try {
+            Class<?> forgeCapabilitiesClass = Class.forName("net.minecraftforge.common.capabilities.ForgeCapabilities");
+            Class<?> capabilityClass = Class.forName("net.minecraftforge.common.capabilities.Capability");
+            Field itemHandlerField = forgeCapabilitiesClass.getField("ITEM_HANDLER");
+            Object itemHandlerCapability = itemHandlerField.get(null);
+            Method getCapability = stack.getClass().getMethod("getCapability", capabilityClass);
+            Object lazyOptional = getCapability.invoke(stack, itemHandlerCapability);
+            Method resolve = lazyOptional.getClass().getMethod("resolve");
+            Object optional = resolve.invoke(lazyOptional);
+            if (!(optional instanceof Optional<?> opt) || opt.isEmpty()) {
+                return false;
+            }
+            return TradeItemValidator.containsHandlerItems(opt.get(), blacklist, depth);
+        } catch (ClassNotFoundException | NoSuchMethodException ignored) {
+            return false;
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            return false;
+        }
     }
 
     @Override

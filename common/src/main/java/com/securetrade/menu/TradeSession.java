@@ -28,8 +28,8 @@ public class TradeSession {
     private boolean isFinished = false;
 
     private int countdownTicks = -1;
-    private long lastPlayer1XPTick = -1;
-    private long lastPlayer2XPTick = -1;
+    private int pendingPlayer1XP = -1;
+    private int pendingPlayer2XP = -1;
 
     public TradeSession(ServerPlayer player1, ServerPlayer player2) {
         this.player1 = player1;
@@ -91,6 +91,26 @@ public class TradeSession {
             }
         }
 
+        // Apply the last XP value received during this server tick.
+        boolean xpChanged = false;
+        if (pendingPlayer1XP >= 0) {
+            if (player1XP != pendingPlayer1XP) {
+                player1XP = pendingPlayer1XP;
+                xpChanged = true;
+            }
+            pendingPlayer1XP = -1;
+        }
+        if (pendingPlayer2XP >= 0) {
+            if (player2XP != pendingPlayer2XP) {
+                player2XP = pendingPlayer2XP;
+                xpChanged = true;
+            }
+            pendingPlayer2XP = -1;
+        }
+        if (xpChanged) {
+            onStateChanged();
+        }
+
         // Countdown tick
         if (countdownTicks > 0) {
             countdownTicks--;
@@ -124,28 +144,13 @@ public class TradeSession {
             return;
         }
 
-        long currentTick = player.server.getTickCount();
         int maxXP = XPMath.getPlayerXP(player);
         int offeredXP = Math.max(0, Math.min(maxXP, xp));
 
         if (player == player1) {
-            if (lastPlayer1XPTick == currentTick) {
-                return;
-            }
-            lastPlayer1XPTick = currentTick;
-            if (player1XP != offeredXP) {
-                player1XP = offeredXP;
-                onStateChanged();
-            }
+            pendingPlayer1XP = offeredXP;
         } else if (player == player2) {
-            if (lastPlayer2XPTick == currentTick) {
-                return;
-            }
-            lastPlayer2XPTick = currentTick;
-            if (player2XP != offeredXP) {
-                player2XP = offeredXP;
-                onStateChanged();
-            }
+            pendingPlayer2XP = offeredXP;
         }
     }
 

@@ -31,13 +31,15 @@ public class XPMath {
     }
 
     public static void setPlayerXP(ServerPlayer player, int totalXp) {
-        player.totalExperience = totalXp;
-        player.experienceLevel = getLevelForXp(totalXp);
+        int clampedXp = Math.max(0, totalXp);
+        int delta = clampedXp - getPlayerXP(player);
+        player.totalExperience = Math.max(0, player.totalExperience + delta);
+        player.experienceLevel = getLevelForXp(clampedXp);
         int xpForCurrentLevel = getXpForLevels(player.experienceLevel);
         int xpForNextLevel = getXpForLevels(player.experienceLevel + 1);
         int difference = xpForNextLevel - xpForCurrentLevel;
         if (difference > 0) {
-            player.experienceProgress = (float) (totalXp - xpForCurrentLevel) / (float) difference;
+            player.experienceProgress = (float) (clampedXp - xpForCurrentLevel) / (float) difference;
         } else {
             player.experienceProgress = 0.0f;
         }

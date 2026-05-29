@@ -1,0 +1,37 @@
+package com.securetrade.menu;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class TradeSessionManager {
+    private static final List<TradeSession> activeSessions = new ArrayList<>();
+
+    public static synchronized void register(TradeSession session) {
+        if (!activeSessions.contains(session)) {
+            activeSessions.add(session);
+        }
+    }
+
+    public static synchronized void unregister(TradeSession session) {
+        activeSessions.remove(session);
+    }
+
+    public static synchronized void tick() {
+        List<TradeSession> copy;
+        synchronized (TradeSessionManager.class) {
+            copy = new ArrayList<>(activeSessions);
+        }
+        for (TradeSession session : copy) {
+            session.tick();
+        }
+    }
+
+    // FIX #9: Cancel all active sessions and clear the list (called on server stop)
+    public static synchronized void cancelAllAndClear() {
+        List<TradeSession> copy = new ArrayList<>(activeSessions);
+        for (TradeSession session : copy) {
+            session.cancelTrade();
+        }
+        activeSessions.clear();
+    }
+}

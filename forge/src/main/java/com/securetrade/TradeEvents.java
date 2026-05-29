@@ -2,7 +2,7 @@ package com.securetrade;
 
 import com.securetrade.menu.TradeSessionManager;
 import com.securetrade.command.TradeCommand;
-import net.minecraftforge.event.server.ServerStoppingEvent;
+import net.minecraftforge.fml.event.server.FMLServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.event.TickEvent;
@@ -23,7 +23,7 @@ public class TradeEvents {
     }
 
     @SubscribeEvent
-    public static void onServerStopping(ServerStoppingEvent event) {
+    public static void onServerStopping(FMLServerStoppingEvent event) {
         TradeSessionManager.cancelAllAndClear();
         TradeCommand.clearAll();
         TradeLogger.shutdown();

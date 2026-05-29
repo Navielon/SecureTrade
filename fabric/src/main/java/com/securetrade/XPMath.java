@@ -1,14 +1,14 @@
 package com.securetrade;
 
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.network.play.server.SSetExperiencePacket;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.network.packet.s2c.play.ExperienceBarUpdateS2CPacket;
 
 public class XPMath {
 
     public static int getPlayerXP(net.minecraft.entity.player.PlayerEntity player) {
         int level = player.experienceLevel;
         int xp = getXpForLevels(level);
-        xp += Math.round(player.experienceProgress * player.getXpNeededForNextLevel());
+        xp += Math.round(player.experienceProgress * player.getNextLevelExperience());
         return xp;
     }
 
@@ -44,7 +44,7 @@ public class XPMath {
             player.experienceProgress = 0.0f;
         }
         player.experienceProgress = Math.max(0.0f, Math.min(1.0f, player.experienceProgress));
-        player.connection.send(new SSetExperiencePacket(
+        player.networkHandler.sendPacket(new ExperienceBarUpdateS2CPacket(
             player.experienceProgress,
             player.totalExperience,
             player.experienceLevel

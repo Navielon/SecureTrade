@@ -1,16 +1,17 @@
 package com.securetrade;
 
-import com.mojang.logging.LogUtils;
-import org.slf4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 
 public class FabricTradeConfig {
-    private static final Logger LOGGER = LogUtils.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger();
     private static final Path CONFIG_PATH = Paths.get("config", "securetrade-server.toml");
 
     public static int requestTimeoutSeconds = 60;
@@ -18,7 +19,7 @@ public class FabricTradeConfig {
     public static boolean enableTradeLogging = true;
     public static int countdownSeconds = 3;
     public static int tradeCooldownSeconds = 10;
-    public static java.util.List<String> blacklistedItems = new java.util.ArrayList<>(java.util.List.of("minecraft:bedrock"));
+    public static java.util.List<String> blacklistedItems = new java.util.ArrayList<>(Arrays.asList("minecraft:bedrock"));
     public static java.util.List<String> allowedDimensions = new java.util.ArrayList<>();
     public static java.util.List<String> blockedDimensions = new java.util.ArrayList<>();
     public static int maxHistoryEntries = 5;

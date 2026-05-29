@@ -1,7 +1,8 @@
 package com.securetrade.client;
 
 import com.securetrade.SecureTradeMod;
-import net.minecraft.client.gui.screens.MenuScreens;
+import com.securetrade.client.TradeScreen;
+import net.minecraft.client.gui.ScreenManager;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -13,7 +14,7 @@ public class ClientEvents {
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
         event.enqueueWork(() -> {
-            MenuScreens.register(SecureTradeMod.TRADE_MENU.get(), TradeScreen::new);
+            ScreenManager.register(SecureTradeMod.TRADE_MENU.get(), TradeScreen::new);
         });
     }
 }

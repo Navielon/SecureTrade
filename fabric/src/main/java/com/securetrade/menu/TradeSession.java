@@ -7,18 +7,19 @@ import com.securetrade.TradeItemValidator;
 import com.securetrade.TradeMessages;
 import com.securetrade.XPMath;
 import net.minecraft.util.registry.Registry;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.inventory.Inventory;
+import net.minecraft.sound.SoundEvent;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.sound.SoundEvents;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.world.ServerWorld;
 
 public class TradeSession {
     public final ServerPlayerEntity player1;
     public final ServerPlayerEntity player2;
-    public final Inventory inventory1;
-    public final Inventory inventory2;
+    public final SimpleInventory inventory1;
+    public final SimpleInventory inventory2;
 
     public boolean player1Locked = false;
     public boolean player2Locked = false;
@@ -34,8 +35,8 @@ public class TradeSession {
     public TradeSession(ServerPlayerEntity player1, ServerPlayerEntity player2) {
         this.player1 = player1;
         this.player2 = player2;
-        this.inventory1 = new Inventory(12);
-        this.inventory2 = new Inventory(12);
+        this.inventory1 = new SimpleInventory(12);
+        this.inventory2 = new SimpleInventory(12);
         TradeSessionManager.register(this);
     }
 
@@ -84,8 +85,8 @@ public class TradeSession {
         // Dimension restrictions are handled separately via allowedDimensions/blockedDimensions config.
         double maxDist = Services.PLATFORM.getMaxTradeDistance();
         if (maxDist > 0) {
-            if (!player1.level.dimension().equals(player2.level.dimension()) ||
-                player1.distanceToSqr(player2) > maxDist * maxDist) {
+            if (!player1.world.getRegistryKey().equals(player2.world.getRegistryKey()) ||
+                player1.squaredDistanceTo(player2) > maxDist * maxDist) {
                 cancelTrade();
                 return;
             }
@@ -131,12 +132,12 @@ public class TradeSession {
 
     private void syncState() {
         int secs = countdownTicks == -1 ? -1 : (countdownTicks + 19) / 20;
-        if (player1.containerMenu instanceof TradeMenu) {
-            TradeMenu menu1 = (TradeMenu) player1.containerMenu;
+        if (player1.currentScreenHandler instanceof TradeMenu) {
+            TradeMenu menu1 = (TradeMenu) player1.currentScreenHandler;
             menu1.syncToClient(player1Locked, player2Locked, secs, player1XP, player2XP);
         }
-        if (player2.containerMenu instanceof TradeMenu) {
-            TradeMenu menu2 = (TradeMenu) player2.containerMenu;
+        if (player2.currentScreenHandler instanceof TradeMenu) {
+            TradeMenu menu2 = (TradeMenu) player2.currentScreenHandler;
             menu2.syncToClient(player2Locked, player1Locked, secs, player2XP, player1XP);
         }
     }
@@ -155,12 +156,12 @@ public class TradeSession {
     }
 
     private void playNotifySound(SoundEvent sound, float volume, float pitch) {
-        player1.playNotifySound(sound, SoundCategory.MASTER, volume, pitch);
-        player2.playNotifySound(sound, SoundCategory.MASTER, volume, pitch);
+        player1.playSound(sound, SoundCategory.MASTER, volume, pitch);
+        player2.playSound(sound, SoundCategory.MASTER, volume, pitch);
     }
 
     private void playAbortedSound() {
-        playNotifySound(SoundEvents.DISPENSER_FAIL, 1.0f, 1.0f);
+        playNotifySound(SoundEvents.BLOCK_DISPENSER_FAIL, 1.0f, 1.0f);
     }
 
     private void executeTrade() {
@@ -189,12 +190,12 @@ public class TradeSession {
         // Log transaction
         StringBuilder logMsg = new StringBuilder();
         logMsg.append("Trade completed between ")
-              .append(player1.getScoreboardName()).append(" (").append(player1.getUUID()).append(") and ")
-              .append(player2.getScoreboardName()).append(" (").append(player2.getUUID()).append(").\n");
+              .append(player1.getEntityName()).append(" (").append(player1.getUuid()).append(") and ")
+              .append(player2.getEntityName()).append(" (").append(player2.getUuid()).append(").\n");
 
-        logMsg.append("  ").append(player1.getScoreboardName()).append(" offered: ").append(player1XP).append(" XP, ");
+        logMsg.append("  ").append(player1.getEntityName()).append(" offered: ").append(player1XP).append(" XP, ");
         appendInventoryItems(logMsg, inventory1);
-        logMsg.append("\n  ").append(player2.getScoreboardName()).append(" offered: ").append(player2XP).append(" XP, ");
+        logMsg.append("\n  ").append(player2.getEntityName()).append(" offered: ").append(player2XP).append(" XP, ");
         appendInventoryItems(logMsg, inventory2);
 
         TradeLogger.log(logMsg.toString());
@@ -207,7 +208,7 @@ public class TradeSession {
         TradeMessages.success(player1, TradeMessages.trans("securetrade.trade_successful"));
         TradeMessages.success(player2, TradeMessages.trans("securetrade.trade_successful"));
 
-        playNotifySound(SoundEvents.PLAYER_LEVELUP, 1.0f, 1.0f);
+        playNotifySound(SoundEvents.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
 
         // Deduct and add XP
         XPMath.setPlayerXP(player1, p1Xp - player1XP + player2XP);
@@ -215,47 +216,47 @@ public class TradeSession {
 
         isFinished = true;
         TradeSessionManager.unregister(this);
-        player1.closeContainer();
-        player2.closeContainer();
+        player1.closeHandledScreen();
+        player2.closeHandledScreen();
     }
 
     /**
      * FIX #1: Safely transfers items from a container to a player.
      * Handles cases where the player may have disconnected.
      */
-    private void transferItems(Inventory from, ServerPlayerEntity to) {
-        for (int i = 0; i < from.getContainerSize(); i++) {
-            ItemStack stack = from.getItem(i);
+    private void transferItems(SimpleInventory from, ServerPlayerEntity to) {
+        for (int i = 0; i < from.size(); i++) {
+            ItemStack stack = from.getStack(i);
             if (!stack.isEmpty()) {
                 if (isPlayerOnline(to)) {
-                    if (!to.inventory.add(stack)) {
-                        to.drop(stack, false);
+                    if (!to.inventory.insertStack(stack)) {
+                        to.dropItem(stack, false, false);
                     }
                 } else {
                     // Player disconnected РІР‚вЂќ drop items at their last known position
-                    to.level.addFreshEntity(
-                        new net.minecraft.entity.item.ItemEntity(
-                            to.level, to.getX(), to.getY(), to.getZ(), stack
+                    ((ServerWorld) to.world).spawnEntity(
+                        new net.minecraft.entity.ItemEntity(
+                            to.world, to.getX(), to.getY(), to.getZ(), stack
                         )
                     );
                 }
-                from.setItem(i, ItemStack.EMPTY);
+                from.setStack(i, ItemStack.EMPTY);
             }
         }
     }
 
     private static boolean isPlayerOnline(ServerPlayerEntity player) {
-        return player.connection != null && !player.hasDisconnected();
+        return player.networkHandler != null && !player.isDisconnected();
     }
 
-    private void appendInventoryItems(StringBuilder sb, Inventory container) {
+    private void appendInventoryItems(StringBuilder sb, SimpleInventory container) {
         boolean first = true;
         sb.append("[");
-        for (int i = 0; i < container.getContainerSize(); i++) {
-            ItemStack stack = container.getItem(i);
+        for (int i = 0; i < container.size(); i++) {
+            ItemStack stack = container.getStack(i);
             if (!stack.isEmpty()) {
                 if (!first) sb.append(", ");
-                sb.append(stack.getCount()).append("x ").append(Registry.ITEM.getKey(stack.getItem()));
+                sb.append(stack.getCount()).append("x ").append(Registry.ITEM.getId(stack.getItem()));
                 first = false;
             }
         }
@@ -271,14 +272,14 @@ public class TradeSession {
         transferItems(inventory2, player2);
 
         if (isPlayerOnline(player1)) {
-            player1.playNotifySound(SoundEvents.DISPENSER_FAIL, SoundCategory.MASTER, 1.0f, 1.0f);
+            player1.playSound(SoundEvents.BLOCK_DISPENSER_FAIL, SoundCategory.MASTER, 1.0f, 1.0f);
             TradeMessages.warning(player1, TradeMessages.trans("securetrade.trade_cancelled"));
-            if (player1.containerMenu instanceof TradeMenu) player1.closeContainer();
+            if (player1.currentScreenHandler instanceof TradeMenu) player1.closeHandledScreen();
         }
         if (isPlayerOnline(player2)) {
-            player2.playNotifySound(SoundEvents.DISPENSER_FAIL, SoundCategory.MASTER, 1.0f, 1.0f);
+            player2.playSound(SoundEvents.BLOCK_DISPENSER_FAIL, SoundCategory.MASTER, 1.0f, 1.0f);
             TradeMessages.warning(player2, TradeMessages.trans("securetrade.trade_cancelled"));
-            if (player2.containerMenu instanceof TradeMenu) player2.closeContainer();
+            if (player2.currentScreenHandler instanceof TradeMenu) player2.closeHandledScreen();
         }
 
         TradeSessionManager.unregister(this);

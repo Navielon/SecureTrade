@@ -2,13 +2,13 @@ package com.securetrade.network;
 
 import com.securetrade.menu.TradeMenu;
 import net.minecraft.client.Minecraft;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.network.NetworkRegistry;
-import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.network.simple.SimpleChannel;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.fml.network.NetworkDirection;
+import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraftforge.fml.network.NetworkRegistry;
+import net.minecraftforge.fml.network.PacketDistributor;
+import net.minecraftforge.fml.network.simple.SimpleChannel;
+import net.minecraft.entity.player.ServerPlayerEntity;
 
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -47,8 +47,9 @@ public class TradeNetwork {
     private static void handleLock(TradeLockPacket msg, Supplier<NetworkEvent.Context> contextSupplier) {
         NetworkEvent.Context context = contextSupplier.get();
         context.enqueueWork(() -> {
-            ServerPlayer player = context.getSender();
-            if (player != null && player.containerMenu instanceof TradeMenu tradeMenu) {
+            ServerPlayerEntity player = context.getSender();
+            if (player != null && player.containerMenu instanceof TradeMenu) {
+                TradeMenu tradeMenu = (TradeMenu) player.containerMenu;
                 tradeMenu.setLocked(player, msg.locked());
             }
         });
@@ -58,8 +59,9 @@ public class TradeNetwork {
     private static void handleXPChange(TradeXPChangePacket msg, Supplier<NetworkEvent.Context> contextSupplier) {
         NetworkEvent.Context context = contextSupplier.get();
         context.enqueueWork(() -> {
-            ServerPlayer player = context.getSender();
-            if (player != null && player.containerMenu instanceof TradeMenu tradeMenu) {
+            ServerPlayerEntity player = context.getSender();
+            if (player != null && player.containerMenu instanceof TradeMenu) {
+                TradeMenu tradeMenu = (TradeMenu) player.containerMenu;
                 tradeMenu.setOfferedXP(player, msg.xpPoints());
             }
         });
@@ -70,7 +72,8 @@ public class TradeNetwork {
         NetworkEvent.Context context = contextSupplier.get();
         context.enqueueWork(() -> {
             Minecraft mc = Minecraft.getInstance();
-            if (mc.player != null && mc.player.containerMenu instanceof TradeMenu tradeMenu) {
+            if (mc.player != null && mc.player.containerMenu instanceof TradeMenu) {
+                TradeMenu tradeMenu = (TradeMenu) mc.player.containerMenu;
                 tradeMenu.updateFields(msg.myLock(), msg.otherLock(), msg.countdownSeconds(), msg.myXP(), msg.otherXP());
             }
         });
@@ -81,7 +84,7 @@ public class TradeNetwork {
         CHANNEL.sendToServer(message);
     }
 
-    public static void sendToPlayer(ServerPlayer player, Object message) {
+    public static void sendToPlayer(ServerPlayerEntity player, Object message) {
         CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), message);
     }
 }

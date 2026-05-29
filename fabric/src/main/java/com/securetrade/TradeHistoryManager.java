@@ -4,15 +4,15 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.securetrade.platform.Services;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.event.HoverEvent;
-import net.minecraft.util.text.IFormattableTextComponent;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.storage.FolderName;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
+import net.minecraft.text.HoverEvent;
+import net.minecraft.text.MutableText;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.WorldSavePath;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -52,20 +52,20 @@ public class TradeHistoryManager {
         }
     }
 
-    public static void recordTrade(ServerPlayerEntity p1, ServerPlayerEntity p2, net.minecraft.inventory.Inventory inv1, net.minecraft.inventory.Inventory inv2, int p1XP, int p2XP) {
+    public static void recordTrade(ServerPlayerEntity p1, ServerPlayerEntity p2, net.minecraft.inventory.SimpleInventory inv1, net.minecraft.inventory.SimpleInventory inv2, int p1XP, int p2XP) {
         try {
             MinecraftServer server = p1.getServer();
             if (server == null) return;
             
-            Path historyFile = server.getWorldPath(FolderName.ROOT).resolve("securetrade-history.json");
+            Path historyFile = server.getSavePath(WorldSavePath.ROOT).resolve("securetrade-history.json");
             List<TradeEntry> history = loadHistory(historyFile);
 
             TradeEntry entry = new TradeEntry();
             entry.timestamp = System.currentTimeMillis();
-            entry.senderName = p1.getScoreboardName();
-            entry.senderUuid = p1.getUUID().toString();
-            entry.targetName = p2.getScoreboardName();
-            entry.targetUuid = p2.getUUID().toString();
+            entry.senderName = p1.getEntityName();
+            entry.senderUuid = p1.getUuid().toString();
+            entry.targetName = p2.getEntityName();
+            entry.targetUuid = p2.getUuid().toString();
             entry.senderItems = getItemsList(inv1);
             entry.targetItems = getItemsList(inv2);
             entry.senderXP = p1XP;
@@ -84,14 +84,14 @@ public class TradeHistoryManager {
         }
     }
 
-    private static List<ItemInfo> getItemsList(net.minecraft.inventory.Inventory container) {
+    private static List<ItemInfo> getItemsList(net.minecraft.inventory.SimpleInventory container) {
         List<ItemInfo> list = new ArrayList<>();
-        for (int i = 0; i < container.getContainerSize(); i++) {
-            ItemStack stack = container.getItem(i);
+        for (int i = 0; i < container.size(); i++) {
+            ItemStack stack = container.getStack(i);
             if (!stack.isEmpty()) {
-                String id = Registry.ITEM.getKey(stack.getItem()).toString();
+                String id = Registry.ITEM.getId(stack.getItem()).toString();
                 int count = stack.getCount();
-                String displayName = stack.getHoverName().getString();
+                String displayName = stack.getName().getString();
                 list.add(new ItemInfo(id, count, displayName));
             }
         }
@@ -129,10 +129,10 @@ public class TradeHistoryManager {
             MinecraftServer server = player.getServer();
             if (server == null) return;
 
-            Path historyFile = server.getWorldPath(FolderName.ROOT).resolve("securetrade-history.json");
+            Path historyFile = server.getSavePath(WorldSavePath.ROOT).resolve("securetrade-history.json");
             List<TradeEntry> history = loadHistory(historyFile);
 
-            String playerUuid = player.getUUID().toString();
+            String playerUuid = player.getUuid().toString();
             List<TradeEntry> playerHistory = new ArrayList<>();
             for (TradeEntry entry : history) {
                 if (playerUuid.equals(entry.senderUuid) || playerUuid.equals(entry.targetUuid)) {
@@ -144,11 +144,11 @@ public class TradeHistoryManager {
             int toShow = Math.min(maxEntries, playerHistory.size());
 
             if (toShow == 0) {
-                TradeMessages.sendRaw(player, TradeMessages.trans("securetrade.history.empty").withStyle(TextFormatting.GRAY));
+                TradeMessages.sendRaw(player, TradeMessages.trans("securetrade.history.empty").formatted(Formatting.GRAY));
                 return;
             }
 
-            TradeMessages.sendRaw(player, TradeMessages.trans("securetrade.history.title").withStyle(TextFormatting.GOLD, TextFormatting.BOLD));
+            TradeMessages.sendRaw(player, TradeMessages.trans("securetrade.history.title").formatted(Formatting.GOLD, Formatting.BOLD));
 
             for (int i = 0; i < toShow; i++) {
                 TradeEntry entry = playerHistory.get(i);
@@ -157,8 +157,8 @@ public class TradeHistoryManager {
                 String otherName = playerUuid.equals(entry.senderUuid) ? entry.targetName : entry.senderName;
                 
                 // Format entry title, e.g. "1. Trade with Player2:"
-                ITextComponent otherNameComponent = TradeMessages.text(otherName).withStyle(TextFormatting.AQUA);
-                TradeMessages.sendRaw(player, TradeMessages.trans("securetrade.history.entry", i + 1, otherNameComponent).withStyle(TextFormatting.GRAY));
+                Text otherNameComponent = TradeMessages.text(otherName).formatted(Formatting.AQUA);
+                TradeMessages.sendRaw(player, TradeMessages.trans("securetrade.history.entry", i + 1, otherNameComponent).formatted(Formatting.GRAY));
 
                 // Determine what was given and received by THIS player
                 List<ItemInfo> gaveItems = playerUuid.equals(entry.senderUuid) ? entry.senderItems : entry.targetItems;
@@ -166,30 +166,30 @@ public class TradeHistoryManager {
                 int gaveXP = playerUuid.equals(entry.senderUuid) ? entry.senderXP : entry.targetXP;
                 int receivedXP = playerUuid.equals(entry.senderUuid) ? entry.targetXP : entry.senderXP;
 
-                ITextComponent gaveComponent = formatItemsAndXP(gaveItems, gaveXP);
-                TradeMessages.sendRaw(player, TradeMessages.trans("securetrade.history.gave", gaveComponent).withStyle(TextFormatting.RED));
+                Text gaveComponent = formatItemsAndXP(gaveItems, gaveXP);
+                TradeMessages.sendRaw(player, TradeMessages.trans("securetrade.history.gave", gaveComponent).formatted(Formatting.RED));
 
-                ITextComponent receivedComponent = formatItemsAndXP(receivedItems, receivedXP);
-                TradeMessages.sendRaw(player, TradeMessages.trans("securetrade.history.received", receivedComponent).withStyle(TextFormatting.GREEN));
+                Text receivedComponent = formatItemsAndXP(receivedItems, receivedXP);
+                TradeMessages.sendRaw(player, TradeMessages.trans("securetrade.history.received", receivedComponent).formatted(Formatting.GREEN));
             }
         } catch (Exception e) {
-            TradeMessages.sendRaw(player, TradeMessages.text("Error reading trade history: " + e.getMessage()).withStyle(TextFormatting.RED));
+            TradeMessages.sendRaw(player, TradeMessages.text("Error reading trade history: " + e.getMessage()).formatted(Formatting.RED));
         }
     }
 
-    private static ITextComponent formatItemsAndXP(List<ItemInfo> items, int xp) {
+    private static Text formatItemsAndXP(List<ItemInfo> items, int xp) {
         boolean hasItems = items != null && !items.isEmpty();
         if (!hasItems && xp <= 0) {
-            return TradeMessages.trans("securetrade.history.nothing").withStyle(TextFormatting.GRAY);
+            return TradeMessages.trans("securetrade.history.nothing").formatted(Formatting.GRAY);
         }
 
-        IFormattableTextComponent result = TradeMessages.empty();
+        MutableText result = TradeMessages.empty();
         boolean hasContent = false;
 
         if (hasItems) {
             for (ItemInfo item : items) {
                 if (hasContent) {
-                    result.append(TradeMessages.text(", ").withStyle(TextFormatting.GRAY));
+                    result.append(TradeMessages.text(", ").formatted(Formatting.GRAY));
                 }
                 result.append(formatItem(item));
                 hasContent = true;
@@ -198,34 +198,34 @@ public class TradeHistoryManager {
 
         if (xp > 0) {
             if (hasContent) {
-                result.append(TradeMessages.text(", ").withStyle(TextFormatting.GRAY));
+                result.append(TradeMessages.text(", ").formatted(Formatting.GRAY));
             }
-            result.append(TradeMessages.text(xp + " XP").withStyle(TextFormatting.AQUA));
+            result.append(TradeMessages.text(xp + " XP").formatted(Formatting.AQUA));
         }
 
         return result;
     }
 
-    private static ITextComponent formatItem(ItemInfo item) {
-        IFormattableTextComponent itemName = resolveItemName(item).withStyle(TextFormatting.YELLOW);
-        ITextComponent hoverText = TradeMessages.text(item.id + "\n" + item.count + "x").withStyle(TextFormatting.GRAY);
+    private static Text formatItem(ItemInfo item) {
+        MutableText itemName = resolveItemName(item).formatted(Formatting.YELLOW);
+        Text hoverText = TradeMessages.text(item.id + "\n" + item.count + "x").formatted(Formatting.GRAY);
 
         return TradeMessages.empty()
-                .append(TradeMessages.text(item.count + "x ").withStyle(TextFormatting.GRAY))
+                .append(TradeMessages.text(item.count + "x ").formatted(Formatting.GRAY))
                 .append(itemName)
-                .withStyle(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText)));
+                .styled(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText)));
     }
 
-    private static IFormattableTextComponent resolveItemName(ItemInfo item) {
+    private static MutableText resolveItemName(ItemInfo item) {
         if (item == null || item.id == null || item.id.trim().isEmpty()) {
             return TradeMessages.trans("securetrade.history.unknown_item");
         }
 
         try {
-            ResourceLocation id = new ResourceLocation(item.id);
+            Identifier id = new Identifier(item.id);
             Item resolvedItem = Registry.ITEM.get(id);
             if (resolvedItem != null && (resolvedItem != Items.AIR || "minecraft:air".equals(item.id))) {
-                return TradeMessages.trans(resolvedItem.getDescriptionId());
+                return TradeMessages.trans(resolvedItem.getTranslationKey());
             }
         } catch (Exception ignored) {
             // Fall back to the stored legacy display name below.

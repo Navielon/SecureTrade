@@ -1,65 +1,68 @@
 package com.securetrade;
 
-import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.Util;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.IFormattableTextComponent;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.entity.player.ServerPlayerEntity;
 
 public final class TradeMessages {
     private TradeMessages() {
     }
 
-    public static Component playerName(ServerPlayer player) {
-        return text(player.getScoreboardName()).withStyle(ChatFormatting.AQUA);
+    public static ITextComponent playerName(ServerPlayerEntity player) {
+        return text(player.getScoreboardName()).withStyle(TextFormatting.AQUA);
     }
 
-    public static Component playerName(String name) {
-        return text(name).withStyle(ChatFormatting.AQUA);
+    public static ITextComponent playerName(String name) {
+        return text(name).withStyle(TextFormatting.AQUA);
     }
 
-    public static MutableComponent text(String value) {
-        return new TextComponent(value);
+    public static IFormattableTextComponent text(String value) {
+        return new StringTextComponent(value);
     }
 
-    public static MutableComponent trans(String key, Object... args) {
-        return new TranslatableComponent(key, args);
+    public static IFormattableTextComponent trans(String key, Object... args) {
+        return new TranslationTextComponent(key, args);
     }
 
-    public static MutableComponent empty() {
-        return new TextComponent("");
+    public static IFormattableTextComponent empty() {
+        return new StringTextComponent("");
     }
 
-    public static void info(ServerPlayer player, Component message) {
-        send(player, message, ChatFormatting.GRAY);
+    public static void info(ServerPlayerEntity player, ITextComponent message) {
+        send(player, message, TextFormatting.GRAY);
     }
 
-    public static void success(ServerPlayer player, Component message) {
-        send(player, message, ChatFormatting.GREEN);
+    public static void success(ServerPlayerEntity player, ITextComponent message) {
+        send(player, message, TextFormatting.GREEN);
     }
 
-    public static void warning(ServerPlayer player, Component message) {
-        send(player, message, ChatFormatting.YELLOW);
+    public static void warning(ServerPlayerEntity player, ITextComponent message) {
+        send(player, message, TextFormatting.YELLOW);
     }
 
-    public static void error(ServerPlayer player, Component message) {
-        send(player, message, ChatFormatting.RED);
+    public static void error(ServerPlayerEntity player, ITextComponent message) {
+        send(player, message, TextFormatting.RED);
     }
 
-    public static MutableComponent format(Component message, ChatFormatting color) {
+    public static IFormattableTextComponent format(ITextComponent message, TextFormatting color) {
+        IFormattableTextComponent formattable = message instanceof IFormattableTextComponent
+                ? (IFormattableTextComponent) message
+                : message.copy();
         return empty()
-                .append(text("Secure Trade").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD))
-                .append(text(" | ").withStyle(ChatFormatting.DARK_GRAY))
-                .append(message.copy().withStyle(color));
+                .append(text("Secure Trade").withStyle(TextFormatting.GOLD, TextFormatting.BOLD))
+                .append(text(" | ").withStyle(TextFormatting.DARK_GRAY))
+                .append(formattable.withStyle(color));
     }
 
-    public static void sendRaw(ServerPlayer player, Component message) {
+    public static void sendRaw(ServerPlayerEntity player, ITextComponent message) {
         player.sendMessage(message, Util.NIL_UUID);
     }
 
-    private static void send(ServerPlayer player, Component message, ChatFormatting color) {
+    private static void send(ServerPlayerEntity player, ITextComponent message, TextFormatting color) {
         sendRaw(player, format(message, color));
     }
 }

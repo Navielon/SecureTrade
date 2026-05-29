@@ -2,6 +2,9 @@ package com.securetrade;
 
 import net.minecraftforge.common.ForgeConfigSpec;
 
+import java.util.Collections;
+import java.util.Arrays;
+
 public class TradeConfig {
     public static final ForgeConfigSpec SPEC;
 
@@ -42,15 +45,15 @@ public class TradeConfig {
 
         BLACKLISTED_ITEMS = builder
                 .comment("List of item IDs that cannot be traded")
-                .defineList("blacklistedItems", java.util.List.of("minecraft:bedrock"), o -> o instanceof String);
+                .defineList("blacklistedItems", Arrays.asList("minecraft:bedrock"), o -> o instanceof String);
 
         ALLOWED_DIMENSIONS = builder
                 .comment("List of dimension IDs where trading is allowed (leave empty to allow all)")
-                .defineList("allowedDimensions", java.util.List.of(), o -> o instanceof String);
+                .defineList("allowedDimensions", Collections.emptyList(), o -> o instanceof String);
 
         BLOCKED_DIMENSIONS = builder
                 .comment("List of dimension IDs where trading is blocked (leave empty to block none)")
-                .defineList("blockedDimensions", java.util.List.of(), o -> o instanceof String);
+                .defineList("blockedDimensions", Collections.emptyList(), o -> o instanceof String);
 
         MAX_HISTORY_ENTRIES = builder
                 .comment("Maximum number of trade history entries to keep")

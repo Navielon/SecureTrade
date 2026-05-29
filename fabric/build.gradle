@@ -8,10 +8,7 @@ configurations.all {
 
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
-    mappings loom.layered() {
-        officialMojangMappings()
-        parchment("org.parchmentmc.data:parchment-${parchment_minecraft_version}:${parchment_mappings_version}@zip")
-    }
+    mappings "net.fabricmc:yarn:${minecraft_version}+build.10:v2"
 
     modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
@@ -44,7 +41,6 @@ loom {
 
 tasks.named('jar', Jar) {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    from project(':common').sourceSets.main.output
 }
 
 processResources {
@@ -62,29 +58,10 @@ processResources {
 
 sourceSets {
     main {
-        compileClasspath += project(':common').sourceSets.main.output
-        runtimeClasspath += project(':common').sourceSets.main.output
-
         resources {
             srcDirs += [
                 project(':common').file('src/main/resources')
             ]
         }
     }
-}
-
-tasks.named('compileJava') {
-    dependsOn project(':common').tasks.named('classes')
-}
-
-tasks.named('runClient') {
-    dependsOn project(':common').tasks.named('classes')
-}
-
-tasks.named('runClient2') {
-    dependsOn project(':common').tasks.named('classes')
-}
-
-tasks.named('runServer') {
-    dependsOn project(':common').tasks.named('classes')
 }

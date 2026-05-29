@@ -1,6 +1,6 @@
 package com.securetrade.network;
 
-import net.minecraft.network.PacketBuffer;
+import net.minecraft.network.PacketByteBuf;
 
 public class TradeLockPacket {
     private final boolean locked;
@@ -9,11 +9,11 @@ public class TradeLockPacket {
         this.locked = locked;
     }
 
-    public TradeLockPacket(PacketBuffer buf) {
+    public TradeLockPacket(PacketByteBuf buf) {
         this.locked = buf.readBoolean();
     }
 
-    public void write(PacketBuffer buf) {
+    public void write(PacketByteBuf buf) {
         buf.writeBoolean(this.locked);
     }
 

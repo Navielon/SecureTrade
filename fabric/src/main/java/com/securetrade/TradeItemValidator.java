@@ -5,9 +5,10 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.util.registry.Registry;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
 import net.minecraft.inventory.Inventory;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtList;
+import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 
 public final class TradeItemValidator {
@@ -30,8 +31,8 @@ public final class TradeItemValidator {
             return false;
         }
 
-        for (int i = 0; i < container.getContainerSize(); i++) {
-            if (containsBlacklistedItem(container.getItem(i), blacklist, 0)) {
+        for (int i = 0; i < container.size(); i++) {
+            if (containsBlacklistedItem(container.getStack(i), blacklist, 0)) {
                 return true;
             }
         }
@@ -43,7 +44,7 @@ public final class TradeItemValidator {
             return false;
         }
 
-        String itemId = Registry.ITEM.getKey(stack.getItem()).toString();
+        String itemId = Registry.ITEM.getId(stack.getItem()).toString();
         if (blacklist.contains(itemId)) {
             return true;
         }
@@ -53,13 +54,13 @@ public final class TradeItemValidator {
         }
 
         // 1.20.1: read container contents from NBT (BlockEntityTag.Items for shulkers etc.)
-        CompoundNBT tag = stack.getTag();
+        NbtCompound tag = stack.getTag();
         if (tag != null) {
-            CompoundNBT blockEntityTag = tag.getCompound("BlockEntityTag");
+            NbtCompound blockEntityTag = tag.getCompound("BlockEntityTag");
             if (blockEntityTag.contains("Items")) {
-                ListNBT items = blockEntityTag.getList("Items", 10); // 10 = TAG_COMPOUND
+                NbtList items = blockEntityTag.getList("Items", 10); // 10 = TAG_COMPOUND
                 for (int i = 0; i < items.size(); i++) {
-                    ItemStack nestedStack = ItemStack.of(items.getCompound(i));
+                    ItemStack nestedStack = ItemStack.fromNbt(items.getCompound(i));
                     if (containsBlacklistedItem(nestedStack, blacklist, depth + 1)) {
                         return true;
                     }
@@ -67,9 +68,9 @@ public final class TradeItemValidator {
             }
             // Fallback: top-level Items list (some mods/containers)
             if (tag.contains("Items")) {
-                ListNBT items = tag.getList("Items", 10);
+                NbtList items = tag.getList("Items", 10);
                 for (int i = 0; i < items.size(); i++) {
-                    ItemStack nestedStack = ItemStack.of(items.getCompound(i));
+                    ItemStack nestedStack = ItemStack.fromNbt(items.getCompound(i));
                     if (containsBlacklistedItem(nestedStack, blacklist, depth + 1)) {
                         return true;
                     }

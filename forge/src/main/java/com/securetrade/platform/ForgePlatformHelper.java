@@ -10,8 +10,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.item.ItemStack;
 
 public class ForgePlatformHelper implements IPlatformHelper {
     @Override
@@ -25,7 +25,7 @@ public class ForgePlatformHelper implements IPlatformHelper {
     }
 
     @Override
-    public void sendStateSync(ServerPlayer player, boolean myLock, boolean otherLock, int countdownSeconds, int myXP, int otherXP) {
+    public void sendStateSync(ServerPlayerEntity player, boolean myLock, boolean otherLock, int countdownSeconds, int myXP, int otherXP) {
         TradeNetwork.sendToPlayer(player, new TradeStateSyncPacket(myLock, otherLock, countdownSeconds, myXP, otherXP));
     }
 
@@ -40,7 +40,11 @@ public class ForgePlatformHelper implements IPlatformHelper {
             Object lazyOptional = getCapability.invoke(stack, itemHandlerCapability);
             Method resolve = lazyOptional.getClass().getMethod("resolve");
             Object optional = resolve.invoke(lazyOptional);
-            if (!(optional instanceof Optional<?> opt) || opt.isEmpty()) {
+            if (!(optional instanceof Optional)) {
+                return false;
+            }
+            Optional<?> opt = (Optional<?>) optional;
+            if (!opt.isPresent()) {
                 return false;
             }
             return TradeItemValidator.containsHandlerItems(opt.get(), blacklist, depth);

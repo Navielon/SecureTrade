@@ -3,19 +3,19 @@ package com.securetrade.menu;
 import com.securetrade.TradeItemValidator;
 import com.securetrade.TradeMessages;
 import com.securetrade.platform.Services;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.container.INamedContainerProvider;
+import net.minecraft.text.Text;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.inventory.Inventory;
+import net.minecraft.inventory.SimpleInventory;
+import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.Slot;
+import net.minecraft.screen.ScreenHandler;
+import net.minecraft.screen.slot.Slot;
 import net.minecraft.item.ItemStack;
 
 
-public class TradeMenu extends Container {
+public class TradeMenu extends ScreenHandler {
     public final TradeSession session;
     public final boolean isPlayer1;
     public boolean myLock = false;
@@ -24,16 +24,16 @@ public class TradeMenu extends Container {
     public int myXP = 0;
     public int otherXP = 0;
     
-    private final IInventory myContainer;
-    private final IInventory otherContainer;
+    private final Inventory myContainer;
+    private final Inventory otherContainer;
 
     // Client-side constructor
     public TradeMenu(int containerId, PlayerInventory playerInventory) {
         super(TradeMenuType.get(), containerId);
         this.session = null;
         this.isPlayer1 = true;
-        this.myContainer = new Inventory(12);
-        this.otherContainer = new Inventory(12);
+        this.myContainer = new SimpleInventory(12);
+        this.otherContainer = new SimpleInventory(12);
         setupSlots(playerInventory);
     }
 
@@ -53,12 +53,12 @@ public class TradeMenu extends Container {
             for (int col = 0; col < 3; ++col) {
                 this.addSlot(new Slot(myContainer, col + row * 3, 8 + col * 18, 18 + row * 18) {
                     @Override
-                    public boolean mayPlace(ItemStack stack) {
+                    public boolean canInsert(ItemStack stack) {
                         return !stack.isEmpty() && !isBlacklisted(stack);
                     }
                     @Override
-                    public void setChanged() {
-                        super.setChanged();
+                    public void markDirty() {
+                        super.markDirty();
                         if (session != null) session.onStateChanged();
                     }
                 });
@@ -70,11 +70,11 @@ public class TradeMenu extends Container {
             for (int col = 0; col < 3; ++col) {
                 this.addSlot(new Slot(otherContainer, col + row * 3, 116 + col * 18, 18 + row * 18) {
                     @Override
-                    public boolean mayPlace(ItemStack stack) {
+                    public boolean canInsert(ItemStack stack) {
                         return false; // Cannot place items in other player's slots
                     }
                     @Override
-                    public boolean mayPickup(PlayerEntity playerIn) {
+                    public boolean canTakeItems(PlayerEntity playerIn) {
                         return false; // Cannot pick up other player's items
                     }
                 });
@@ -99,7 +99,7 @@ public class TradeMenu extends Container {
     }
 
     @Override
-    public ItemStack quickMoveStack(PlayerEntity player, int index) {
+    public ItemStack transferSlot(PlayerEntity player, int index) {
         ItemStack itemstack = ItemStack.EMPTY;
         Slot slot = this.slots.get(index);
 
@@ -108,13 +108,13 @@ public class TradeMenu extends Container {
             return ItemStack.EMPTY;
         }
 
-        if (slot != null && slot.hasItem()) {
-            ItemStack itemstack1 = slot.getItem();
+        if (slot != null && slot.hasStack()) {
+            ItemStack itemstack1 = slot.getStack();
             itemstack = itemstack1.copy();
             
             // From My Trade slots (0-11) to Player Inventory
             if (index < 12) {
-                if (!this.moveItemStackTo(itemstack1, 24, this.slots.size(), true)) {
+                if (!this.insertItem(itemstack1, 24, this.slots.size(), true)) {
                     return ItemStack.EMPTY;
                 }
             } 
@@ -123,30 +123,30 @@ public class TradeMenu extends Container {
                 if (isBlacklisted(itemstack1)) {
                     return ItemStack.EMPTY;
                 }
-                if (!this.moveItemStackTo(itemstack1, 0, 12, false)) {
+                if (!this.insertItem(itemstack1, 0, 12, false)) {
                     return ItemStack.EMPTY;
                 }
             }
 
             if (itemstack1.isEmpty()) {
-                slot.set(ItemStack.EMPTY);
+                slot.setStack(ItemStack.EMPTY);
             } else {
-                slot.setChanged();
+                slot.markDirty();
             }
         }
         return itemstack;
     }
 
     @Override
-    public boolean stillValid(PlayerEntity player) {
+    public boolean canUse(PlayerEntity player) {
         return true;
     }
 
 
     @Override
-    public void removed(PlayerEntity player) {
-        super.removed(player);
-        if (session != null && !player.level.isClientSide()) {
+    public void close(PlayerEntity player) {
+        super.close(player);
+        if (session != null && !player.world.isClient) {
             session.cancelTrade();
         }
     }
@@ -190,26 +190,26 @@ public class TradeMenu extends Container {
     public static void openTrade(ServerPlayerEntity player1, ServerPlayerEntity player2) {
         TradeSession session = new TradeSession(player1, player2);
         
-        player1.openMenu(new INamedContainerProvider() {
+        player1.openHandledScreen(new NamedScreenHandlerFactory() {
             @Override
-            public ITextComponent getDisplayName() {
-                return TradeMessages.text("Trade with " + player2.getScoreboardName());
+            public Text getDisplayName() {
+                return TradeMessages.text("Trade with " + player2.getEntityName());
             }
 
             @Override
-            public Container createMenu(int id, PlayerInventory inv, PlayerEntity player) {
+            public ScreenHandler createMenu(int id, PlayerInventory inv, PlayerEntity player) {
                 return new TradeMenu(id, inv, session, true);
             }
         });
         
-        player2.openMenu(new INamedContainerProvider() {
+        player2.openHandledScreen(new NamedScreenHandlerFactory() {
             @Override
-            public ITextComponent getDisplayName() {
-                return TradeMessages.text("Trade with " + player1.getScoreboardName());
+            public Text getDisplayName() {
+                return TradeMessages.text("Trade with " + player1.getEntityName());
             }
 
             @Override
-            public Container createMenu(int id, PlayerInventory inv, PlayerEntity player) {
+            public ScreenHandler createMenu(int id, PlayerInventory inv, PlayerEntity player) {
                 return new TradeMenu(id, inv, session, false);
             }
         });

@@ -5,14 +5,14 @@ import com.securetrade.TradeMessages;
 import com.securetrade.menu.TradeMenu;
 import com.securetrade.platform.Services;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.gui.screen.ingame.HandledScreen;
+import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import net.minecraft.entity.player.PlayerInventory;
 
-public class TradeScreen extends ContainerScreen<TradeMenu> {
+public class TradeScreen extends HandledScreen<TradeMenu> {
     private static final int CENTER_X = 61;
     private static final int CENTER_WIDTH = 54;
     private static final int XP_BAR_X = 64;
@@ -24,64 +24,64 @@ public class TradeScreen extends ContainerScreen<TradeMenu> {
     private static final int STATUS_RIGHT_OFFSET = 112;
     private static final int STATUS_BOTTOM_OFFSET = 62;
 
-    private Button lockButton;
-    private Button itemsTabButton;
-    private Button xpTabButton;
+    private ButtonWidget lockButtonWidget;
+    private ButtonWidget itemsTabButtonWidget;
+    private ButtonWidget xpTabButtonWidget;
     private float sliderValue = 0.0f;
     private boolean isDraggingSlider = false;
     private boolean xpTabSelected = false;
     private int lastOtherXP = 0;
 
-    public TradeScreen(TradeMenu menu, PlayerInventory playerInventory, ITextComponent title) {
+    public TradeScreen(TradeMenu menu, PlayerInventory playerInventory, Text title) {
         super(menu, playerInventory, title);
-        this.imageWidth = 176;
-        this.imageHeight = 185;
+        this.backgroundWidth = 176;
+        this.backgroundHeight = 185;
     }
 
     @Override
     protected void init() {
         super.init();
 
-        int x = (this.width - this.imageWidth) / 2;
-        int y = (this.height - this.imageHeight) / 2;
+        int x = (this.width - this.backgroundWidth) / 2;
+        int y = (this.height - this.backgroundHeight) / 2;
 
-        this.itemsTabButton = new Button(x + 61, y + 18, 34, 14, TradeMessages.trans("securetrade.gui.tab.items"), button -> {
+        this.itemsTabButtonWidget = new ButtonWidget(x + 61, y + 18, 34, 14, TradeMessages.trans("securetrade.gui.tab.items"), button -> {
             this.xpTabSelected = false;
             updateWidgetPositions();
         });
 
-        this.xpTabButton = new Button(x + 95, y + 18, 20, 14, TradeMessages.trans("securetrade.gui.tab.xp"), button -> {
+        this.xpTabButtonWidget = new ButtonWidget(x + 95, y + 18, 20, 14, TradeMessages.trans("securetrade.gui.tab.xp"), button -> {
             this.xpTabSelected = true;
             updateWidgetPositions();
         });
 
-        this.lockButton = new Button(x + 63, y + 67, 50, 18, TradeMessages.trans("securetrade.gui.lock"), button -> {
-            boolean newState = !this.menu.myLock;
+        this.lockButtonWidget = new ButtonWidget(x + 63, y + 67, 50, 18, TradeMessages.trans("securetrade.gui.lock"), button -> {
+            boolean newState = !this.handler.myLock;
             Services.PLATFORM.sendLockPacket(newState);
         });
 
-        this.addButton(this.itemsTabButton);
-        this.addButton(this.xpTabButton);
-        this.addButton(this.lockButton);
+        this.addButton(this.itemsTabButtonWidget);
+        this.addButton(this.xpTabButtonWidget);
+        this.addButton(this.lockButtonWidget);
 
-        if (this.menu.myXP > 0 || this.menu.otherXP > 0) {
+        if (this.handler.myXP > 0 || this.handler.otherXP > 0) {
             this.xpTabSelected = true;
         }
-        this.lastOtherXP = this.menu.otherXP;
+        this.lastOtherXP = this.handler.otherXP;
 
         updateWidgetPositions();
     }
 
     private void updateWidgetPositions() {
-        int x = (this.width - this.imageWidth) / 2;
-        int y = (this.height - this.imageHeight) / 2;
+        int x = (this.width - this.backgroundWidth) / 2;
+        int y = (this.height - this.backgroundHeight) / 2;
 
-        this.itemsTabButton.x = x + 61;
-        this.itemsTabButton.y = y + 18;
-        this.xpTabButton.x = x + 95;
-        this.xpTabButton.y = y + 18;
-        this.lockButton.x = x + 63;
-        this.lockButton.y = y + 67;
+        this.itemsTabButtonWidget.x = x + 61;
+        this.itemsTabButtonWidget.y = y + 18;
+        this.xpTabButtonWidget.x = x + 95;
+        this.xpTabButtonWidget.y = y + 18;
+        this.lockButtonWidget.x = x + 63;
+        this.lockButtonWidget.y = y + 67;
     }
 
     @Override
@@ -91,8 +91,8 @@ public class TradeScreen extends ContainerScreen<TradeMenu> {
         this.renderBackground(poseStack);
         super.render(poseStack, mouseX, mouseY, partialTick);
 
-        int x = (this.width - this.imageWidth) / 2;
-        int y = (this.height - this.imageHeight) / 2;
+        int x = (this.width - this.backgroundWidth) / 2;
+        int y = (this.height - this.backgroundHeight) / 2;
 
         drawSlotHighlights(poseStack, x, y);
         if (this.xpTabSelected) {
@@ -101,19 +101,19 @@ public class TradeScreen extends ContainerScreen<TradeMenu> {
             drawItemsTab(poseStack, x, y, mouseX, mouseY);
         }
 
-        this.renderTooltip(poseStack, mouseX, mouseY);
+        this.drawMouseoverTooltip(poseStack, mouseX, mouseY);
     }
 
     private void updateDynamicWidgetText() {
-        this.lockButton.setMessage(TradeMessages.trans(
-                this.menu.countdownSeconds > 0 || this.menu.myLock
+        this.lockButtonWidget.setMessage(TradeMessages.trans(
+                this.handler.countdownSeconds > 0 || this.handler.myLock
                         ? "securetrade.gui.cancel"
                         : "securetrade.gui.lock"
         ));
     }
 
     private void drawSlotHighlights(MatrixStack poseStack, int x, int y) {
-        if (this.menu.myLock) {
+        if (this.handler.myLock) {
             for (int row = 0; row < 4; ++row) {
                 for (int col = 0; col < 3; ++col) {
                     fill(poseStack, x + 8 + col * 18, y + 18 + row * 18, x + 24 + col * 18, y + 34 + row * 18, 0x3500FF00);
@@ -121,7 +121,7 @@ public class TradeScreen extends ContainerScreen<TradeMenu> {
             }
         }
 
-        if (this.menu.otherLock) {
+        if (this.handler.otherLock) {
             for (int row = 0; row < 4; ++row) {
                 for (int col = 0; col < 3; ++col) {
                     fill(poseStack, x + 116 + col * 18, y + 18 + row * 18, x + 132 + col * 18, y + 34 + row * 18, 0x3500FF00);
@@ -133,11 +133,11 @@ public class TradeScreen extends ContainerScreen<TradeMenu> {
     private void drawItemsTab(MatrixStack poseStack, int x, int y, int mouseX, int mouseY) {
         drawStatusWell(poseStack, x, y);
 
-        if (this.menu.countdownSeconds > 0) {
-            drawScaledCenteredText(poseStack, String.valueOf(this.menu.countdownSeconds), x + 88, y + 40, 2.0f, 0x55FF55, false);
+        if (this.handler.countdownSeconds > 0) {
+            drawScaledCenteredText(poseStack, String.valueOf(this.handler.countdownSeconds), x + 88, y + 40, 2.0f, 0x55FF55, false);
         }
 
-        if (this.menu.countdownSeconds <= 0 && !this.menu.myLock && (isOverItemsHint(mouseX, mouseY) || this.lockButton.isMouseOver(mouseX, mouseY))) {
+        if (this.handler.countdownSeconds <= 0 && !this.handler.myLock && (isOverItemsHint(mouseX, mouseY) || this.lockButtonWidget.isMouseOver(mouseX, mouseY))) {
             this.renderTooltip(poseStack, TradeMessages.trans("securetrade.gui.items_help"), mouseX, mouseY);
         }
     }
@@ -154,23 +154,23 @@ public class TradeScreen extends ContainerScreen<TradeMenu> {
         fill(poseStack, left, top, left + 1, bottom, 0x66464646);
         fill(poseStack, right - 1, top, right, bottom, 0x66FFFFFF);
 
-        if (this.menu.countdownSeconds > 0) {
+        if (this.handler.countdownSeconds > 0) {
             return;
         }
 
-        if (!this.menu.myLock && !this.menu.otherLock) {
+        if (!this.handler.myLock && !this.handler.otherLock) {
             drawItemsHintIcon(poseStack, left, top);
             return;
         }
 
-        if (this.menu.myLock || this.menu.otherLock) {
+        if (this.handler.myLock || this.handler.otherLock) {
             int readyLeft = left + 4;
             int readyRight = right - 4;
             int readyY = bottom - 5;
-            if (this.menu.myLock) {
+            if (this.handler.myLock) {
                 fill(poseStack, readyLeft, readyY, readyLeft + 18, readyY + 2, 0xFF55FF55);
             }
-            if (this.menu.otherLock) {
+            if (this.handler.otherLock) {
                 fill(poseStack, readyRight - 18, readyY, readyRight, readyY + 2, 0xFF55FF55);
             }
         }
@@ -200,36 +200,36 @@ public class TradeScreen extends ContainerScreen<TradeMenu> {
     }
 
     private void drawXPTab(MatrixStack poseStack, int x, int y, int mouseX, int mouseY) {
-        int totalXP = XPMath.getPlayerXP(this.minecraft.player);
+        int totalXP = XPMath.getPlayerXP(this.client.player);
         if (!this.isDraggingSlider) {
-            this.sliderValue = totalXP > 0 ? (float) this.menu.myXP / totalXP : 0.0f;
+            this.sliderValue = totalXP > 0 ? (float) this.handler.myXP / totalXP : 0.0f;
         }
 
-        if (this.menu.countdownSeconds > 0) {
+        if (this.handler.countdownSeconds > 0) {
             drawStatusWell(poseStack, x, y);
-            drawScaledCenteredText(poseStack, String.valueOf(this.menu.countdownSeconds), x + 88, y + 40, 2.0f, 0x55FF55, false);
+            drawScaledCenteredText(poseStack, String.valueOf(this.handler.countdownSeconds), x + 88, y + 40, 2.0f, 0x55FF55, false);
             return;
         }
 
-        int myLevel = XPMath.getLevelForXp(this.menu.myXP);
-        int otherLevel = XPMath.getLevelForXp(this.menu.otherXP);
-        String myText = this.menu.myXP > 0 ? "-" + this.menu.myXP + " XP" : "0 XP";
-        drawCenteredText(poseStack, myText, x + 88, y + 36, this.menu.myXP > 0 ? 0xC84E4E : 0x686868, false);
+        int myLevel = XPMath.getLevelForXp(this.handler.myXP);
+        int otherLevel = XPMath.getLevelForXp(this.handler.otherXP);
+        String myText = this.handler.myXP > 0 ? "-" + this.handler.myXP + " XP" : "0 XP";
+        drawCenteredText(poseStack, myText, x + 88, y + 36, this.handler.myXP > 0 ? 0xC84E4E : 0x686868, false);
 
         drawExperienceBar(poseStack, x + XP_BAR_X, y + XP_BAR_Y, XP_BAR_WIDTH, this.sliderValue, true);
-        if (this.menu.otherXP > 0) {
-            String otherText = "+" + this.menu.otherXP + " XP";
+        if (this.handler.otherXP > 0) {
+            String otherText = "+" + this.handler.otherXP + " XP";
             drawScaledCenteredText(poseStack, otherText, x + 88, y + 56, 0.85f, 0x1FB81F, false);
         }
 
         if (mouseX >= x + XP_BAR_X && mouseX <= x + XP_BAR_X + XP_BAR_WIDTH && mouseY >= y + 39 && mouseY <= y + 56) {
-            ITextComponent tooltip = this.menu.myXP > 0
-                    ? TradeMessages.trans("securetrade.gui.give_xp", this.menu.myXP, myLevel)
+            Text tooltip = this.handler.myXP > 0
+                    ? TradeMessages.trans("securetrade.gui.give_xp", this.handler.myXP, myLevel)
                     : TradeMessages.trans("securetrade.gui.choose_xp");
             this.renderTooltip(poseStack, tooltip, mouseX, mouseY);
         }
         if (mouseX >= x + 64 && mouseX <= x + 112 && mouseY >= y + 56 && mouseY <= y + 70) {
-            this.renderTooltip(poseStack, TradeMessages.trans("securetrade.gui.receive_xp", this.menu.otherXP, otherLevel), mouseX, mouseY);
+            this.renderTooltip(poseStack, TradeMessages.trans("securetrade.gui.receive_xp", this.handler.otherXP, otherLevel), mouseX, mouseY);
         }
     }
 
@@ -238,11 +238,11 @@ public class TradeScreen extends ContainerScreen<TradeMenu> {
     }
 
     private void drawCenteredText(MatrixStack poseStack, String text, int centerX, int y, int color, boolean shadow) {
-        int textWidth = this.font.width(text);
+        int textWidth = this.textRenderer.getWidth(text);
         if (shadow) {
-            this.font.drawShadow(poseStack, text, centerX - textWidth / 2.0f, y, color);
+            this.textRenderer.drawWithShadow(poseStack, text, centerX - textWidth / 2.0f, y, color);
         } else {
-            this.font.draw(poseStack, text, centerX - textWidth / 2.0f, y, color);
+            this.textRenderer.draw(poseStack, text, centerX - textWidth / 2.0f, y, color);
         }
     }
 
@@ -251,22 +251,22 @@ public class TradeScreen extends ContainerScreen<TradeMenu> {
     }
 
     private void drawScaledCenteredText(MatrixStack poseStack, String text, int centerX, int y, float scale, int color, boolean shadow) {
-        int textWidth = this.font.width(text);
-        poseStack.pushPose();
+        int textWidth = this.textRenderer.getWidth(text);
+        poseStack.push();
         poseStack.scale(scale, scale, 1.0f);
         float textX = (centerX - textWidth * scale / 2.0f) / scale;
         float textY = y / scale;
         if (shadow) {
-            this.font.drawShadow(poseStack, text, textX, textY, color);
+            this.textRenderer.drawWithShadow(poseStack, text, textX, textY, color);
         } else {
-            this.font.draw(poseStack, text, textX, textY, color);
+            this.textRenderer.draw(poseStack, text, textX, textY, color);
         }
-        poseStack.popPose();
+        poseStack.pop();
     }
 
     private boolean isOverItemsHint(double mouseX, double mouseY) {
-        int x = (this.width - this.imageWidth) / 2;
-        int y = (this.height - this.imageHeight) / 2;
+        int x = (this.width - this.backgroundWidth) / 2;
+        int y = (this.height - this.backgroundHeight) / 2;
         return !this.xpTabSelected
                 && mouseX >= x + STATUS_LEFT_OFFSET
                 && mouseX <= x + STATUS_RIGHT_OFFSET
@@ -297,37 +297,37 @@ public class TradeScreen extends ContainerScreen<TradeMenu> {
     }
 
     @Override
-    protected void renderLabels(MatrixStack poseStack, int mouseX, int mouseY) {
-        int myColor = this.menu.myLock ? 0x00AA00 : 4210752;
-        int otherColor = this.menu.otherLock ? 0x00AA00 : 4210752;
+    protected void drawForeground(MatrixStack poseStack, int mouseX, int mouseY) {
+        int myColor = this.handler.myLock ? 0x00AA00 : 4210752;
+        int otherColor = this.handler.otherLock ? 0x00AA00 : 4210752;
 
-        this.font.draw(poseStack, TradeMessages.trans("securetrade.gui.me"), 8, 6, myColor);
-        this.font.draw(poseStack, TradeMessages.trans("securetrade.gui.them"), 116, 6, otherColor);
-        this.font.draw(poseStack, TradeMessages.trans("container.inventory"), 8, this.imageHeight - 94, 4210752);
+        this.textRenderer.draw(poseStack, TradeMessages.trans("securetrade.gui.me"), 8, 6, myColor);
+        this.textRenderer.draw(poseStack, TradeMessages.trans("securetrade.gui.them"), 116, 6, otherColor);
+        this.textRenderer.draw(poseStack, TradeMessages.trans("container.inventory"), 8, this.backgroundHeight - 94, 4210752);
 
-        if (this.menu.otherXP > this.lastOtherXP && this.menu.otherXP > 0 && !this.xpTabSelected) {
+        if (this.handler.otherXP > this.lastOtherXP && this.handler.otherXP > 0 && !this.xpTabSelected) {
             this.xpTabSelected = true;
             updateWidgetPositions();
         }
-        this.lastOtherXP = this.menu.otherXP;
+        this.lastOtherXP = this.handler.otherXP;
     }
 
     @Override
-    protected void renderBg(MatrixStack poseStack, float partialTick, int mouseX, int mouseY) {
-        int x = (this.width - this.imageWidth) / 2;
-        int y = (this.height - this.imageHeight) / 2;
+    protected void drawBackground(MatrixStack poseStack, float partialTick, int mouseX, int mouseY) {
+        int x = (this.width - this.backgroundWidth) / 2;
+        int y = (this.height - this.backgroundHeight) / 2;
 
-        ResourceLocation generic54 = new ResourceLocation("minecraft", "textures/gui/container/generic_54.png");
+        Identifier generic54 = new Identifier("minecraft", "textures/gui/container/generic_54.png");
 
-        this.minecraft.getTextureManager().bind(generic54);
-        blit(poseStack, x, y, 0, 0, this.imageWidth, 4 * 18 + 17);
-        blit(poseStack, x, y + 4 * 18 + 17, 0, 126, this.imageWidth, 96);
+        this.client.getTextureManager().bindTexture(generic54);
+        drawTexture(poseStack, x, y, 0, 0, this.backgroundWidth, 4 * 18 + 17);
+        drawTexture(poseStack, x, y + 4 * 18 + 17, 0, 126, this.backgroundWidth, 96);
         fill(poseStack, x + CENTER_X, y + 17, x + CENTER_X + CENTER_WIDTH, y + 89, 0xFFC6C6C6);
     }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (button == 0 && this.xpTabSelected && this.menu.countdownSeconds <= 0 && isOverMySlider(mouseX, mouseY)) {
+        if (button == 0 && this.xpTabSelected && this.handler.countdownSeconds <= 0 && isOverMySlider(mouseX, mouseY)) {
             this.isDraggingSlider = true;
             updateXPFromSlider(mouseX);
             return true;
@@ -345,7 +345,7 @@ public class TradeScreen extends ContainerScreen<TradeMenu> {
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        if (this.isDraggingSlider && button == 0 && this.menu.countdownSeconds <= 0) {
+        if (this.isDraggingSlider && button == 0 && this.handler.countdownSeconds <= 0) {
             updateXPFromSlider(mouseX);
             return true;
         }
@@ -353,22 +353,22 @@ public class TradeScreen extends ContainerScreen<TradeMenu> {
     }
 
     private boolean isOverMySlider(double mouseX, double mouseY) {
-        int sliderX = this.leftPos + XP_BAR_X;
-        int sliderY = this.topPos + XP_BAR_Y;
+        int sliderX = this.x + XP_BAR_X;
+        int sliderY = this.y + XP_BAR_Y;
         int sliderW = XP_BAR_WIDTH;
         int sliderH = XP_BAR_HEIGHT;
         return mouseX >= sliderX - 2 && mouseX <= sliderX + sliderW + 2 && mouseY >= sliderY - 4 && mouseY <= sliderY + sliderH + 4;
     }
 
     private void updateXPFromSlider(double mouseX) {
-        int totalXP = XPMath.getPlayerXP(this.minecraft.player);
+        int totalXP = XPMath.getPlayerXP(this.client.player);
         if (totalXP <= 0) {
             this.sliderValue = 0.0f;
             setOfferedXP(0);
             return;
         }
 
-        int sliderX = this.leftPos + XP_BAR_X;
+        int sliderX = this.x + XP_BAR_X;
         int sliderW = XP_BAR_WIDTH;
         double pct = (mouseX - (sliderX + 1)) / (double)(sliderW - 2);
         pct = Math.max(0.0, Math.min(1.0, pct));
@@ -379,9 +379,10 @@ public class TradeScreen extends ContainerScreen<TradeMenu> {
     }
 
     private void setOfferedXP(int xp) {
-        if (this.menu.myXP != xp) {
-            this.menu.myXP = xp;
+        if (this.handler.myXP != xp) {
+            this.handler.myXP = xp;
             Services.PLATFORM.sendXPChangePacket(xp);
         }
     }
 }
+

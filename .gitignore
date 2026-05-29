@@ -42,4 +42,6 @@ repo/
 ### Local tooling ###
 .superpowers/
 run-process-logs/
+.codex-run-logs/
 art/
+

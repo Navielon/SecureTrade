@@ -1,6 +1,6 @@
 package com.securetrade.network;
 
-import net.minecraft.network.PacketBuffer;
+import net.minecraft.network.PacketByteBuf;
 
 public class TradeXPChangePacket {
     private final int xpPoints;
@@ -9,11 +9,11 @@ public class TradeXPChangePacket {
         this.xpPoints = xpPoints;
     }
 
-    public TradeXPChangePacket(PacketBuffer buf) {
+    public TradeXPChangePacket(PacketByteBuf buf) {
         this.xpPoints = buf.readVarInt();
     }
 
-    public void write(PacketBuffer buf) {
+    public void write(PacketByteBuf buf) {
         buf.writeVarInt(this.xpPoints);
     }
 

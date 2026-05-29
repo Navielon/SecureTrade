@@ -1,7 +1,7 @@
 package com.securetrade.platform;
 
 import java.util.List;
-import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
 
 public interface IPlatformHelper {

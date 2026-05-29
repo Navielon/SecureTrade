@@ -1,6 +1,6 @@
 package com.securetrade.network;
 
-import net.minecraft.network.PacketBuffer;
+import net.minecraft.network.PacketByteBuf;
 
 public class TradeStateSyncPacket {
     private final boolean myLock;
@@ -17,7 +17,7 @@ public class TradeStateSyncPacket {
         this.otherXP = otherXP;
     }
 
-    public TradeStateSyncPacket(PacketBuffer buf) {
+    public TradeStateSyncPacket(PacketByteBuf buf) {
         this.myLock = buf.readBoolean();
         this.otherLock = buf.readBoolean();
         this.countdownSeconds = buf.readVarInt();
@@ -25,7 +25,7 @@ public class TradeStateSyncPacket {
         this.otherXP = buf.readVarInt();
     }
 
-    public void write(PacketBuffer buf) {
+    public void write(PacketByteBuf buf) {
         buf.writeBoolean(this.myLock);
         buf.writeBoolean(this.otherLock);
         buf.writeVarInt(this.countdownSeconds);

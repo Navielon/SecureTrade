@@ -5,7 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.securetrade.platform.Services;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.Registry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.network.chat.Component;
@@ -89,7 +89,7 @@ public class TradeHistoryManager {
         for (int i = 0; i < container.getContainerSize(); i++) {
             ItemStack stack = container.getItem(i);
             if (!stack.isEmpty()) {
-                String id = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+                String id = Registry.ITEM.getKey(stack.getItem()).toString();
                 int count = stack.getCount();
                 String displayName = stack.getHoverName().getString();
                 list.add(new ItemInfo(id, count, displayName));
@@ -223,7 +223,7 @@ public class TradeHistoryManager {
 
         try {
             ResourceLocation id = new ResourceLocation(item.id);
-            Item resolvedItem = BuiltInRegistries.ITEM.get(id);
+            Item resolvedItem = Registry.ITEM.get(id);
             if (resolvedItem != null && (resolvedItem != Items.AIR || "minecraft:air".equals(item.id))) {
                 return Component.translatable(resolvedItem.getDescriptionId());
             }

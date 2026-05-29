@@ -13,10 +13,8 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;
 
 public class FabricSecureTradeMod implements ModInitializer {
@@ -34,9 +32,9 @@ public class FabricSecureTradeMod implements ModInitializer {
 
         // Register MenuType
         TradeMenuType.set(Registry.register(
-                BuiltInRegistries.MENU,
+                Registry.MENU,
                 new ResourceLocation(MODID, "trade_menu"),
-                new MenuType<>(TradeMenu::new, FeatureFlags.DEFAULT_FLAGS)
+                new MenuType<>(TradeMenu::new)
         ));
 
         // Register Commands

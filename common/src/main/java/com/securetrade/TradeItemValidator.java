@@ -4,7 +4,7 @@ import com.securetrade.platform.Services;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.world.SimpleContainer;
@@ -43,7 +43,7 @@ public final class TradeItemValidator {
             return false;
         }
 
-        String itemId = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+        String itemId = Registry.ITEM.getKey(stack.getItem()).toString();
         if (blacklist.contains(itemId)) {
             return true;
         }

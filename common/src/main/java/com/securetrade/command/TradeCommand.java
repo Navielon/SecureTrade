@@ -93,8 +93,8 @@ public class TradeCommand {
         }
 
         // Dimension Restrictions Check
-        String senderDim = sender.level().dimension().location().toString();
-        String targetDim = target.level().dimension().location().toString();
+        String senderDim = sender.level.dimension().location().toString();
+        String targetDim = target.level.dimension().location().toString();
 
         if (!isDimensionAllowed(senderDim)) {
             TradeMessages.error(sender, Component.translatable("securetrade.error_blocked_dimension_self"));
@@ -108,7 +108,7 @@ public class TradeCommand {
         // Distance Check
         double maxDist = Services.PLATFORM.getMaxTradeDistance();
         if (maxDist > 0) {
-            if (!sender.level().dimension().equals(target.level().dimension())) {
+            if (!sender.level.dimension().equals(target.level.dimension())) {
                 TradeMessages.error(sender, Component.translatable("securetrade.error_different_dimensions"));
                 return 0;
             }
@@ -233,8 +233,8 @@ public class TradeCommand {
         }
 
         // Dimension Restrictions Check at Acceptance
-        String targetDim = target.level().dimension().location().toString();
-        String senderDim = sender.level().dimension().location().toString();
+        String targetDim = target.level.dimension().location().toString();
+        String senderDim = sender.level.dimension().location().toString();
 
         if (!isDimensionAllowed(targetDim)) {
             TradeMessages.error(target, Component.translatable("securetrade.error_blocked_dimension_self"));
@@ -248,7 +248,7 @@ public class TradeCommand {
         // Distance Check at Acceptance
         double maxDist = Services.PLATFORM.getMaxTradeDistance();
         if (maxDist > 0) {
-            if (!sender.level().dimension().equals(target.level().dimension()) || 
+            if (!sender.level.dimension().equals(target.level.dimension()) || 
                 sender.distanceToSqr(target) > maxDist * maxDist) {
                 TradeMessages.error(target, Component.translatable("securetrade.error_too_far"));
                 TradeMessages.error(sender, Component.translatable("securetrade.error_too_far"));

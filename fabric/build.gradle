@@ -15,8 +15,6 @@ dependencies {
 
     modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
-
-    implementation project(':common')
 }
 
 base {
@@ -64,10 +62,29 @@ processResources {
 
 sourceSets {
     main {
+        compileClasspath += project(':common').sourceSets.main.output
+        runtimeClasspath += project(':common').sourceSets.main.output
+
         resources {
             srcDirs += [
                 project(':common').file('src/main/resources')
             ]
         }
     }
+}
+
+tasks.named('compileJava') {
+    dependsOn project(':common').tasks.named('classes')
+}
+
+tasks.named('runClient') {
+    dependsOn project(':common').tasks.named('classes')
+}
+
+tasks.named('runClient2') {
+    dependsOn project(':common').tasks.named('classes')
+}
+
+tasks.named('runServer') {
+    dependsOn project(':common').tasks.named('classes')
 }

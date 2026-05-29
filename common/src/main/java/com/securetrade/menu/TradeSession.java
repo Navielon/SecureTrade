@@ -6,7 +6,7 @@ import com.securetrade.TradeHistoryManager;
 import com.securetrade.TradeItemValidator;
 import com.securetrade.TradeMessages;
 import com.securetrade.XPMath;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -58,7 +58,7 @@ public class TradeSession {
         }
 
         // Play click sound for both players
-        playNotifySound(SoundEvents.UI_BUTTON_CLICK.value(), 1.0f, 1.0f);
+        playNotifySound(SoundEvents.UI_BUTTON_CLICK, 1.0f, 1.0f);
 
         if (player1Locked && player2Locked) {
             countdownTicks = Services.PLATFORM.getCountdownSeconds() * 20;
@@ -84,7 +84,7 @@ public class TradeSession {
         // Dimension restrictions are handled separately via allowedDimensions/blockedDimensions config.
         double maxDist = Services.PLATFORM.getMaxTradeDistance();
         if (maxDist > 0) {
-            if (!player1.level().dimension().equals(player2.level().dimension()) ||
+            if (!player1.level.dimension().equals(player2.level.dimension()) ||
                 player1.distanceToSqr(player2) > maxDist * maxDist) {
                 cancelTrade();
                 return;
@@ -119,7 +119,7 @@ public class TradeSession {
                 if (secsRemaining > 0) {
                     // Play a tick sound with increasing pitch
                     float pitch = 1.0f + (3.0f - secsRemaining) * 0.2f;
-                    playNotifySound(SoundEvents.UI_BUTTON_CLICK.value(), 1.0f, pitch);
+                    playNotifySound(SoundEvents.UI_BUTTON_CLICK, 1.0f, pitch);
                 }
                 syncState();
             }
@@ -231,9 +231,9 @@ public class TradeSession {
                     }
                 } else {
                     // Player disconnected вЂ” drop items at their last known position
-                    to.level().addFreshEntity(
+                    to.level.addFreshEntity(
                         new net.minecraft.world.entity.item.ItemEntity(
-                            to.level(), to.getX(), to.getY(), to.getZ(), stack
+                            to.level, to.getX(), to.getY(), to.getZ(), stack
                         )
                     );
                 }
@@ -253,7 +253,7 @@ public class TradeSession {
             ItemStack stack = container.getItem(i);
             if (!stack.isEmpty()) {
                 if (!first) sb.append(", ");
-                sb.append(stack.getCount()).append("x ").append(BuiltInRegistries.ITEM.getKey(stack.getItem()));
+                sb.append(stack.getCount()).append("x ").append(Registry.ITEM.getKey(stack.getItem()));
                 first = false;
             }
         }

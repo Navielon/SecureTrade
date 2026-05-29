@@ -145,7 +145,7 @@ public class TradeMenu extends AbstractContainerMenu {
     @Override
     public void removed(Player player) {
         super.removed(player);
-        if (session != null && !player.level().isClientSide()) {
+        if (session != null && !player.level.isClientSide()) {
             session.cancelTrade();
         }
     }

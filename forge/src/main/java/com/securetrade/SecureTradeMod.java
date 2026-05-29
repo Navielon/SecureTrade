@@ -5,7 +5,6 @@ import com.securetrade.command.TradeCommand;
 import com.securetrade.menu.TradeMenu;
 import com.securetrade.menu.TradeMenuType;
 import com.securetrade.network.TradeNetwork;
-import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
@@ -27,7 +26,7 @@ public class SecureTradeMod {
     public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(ForgeRegistries.MENU_TYPES, MODID);
 
     public static final RegistryObject<MenuType<TradeMenu>> TRADE_MENU = MENUS.register("trade_menu", () -> {
-        MenuType<TradeMenu> type = new MenuType<>(TradeMenu::new, FeatureFlags.DEFAULT_FLAGS);
+        MenuType<TradeMenu> type = new MenuType<>(TradeMenu::new);
         TradeMenuType.set(type);
         return type;
     });

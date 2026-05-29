@@ -1,8 +1,11 @@
 package com.securetrade;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.Util;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
 
 public final class TradeMessages {
@@ -10,11 +13,23 @@ public final class TradeMessages {
     }
 
     public static Component playerName(ServerPlayer player) {
-        return Component.literal(player.getScoreboardName()).withStyle(ChatFormatting.AQUA);
+        return text(player.getScoreboardName()).withStyle(ChatFormatting.AQUA);
     }
 
     public static Component playerName(String name) {
-        return Component.literal(name).withStyle(ChatFormatting.AQUA);
+        return text(name).withStyle(ChatFormatting.AQUA);
+    }
+
+    public static MutableComponent text(String value) {
+        return new TextComponent(value);
+    }
+
+    public static MutableComponent trans(String key, Object... args) {
+        return new TranslatableComponent(key, args);
+    }
+
+    public static MutableComponent empty() {
+        return new TextComponent("");
     }
 
     public static void info(ServerPlayer player, Component message) {
@@ -34,13 +49,17 @@ public final class TradeMessages {
     }
 
     public static MutableComponent format(Component message, ChatFormatting color) {
-        return Component.empty()
-                .append(Component.literal("Secure Trade").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD))
-                .append(Component.literal(" | ").withStyle(ChatFormatting.DARK_GRAY))
+        return empty()
+                .append(text("Secure Trade").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD))
+                .append(text(" | ").withStyle(ChatFormatting.DARK_GRAY))
                 .append(message.copy().withStyle(color));
     }
 
+    public static void sendRaw(ServerPlayer player, Component message) {
+        player.sendMessage(message, Util.NIL_UUID);
+    }
+
     private static void send(ServerPlayer player, Component message, ChatFormatting color) {
-        player.sendSystemMessage(format(message, color));
+        sendRaw(player, format(message, color));
     }
 }

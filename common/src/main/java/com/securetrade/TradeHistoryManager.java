@@ -144,11 +144,11 @@ public class TradeHistoryManager {
             int toShow = Math.min(maxEntries, playerHistory.size());
 
             if (toShow == 0) {
-                player.sendSystemMessage(Component.translatable("securetrade.history.empty").withStyle(ChatFormatting.GRAY));
+                TradeMessages.sendRaw(player, TradeMessages.trans("securetrade.history.empty").withStyle(ChatFormatting.GRAY));
                 return;
             }
 
-            player.sendSystemMessage(Component.translatable("securetrade.history.title").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
+            TradeMessages.sendRaw(player, TradeMessages.trans("securetrade.history.title").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
 
             for (int i = 0; i < toShow; i++) {
                 TradeEntry entry = playerHistory.get(i);
@@ -157,8 +157,8 @@ public class TradeHistoryManager {
                 String otherName = playerUuid.equals(entry.senderUuid) ? entry.targetName : entry.senderName;
                 
                 // Format entry title, e.g. "1. Trade with Player2:"
-                Component otherNameComponent = Component.literal(otherName).withStyle(ChatFormatting.AQUA);
-                player.sendSystemMessage(Component.translatable("securetrade.history.entry", i + 1, otherNameComponent).withStyle(ChatFormatting.GRAY));
+                Component otherNameComponent = TradeMessages.text(otherName).withStyle(ChatFormatting.AQUA);
+                TradeMessages.sendRaw(player, TradeMessages.trans("securetrade.history.entry", i + 1, otherNameComponent).withStyle(ChatFormatting.GRAY));
 
                 // Determine what was given and received by THIS player
                 List<ItemInfo> gaveItems = playerUuid.equals(entry.senderUuid) ? entry.senderItems : entry.targetItems;
@@ -167,29 +167,29 @@ public class TradeHistoryManager {
                 int receivedXP = playerUuid.equals(entry.senderUuid) ? entry.targetXP : entry.senderXP;
 
                 Component gaveComponent = formatItemsAndXP(gaveItems, gaveXP);
-                player.sendSystemMessage(Component.translatable("securetrade.history.gave", gaveComponent).withStyle(ChatFormatting.RED));
+                TradeMessages.sendRaw(player, TradeMessages.trans("securetrade.history.gave", gaveComponent).withStyle(ChatFormatting.RED));
 
                 Component receivedComponent = formatItemsAndXP(receivedItems, receivedXP);
-                player.sendSystemMessage(Component.translatable("securetrade.history.received", receivedComponent).withStyle(ChatFormatting.GREEN));
+                TradeMessages.sendRaw(player, TradeMessages.trans("securetrade.history.received", receivedComponent).withStyle(ChatFormatting.GREEN));
             }
         } catch (Exception e) {
-            player.sendSystemMessage(Component.literal("Error reading trade history: " + e.getMessage()).withStyle(ChatFormatting.RED));
+            TradeMessages.sendRaw(player, TradeMessages.text("Error reading trade history: " + e.getMessage()).withStyle(ChatFormatting.RED));
         }
     }
 
     private static Component formatItemsAndXP(List<ItemInfo> items, int xp) {
         boolean hasItems = items != null && !items.isEmpty();
         if (!hasItems && xp <= 0) {
-            return Component.translatable("securetrade.history.nothing").withStyle(ChatFormatting.GRAY);
+            return TradeMessages.trans("securetrade.history.nothing").withStyle(ChatFormatting.GRAY);
         }
 
-        MutableComponent result = Component.empty();
+        MutableComponent result = TradeMessages.empty();
         boolean hasContent = false;
 
         if (hasItems) {
             for (ItemInfo item : items) {
                 if (hasContent) {
-                    result.append(Component.literal(", ").withStyle(ChatFormatting.GRAY));
+                    result.append(TradeMessages.text(", ").withStyle(ChatFormatting.GRAY));
                 }
                 result.append(formatItem(item));
                 hasContent = true;
@@ -198,9 +198,9 @@ public class TradeHistoryManager {
 
         if (xp > 0) {
             if (hasContent) {
-                result.append(Component.literal(", ").withStyle(ChatFormatting.GRAY));
+                result.append(TradeMessages.text(", ").withStyle(ChatFormatting.GRAY));
             }
-            result.append(Component.literal(xp + " XP").withStyle(ChatFormatting.AQUA));
+            result.append(TradeMessages.text(xp + " XP").withStyle(ChatFormatting.AQUA));
         }
 
         return result;
@@ -208,34 +208,34 @@ public class TradeHistoryManager {
 
     private static Component formatItem(ItemInfo item) {
         MutableComponent itemName = resolveItemName(item).withStyle(ChatFormatting.YELLOW);
-        Component hoverText = Component.literal(item.id + "\n" + item.count + "x").withStyle(ChatFormatting.GRAY);
+        Component hoverText = TradeMessages.text(item.id + "\n" + item.count + "x").withStyle(ChatFormatting.GRAY);
 
-        return Component.empty()
-                .append(Component.literal(item.count + "x ").withStyle(ChatFormatting.GRAY))
+        return TradeMessages.empty()
+                .append(TradeMessages.text(item.count + "x ").withStyle(ChatFormatting.GRAY))
                 .append(itemName)
                 .withStyle(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText)));
     }
 
     private static MutableComponent resolveItemName(ItemInfo item) {
         if (item == null || item.id == null || item.id.isBlank()) {
-            return Component.translatable("securetrade.history.unknown_item");
+            return TradeMessages.trans("securetrade.history.unknown_item");
         }
 
         try {
             ResourceLocation id = new ResourceLocation(item.id);
             Item resolvedItem = Registry.ITEM.get(id);
             if (resolvedItem != null && (resolvedItem != Items.AIR || "minecraft:air".equals(item.id))) {
-                return Component.translatable(resolvedItem.getDescriptionId());
+                return TradeMessages.trans(resolvedItem.getDescriptionId());
             }
         } catch (Exception ignored) {
             // Fall back to the stored legacy display name below.
         }
 
         if (item.displayName != null && !item.displayName.isBlank()) {
-            return Component.literal(item.displayName);
+            return TradeMessages.text(item.displayName);
         }
 
-        return Component.literal(item.id);
+        return TradeMessages.text(item.id);
     }
 
 }

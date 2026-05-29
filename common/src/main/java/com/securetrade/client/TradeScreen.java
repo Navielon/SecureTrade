@@ -1,6 +1,7 @@
 package com.securetrade.client;
 
 import com.securetrade.XPMath;
+import com.securetrade.TradeMessages;
 import com.securetrade.menu.TradeMenu;
 import com.securetrade.platform.Services;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -44,17 +45,17 @@ public class TradeScreen extends AbstractContainerScreen<TradeMenu> {
         int x = (this.width - this.imageWidth) / 2;
         int y = (this.height - this.imageHeight) / 2;
 
-        this.itemsTabButton = new Button(x + 61, y + 18, 34, 14, Component.translatable("securetrade.gui.tab.items"), button -> {
+        this.itemsTabButton = new Button(x + 61, y + 18, 34, 14, TradeMessages.trans("securetrade.gui.tab.items"), button -> {
             this.xpTabSelected = false;
             updateWidgetPositions();
         });
 
-        this.xpTabButton = new Button(x + 95, y + 18, 20, 14, Component.translatable("securetrade.gui.tab.xp"), button -> {
+        this.xpTabButton = new Button(x + 95, y + 18, 20, 14, TradeMessages.trans("securetrade.gui.tab.xp"), button -> {
             this.xpTabSelected = true;
             updateWidgetPositions();
         });
 
-        this.lockButton = new Button(x + 63, y + 67, 50, 18, Component.translatable("securetrade.gui.lock"), button -> {
+        this.lockButton = new Button(x + 63, y + 67, 50, 18, TradeMessages.trans("securetrade.gui.lock"), button -> {
             boolean newState = !this.menu.myLock;
             Services.PLATFORM.sendLockPacket(newState);
         });
@@ -104,7 +105,7 @@ public class TradeScreen extends AbstractContainerScreen<TradeMenu> {
     }
 
     private void updateDynamicWidgetText() {
-        this.lockButton.setMessage(Component.translatable(
+        this.lockButton.setMessage(TradeMessages.trans(
                 this.menu.countdownSeconds > 0 || this.menu.myLock
                         ? "securetrade.gui.cancel"
                         : "securetrade.gui.lock"
@@ -137,7 +138,7 @@ public class TradeScreen extends AbstractContainerScreen<TradeMenu> {
         }
 
         if (this.menu.countdownSeconds <= 0 && !this.menu.myLock && (isOverItemsHint(mouseX, mouseY) || this.lockButton.isMouseOver(mouseX, mouseY))) {
-            this.renderTooltip(poseStack, Component.translatable("securetrade.gui.items_help"), mouseX, mouseY);
+            this.renderTooltip(poseStack, TradeMessages.trans("securetrade.gui.items_help"), mouseX, mouseY);
         }
     }
 
@@ -223,12 +224,12 @@ public class TradeScreen extends AbstractContainerScreen<TradeMenu> {
 
         if (mouseX >= x + XP_BAR_X && mouseX <= x + XP_BAR_X + XP_BAR_WIDTH && mouseY >= y + 39 && mouseY <= y + 56) {
             Component tooltip = this.menu.myXP > 0
-                    ? Component.translatable("securetrade.gui.give_xp", this.menu.myXP, myLevel)
-                    : Component.translatable("securetrade.gui.choose_xp");
+                    ? TradeMessages.trans("securetrade.gui.give_xp", this.menu.myXP, myLevel)
+                    : TradeMessages.trans("securetrade.gui.choose_xp");
             this.renderTooltip(poseStack, tooltip, mouseX, mouseY);
         }
         if (mouseX >= x + 64 && mouseX <= x + 112 && mouseY >= y + 56 && mouseY <= y + 70) {
-            this.renderTooltip(poseStack, Component.translatable("securetrade.gui.receive_xp", this.menu.otherXP, otherLevel), mouseX, mouseY);
+            this.renderTooltip(poseStack, TradeMessages.trans("securetrade.gui.receive_xp", this.menu.otherXP, otherLevel), mouseX, mouseY);
         }
     }
 
@@ -300,8 +301,8 @@ public class TradeScreen extends AbstractContainerScreen<TradeMenu> {
         int myColor = this.menu.myLock ? 0x00AA00 : 4210752;
         int otherColor = this.menu.otherLock ? 0x00AA00 : 4210752;
 
-        this.font.draw(poseStack, Component.translatable("securetrade.gui.me"), 8, 6, myColor);
-        this.font.draw(poseStack, Component.translatable("securetrade.gui.them"), 116, 6, otherColor);
+        this.font.draw(poseStack, TradeMessages.trans("securetrade.gui.me"), 8, 6, myColor);
+        this.font.draw(poseStack, TradeMessages.trans("securetrade.gui.them"), 116, 6, otherColor);
         this.font.draw(poseStack, this.playerInventoryTitle, 8, this.imageHeight - 94, 4210752);
 
         if (this.menu.otherXP > this.lastOtherXP && this.menu.otherXP > 0 && !this.xpTabSelected) {

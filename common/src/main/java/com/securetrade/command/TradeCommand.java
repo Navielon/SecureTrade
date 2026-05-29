@@ -1,6 +1,7 @@
 package com.securetrade.command;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.securetrade.platform.Services;
 import com.securetrade.menu.TradeMenu;
 import com.securetrade.TradeHistoryManager;
@@ -73,22 +74,21 @@ public class TradeCommand {
         );
     }
 
-    private static int requestTrade(CommandSourceStack source, ServerPlayer target) {
-        ServerPlayer sender = source.getPlayer();
-        if (sender == null) return 0;
+    private static int requestTrade(CommandSourceStack source, ServerPlayer target) throws CommandSyntaxException {
+        ServerPlayer sender = source.getPlayerOrException();
 
         if (sender.getUUID().equals(target.getUUID())) {
-            TradeMessages.error(sender, Component.translatable("securetrade.cannot_trade_self"));
+            TradeMessages.error(sender, TradeMessages.trans("securetrade.cannot_trade_self"));
             return 0;
         }
 
         // Busy Check: Check if either player is already trading
         if (sender.containerMenu instanceof TradeMenu) {
-            TradeMessages.error(sender, Component.translatable("securetrade.error_already_trading"));
+            TradeMessages.error(sender, TradeMessages.trans("securetrade.error_already_trading"));
             return 0;
         }
         if (target.containerMenu instanceof TradeMenu) {
-            TradeMessages.error(sender, Component.translatable("securetrade.error_target_already_trading", TradeMessages.playerName(target)));
+            TradeMessages.error(sender, TradeMessages.trans("securetrade.error_target_already_trading", TradeMessages.playerName(target)));
             return 0;
         }
 
@@ -97,11 +97,11 @@ public class TradeCommand {
         String targetDim = target.level.dimension().location().toString();
 
         if (!isDimensionAllowed(senderDim)) {
-            TradeMessages.error(sender, Component.translatable("securetrade.error_blocked_dimension_self"));
+            TradeMessages.error(sender, TradeMessages.trans("securetrade.error_blocked_dimension_self"));
             return 0;
         }
         if (!isDimensionAllowed(targetDim)) {
-            TradeMessages.error(sender, Component.translatable("securetrade.error_blocked_dimension_target"));
+            TradeMessages.error(sender, TradeMessages.trans("securetrade.error_blocked_dimension_target"));
             return 0;
         }
 
@@ -109,12 +109,12 @@ public class TradeCommand {
         double maxDist = Services.PLATFORM.getMaxTradeDistance();
         if (maxDist > 0) {
             if (!sender.level.dimension().equals(target.level.dimension())) {
-                TradeMessages.error(sender, Component.translatable("securetrade.error_different_dimensions"));
+                TradeMessages.error(sender, TradeMessages.trans("securetrade.error_different_dimensions"));
                 return 0;
             }
             double distSq = sender.distanceToSqr(target);
             if (distSq > maxDist * maxDist) {
-                TradeMessages.error(sender, Component.translatable("securetrade.error_too_far"));
+                TradeMessages.error(sender, TradeMessages.trans("securetrade.error_too_far"));
                 return 0;
             }
         }
@@ -140,9 +140,9 @@ public class TradeCommand {
         // If target still has an active pending request from someone else
         if (targetPending != null) {
             if (targetPending.senderId.equals(sender.getUUID())) {
-                TradeMessages.warning(sender, Component.translatable("securetrade.error_already_requested"));
+                TradeMessages.warning(sender, TradeMessages.trans("securetrade.error_already_requested"));
             } else {
-                TradeMessages.warning(sender, Component.translatable("securetrade.error_target_has_pending"));
+                TradeMessages.warning(sender, TradeMessages.trans("securetrade.error_target_has_pending"));
             }
             return 0;
         }
@@ -153,7 +153,7 @@ public class TradeCommand {
         if (cooldownExpire != null) {
             if (now < cooldownExpire) {
                 int secsLeft = (int) Math.ceil((cooldownExpire - now) / 1000.0);
-                TradeMessages.warning(sender, Component.translatable("securetrade.error_cooldown", secsLeft, TradeMessages.playerName(target)));
+                TradeMessages.warning(sender, TradeMessages.trans("securetrade.error_cooldown", secsLeft, TradeMessages.playerName(target)));
                 return 0;
             } else {
                 tradeCooldowns.remove(cooldownKey);
@@ -164,8 +164,8 @@ public class TradeCommand {
         TradeRequest senderPending = pendingRequests.get(sender.getUUID());
         if (senderPending != null && senderPending.senderId.equals(target.getUUID()) && now <= senderPending.expirationTime) {
             pendingRequests.remove(sender.getUUID());
-            TradeMessages.success(target, Component.translatable("securetrade.trade_accepted"));
-            TradeMessages.success(sender, Component.translatable("securetrade.target_accepted", TradeMessages.playerName(target)));
+            TradeMessages.success(target, TradeMessages.trans("securetrade.trade_accepted"));
+            TradeMessages.success(sender, TradeMessages.trans("securetrade.target_accepted", TradeMessages.playerName(target)));
             TradeMenu.openTrade(sender, target);
             return 1;
         }
@@ -174,33 +174,32 @@ public class TradeCommand {
         long expireAt = now + (Services.PLATFORM.getRequestTimeoutSeconds() * 1000L);
         pendingRequests.put(target.getUUID(), new TradeRequest(sender.getUUID(), expireAt));
 
-        TradeMessages.info(sender, Component.translatable("securetrade.request_sent", TradeMessages.playerName(target)));
+        TradeMessages.info(sender, TradeMessages.trans("securetrade.request_sent", TradeMessages.playerName(target)));
 
-        Component acceptText = Component.translatable("securetrade.accept_button")
+        Component acceptText = TradeMessages.trans("securetrade.accept_button")
                 .withStyle(Style.EMPTY.withColor(0x55FF55).withBold(true)
                         .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/trade accept"))
-                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("securetrade.accept_hover"))));
+                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TradeMessages.trans("securetrade.accept_hover"))));
 
-        Component denyText = Component.translatable("securetrade.deny_button")
+        Component denyText = TradeMessages.trans("securetrade.deny_button")
                 .withStyle(Style.EMPTY.withColor(0xFF5555).withBold(true)
                         .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/trade deny"))
-                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("securetrade.deny_hover"))));
+                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TradeMessages.trans("securetrade.deny_hover"))));
 
-        target.sendSystemMessage(TradeMessages.format(
-                Component.translatable("securetrade.wants_to_trade", TradeMessages.playerName(sender))
+        TradeMessages.sendRaw(target, TradeMessages.format(
+                TradeMessages.trans("securetrade.wants_to_trade", TradeMessages.playerName(sender))
                         .append(" ").append(acceptText).append(" ").append(denyText),
                 ChatFormatting.YELLOW));
 
         return 1;
     }
 
-    private static int acceptTrade(CommandSourceStack source) {
-        ServerPlayer target = source.getPlayer();
-        if (target == null) return 0;
+    private static int acceptTrade(CommandSourceStack source) throws CommandSyntaxException {
+        ServerPlayer target = source.getPlayerOrException();
 
         // Busy Check: is target already trading?
         if (target.containerMenu instanceof TradeMenu) {
-            TradeMessages.error(target, Component.translatable("securetrade.error_already_trading"));
+            TradeMessages.error(target, TradeMessages.trans("securetrade.error_already_trading"));
             return 0;
         }
 
@@ -214,7 +213,7 @@ public class TradeCommand {
                     tradeCooldowns.put(new CooldownKey(request.senderId, target.getUUID()), request.expirationTime + cooldownTime);
                 }
             }
-            TradeMessages.warning(target, Component.translatable("securetrade.no_pending_requests"));
+            TradeMessages.warning(target, TradeMessages.trans("securetrade.no_pending_requests"));
             return 0;
         }
 
@@ -222,13 +221,13 @@ public class TradeCommand {
 
         ServerPlayer sender = target.server.getPlayerList().getPlayer(request.senderId);
         if (sender == null) {
-            TradeMessages.error(target, Component.translatable("securetrade.sender_offline"));
+            TradeMessages.error(target, TradeMessages.trans("securetrade.sender_offline"));
             return 0;
         }
 
         // Busy Check: is sender already trading?
         if (sender.containerMenu instanceof TradeMenu) {
-            TradeMessages.error(target, Component.translatable("securetrade.error_target_already_trading", TradeMessages.playerName(sender)));
+            TradeMessages.error(target, TradeMessages.trans("securetrade.error_target_already_trading", TradeMessages.playerName(sender)));
             return 0;
         }
 
@@ -237,11 +236,11 @@ public class TradeCommand {
         String senderDim = sender.level.dimension().location().toString();
 
         if (!isDimensionAllowed(targetDim)) {
-            TradeMessages.error(target, Component.translatable("securetrade.error_blocked_dimension_self"));
+            TradeMessages.error(target, TradeMessages.trans("securetrade.error_blocked_dimension_self"));
             return 0;
         }
         if (!isDimensionAllowed(senderDim)) {
-            TradeMessages.error(target, Component.translatable("securetrade.error_blocked_dimension_target"));
+            TradeMessages.error(target, TradeMessages.trans("securetrade.error_blocked_dimension_target"));
             return 0;
         }
 
@@ -250,14 +249,14 @@ public class TradeCommand {
         if (maxDist > 0) {
             if (!sender.level.dimension().equals(target.level.dimension()) || 
                 sender.distanceToSqr(target) > maxDist * maxDist) {
-                TradeMessages.error(target, Component.translatable("securetrade.error_too_far"));
-                TradeMessages.error(sender, Component.translatable("securetrade.error_too_far"));
+                TradeMessages.error(target, TradeMessages.trans("securetrade.error_too_far"));
+                TradeMessages.error(sender, TradeMessages.trans("securetrade.error_too_far"));
                 return 0;
             }
         }
 
-        TradeMessages.success(target, Component.translatable("securetrade.trade_accepted"));
-        TradeMessages.success(sender, Component.translatable("securetrade.target_accepted", TradeMessages.playerName(target)));
+        TradeMessages.success(target, TradeMessages.trans("securetrade.trade_accepted"));
+        TradeMessages.success(sender, TradeMessages.trans("securetrade.target_accepted", TradeMessages.playerName(target)));
 
         // Open Trade Menu for both players
         TradeMenu.openTrade(sender, target);
@@ -265,13 +264,12 @@ public class TradeCommand {
         return 1;
     }
 
-    private static int denyTrade(CommandSourceStack source) {
-        ServerPlayer target = source.getPlayer();
-        if (target == null) return 0;
+    private static int denyTrade(CommandSourceStack source) throws CommandSyntaxException {
+        ServerPlayer target = source.getPlayerOrException();
 
         // Busy Check: is target already trading?
         if (target.containerMenu instanceof TradeMenu) {
-            TradeMessages.error(target, Component.translatable("securetrade.error_already_trading"));
+            TradeMessages.error(target, TradeMessages.trans("securetrade.error_already_trading"));
             return 0;
         }
 
@@ -285,7 +283,7 @@ public class TradeCommand {
                     tradeCooldowns.put(new CooldownKey(request.senderId, target.getUUID()), request.expirationTime + cooldownTime);
                 }
             }
-            TradeMessages.warning(target, Component.translatable("securetrade.no_pending_requests"));
+            TradeMessages.warning(target, TradeMessages.trans("securetrade.no_pending_requests"));
             return 0;
         }
 
@@ -299,9 +297,9 @@ public class TradeCommand {
 
         ServerPlayer sender = target.server.getPlayerList().getPlayer(request.senderId);
         if (sender != null) {
-            TradeMessages.warning(sender, Component.translatable("securetrade.target_denied", TradeMessages.playerName(target)));
+            TradeMessages.warning(sender, TradeMessages.trans("securetrade.target_denied", TradeMessages.playerName(target)));
         }
-        TradeMessages.warning(target, Component.translatable("securetrade.trade_denied"));
+        TradeMessages.warning(target, TradeMessages.trans("securetrade.trade_denied"));
 
         return 1;
     }
@@ -319,9 +317,8 @@ public class TradeCommand {
         return true;
     }
 
-    private static int showHistory(CommandSourceStack source) {
-        ServerPlayer player = source.getPlayer();
-        if (player == null) return 0;
+    private static int showHistory(CommandSourceStack source) throws CommandSyntaxException {
+        ServerPlayer player = source.getPlayerOrException();
 
         TradeHistoryManager.showHistory(player);
         return 1;

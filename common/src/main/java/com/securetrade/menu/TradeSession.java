@@ -91,7 +91,7 @@ public class TradeSession {
             }
         }
 
-        // Apply pending XP changes — always use the last value received this tick
+        // Apply pending XP changes вЂ” always use the last value received this tick
         boolean xpChanged = false;
         if (pendingPlayer1XP >= 0) {
             if (player1XP != pendingPlayer1XP) {
@@ -202,8 +202,8 @@ public class TradeSession {
         // Give inv1 to player2
         transferItems(inventory1, player2);
 
-        TradeMessages.success(player1, Component.translatable("securetrade.trade_successful"));
-        TradeMessages.success(player2, Component.translatable("securetrade.trade_successful"));
+        TradeMessages.success(player1, TradeMessages.trans("securetrade.trade_successful"));
+        TradeMessages.success(player2, TradeMessages.trans("securetrade.trade_successful"));
 
         playNotifySound(SoundEvents.PLAYER_LEVELUP, 1.0f, 1.0f);
 
@@ -230,7 +230,7 @@ public class TradeSession {
                         to.drop(stack, false);
                     }
                 } else {
-                    // Player disconnected вЂ” drop items at their last known position
+                    // Player disconnected РІР‚вЂќ drop items at their last known position
                     to.level.addFreshEntity(
                         new net.minecraft.world.entity.item.ItemEntity(
                             to.level, to.getX(), to.getY(), to.getZ(), stack
@@ -270,12 +270,12 @@ public class TradeSession {
 
         if (isPlayerOnline(player1)) {
             player1.playNotifySound(SoundEvents.DISPENSER_FAIL, SoundSource.MASTER, 1.0f, 1.0f);
-            TradeMessages.warning(player1, Component.translatable("securetrade.trade_cancelled"));
+            TradeMessages.warning(player1, TradeMessages.trans("securetrade.trade_cancelled"));
             if (player1.containerMenu instanceof TradeMenu) player1.closeContainer();
         }
         if (isPlayerOnline(player2)) {
             player2.playNotifySound(SoundEvents.DISPENSER_FAIL, SoundSource.MASTER, 1.0f, 1.0f);
-            TradeMessages.warning(player2, Component.translatable("securetrade.trade_cancelled"));
+            TradeMessages.warning(player2, TradeMessages.trans("securetrade.trade_cancelled"));
             if (player2.containerMenu instanceof TradeMenu) player2.closeContainer();
         }
 

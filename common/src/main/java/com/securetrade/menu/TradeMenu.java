@@ -1,6 +1,7 @@
 package com.securetrade.menu;
 
 import com.securetrade.TradeItemValidator;
+import com.securetrade.TradeMessages;
 import com.securetrade.platform.Services;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -190,7 +191,7 @@ public class TradeMenu extends AbstractContainerMenu {
         player1.openMenu(new MenuProvider() {
             @Override
             public Component getDisplayName() {
-                return Component.literal("Trade with " + player2.getScoreboardName());
+                return TradeMessages.text("Trade with " + player2.getScoreboardName());
             }
 
             @Override
@@ -202,7 +203,7 @@ public class TradeMenu extends AbstractContainerMenu {
         player2.openMenu(new MenuProvider() {
             @Override
             public Component getDisplayName() {
-                return Component.literal("Trade with " + player1.getScoreboardName());
+                return TradeMessages.text("Trade with " + player1.getScoreboardName());
             }
 
             @Override

@@ -7,7 +7,7 @@ import com.securetrade.menu.TradeSessionManager;
 import com.securetrade.network.TradeLockPacket;
 import com.securetrade.network.TradeXPChangePacket;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
@@ -38,7 +38,7 @@ public class FabricSecureTradeMod implements ModInitializer {
         ));
 
         // Register Commands
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
+        CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) ->
                 TradeCommand.register(dispatcher));
 
         // Register Server-Side Packet Receivers (C2S)

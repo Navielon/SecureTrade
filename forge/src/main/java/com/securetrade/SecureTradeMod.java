@@ -23,7 +23,7 @@ public class SecureTradeMod {
     public static final String MODID = "securetrade";
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(ForgeRegistries.MENU_TYPES, MODID);
+    public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(ForgeRegistries.CONTAINERS, MODID);
 
     public static final RegistryObject<MenuType<TradeMenu>> TRADE_MENU = MENUS.register("trade_menu", () -> {
         MenuType<TradeMenu> type = new MenuType<>(TradeMenu::new);

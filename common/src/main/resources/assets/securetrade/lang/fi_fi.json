@@ -14,14 +14,8 @@
   "securetrade.trade_denied": "Vaihto hylätty.",
   "securetrade.trade_successful": "Vaihto valmis.",
   "securetrade.trade_cancelled": "Vaihto peruttu.",
-  "securetrade.gui.me": "Sinä",
-  "securetrade.gui.them": "Toinen",
   "securetrade.gui.lock": "Valmis",
-  "securetrade.gui.ready": "Valmis",
   "securetrade.gui.cancel": "Peru",
-  "securetrade.gui.tab.items": "Tavarat",
-  "securetrade.gui.tab.xp": "XP",
-  "securetrade.gui.items_help": "Aseta tavarat ja paina Valmis.",
   "securetrade.error_too_far": "Olet liian kaukana toisesta pelaajasta vaihtaaksesi.",
   "securetrade.error_different_dimensions": "Et voi vaihtaa eri ulottuvuuksissa olevien pelaajien kanssa.",
   "securetrade.error_already_trading": "Olet jo vaihtamassa!",
@@ -43,5 +37,12 @@
   "securetrade.gui.receive_xp": "Saat: %d XP (~%d tasoa)",
   "securetrade.gui.xp_level_minus": "-%d tasoa",
   "securetrade.gui.xp_level_plus": "+%d tasoa",
-  "securetrade.gui.xp_level_zero": "0 tasoa"
+  "securetrade.gui.xp_level_zero": "0 tasoa",
+  "securetrade.gui.you_offer": "Tarjoat",
+  "securetrade.gui.partner_offers": "%s tarjoaa",
+  "securetrade.gui.waiting": "Odotetaan",
+  "securetrade.gui.confirmed": "Vahvistettu",
+  "securetrade.trade_completed_overlay": "Vaihto pelaajan %s kanssa suoritettu",
+  "securetrade.gui.trade_with": "Vaihto pelaajan %s kanssa",
+  "securetrade.error_blacklisted_item": "Palvelin on estänyt tämän esineen, eikä sitä voi vaihtaa."
 }

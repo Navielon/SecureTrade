@@ -25,7 +25,7 @@ public class TradeLogger {
         String logEntry = String.format("[%s] %s%n", time, message);
 
         synchronized (LOCK) {
-            if (executor.isShutdown() || executor.isTerminated()) {
+            if (executor == null || executor.isShutdown() || executor.isTerminated()) {
                 executor = createExecutor();
             }
             executor.execute(() -> writeLogEntry(logEntry));
@@ -55,7 +55,11 @@ public class TradeLogger {
         ExecutorService toShutdown;
         synchronized (LOCK) {
             toShutdown = executor;
-            executor = createExecutor();
+            executor = null;
+        }
+
+        if (toShutdown == null) {
+            return;
         }
 
         toShutdown.shutdown();

@@ -3,13 +3,14 @@
   "id": "securetrade",
   "version": "${version}",
   "name": "Secure Trade",
-  "description": "Trade items with other players from anywhere, without running back to base or meeting in the same dimension. Secure Trade adds chat-based trade requests, a shared trade screen, locked offers, and a short completion countdown.",
+  "description": "Trade items and XP with other players from anywhere, across distance and dimensions, with configurable server-side limits.",
   "authors": [
     "Navielon"
   ],
   "contact": {
     "homepage": "https://github.com/Navielon/SecureTrade",
-    "sources": "https://github.com/Navielon/SecureTrade"
+    "sources": "https://github.com/Navielon/SecureTrade",
+    "issues": "https://github.com/Navielon/SecureTrade/issues"
   },
   "license": "MIT",
   "icon": "mod_icon.png",

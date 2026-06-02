@@ -1,6 +1,5 @@
 package com.securetrade;
 
-import com.mojang.logging.LogUtils;
 import com.securetrade.command.TradeCommand;
 import com.securetrade.menu.TradeMenu;
 import com.securetrade.menu.TradeMenuType;
@@ -15,13 +14,10 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.DeferredHolder;
-import org.slf4j.Logger;
 
 @Mod(SecureTradeMod.MODID)
 public class SecureTradeMod {
     public static final String MODID = "securetrade";
-    private static final Logger LOGGER = LogUtils.getLogger();
-
     public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(BuiltInRegistries.MENU, MODID);
 
     public static final DeferredHolder<MenuType<?>, MenuType<TradeMenu>> TRADE_MENU = MENUS.register("trade_menu", () -> {

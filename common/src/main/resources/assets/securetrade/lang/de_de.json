@@ -14,14 +14,8 @@
   "securetrade.trade_denied": "Handel abgelehnt.",
   "securetrade.trade_successful": "Handel abgeschlossen.",
   "securetrade.trade_cancelled": "Handel abgebrochen.",
-  "securetrade.gui.me": "Du",
-  "securetrade.gui.them": "Partner",
   "securetrade.gui.lock": "Bereit",
-  "securetrade.gui.ready": "Bereit",
   "securetrade.gui.cancel": "Abbr.",
-  "securetrade.gui.tab.items": "Items",
-  "securetrade.gui.tab.xp": "XP",
-  "securetrade.gui.items_help": "Lege Items hinein und klicke auf Bereit.",
   "securetrade.error_too_far": "Du bist zu weit vom anderen Spieler entfernt, um zu handeln.",
   "securetrade.error_different_dimensions": "Du kannst nicht mit Spielern in anderen Dimensionen handeln.",
   "securetrade.error_already_trading": "Du handelst bereits!",
@@ -43,5 +37,12 @@
   "securetrade.gui.receive_xp": "Du erhältst: %d XP (~%d St.)",
   "securetrade.gui.xp_level_minus": "-%d St.",
   "securetrade.gui.xp_level_plus": "+%d St.",
-  "securetrade.gui.xp_level_zero": "0 St."
+  "securetrade.gui.xp_level_zero": "0 St.",
+  "securetrade.gui.you_offer": "Du bietest an",
+  "securetrade.gui.partner_offers": "%s bietet an",
+  "securetrade.gui.waiting": "Warten",
+  "securetrade.gui.confirmed": "Bestätigt",
+  "securetrade.trade_completed_overlay": "Handel mit %s abgeschlossen",
+  "securetrade.gui.trade_with": "Handel mit %s",
+  "securetrade.error_blacklisted_item": "Dieser Gegenstand ist auf dem Server gesperrt und kann nicht gehandelt werden."
 }

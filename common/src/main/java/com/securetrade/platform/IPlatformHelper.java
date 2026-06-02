@@ -1,18 +1,20 @@
 package com.securetrade.platform;
 
+import java.util.List;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 
 public interface IPlatformHelper {
-    // Client-to-Server: Send packet when player clicks Lock/Ready
     void sendLockPacket(boolean locked);
 
-    // Client-to-Server: Send packet when player changes offered XP
-    void sendXPChangePacket(int xpPoints);
+    void sendXPChangePacket(long xpPoints);
 
-    // Server-to-Client: Sync trade state (locks, countdown, offered XP) to specific player
-    void sendStateSync(ServerPlayer player, boolean myLock, boolean otherLock, int countdownSeconds, int myXP, int otherXP);
+    void sendStateSync(ServerPlayer player, boolean myLock, boolean otherLock, int countdownSeconds, long myXP, long otherXP, long otherTotalXP, String partnerName);
 
-    // Config Getters
+    void sendBlacklistWarning(ServerPlayer player);
+
+    boolean containsPlatformContainerItems(ItemStack stack, List<String> blacklist, int depth);
+
     double getMaxTradeDistance();
     int getRequestTimeoutSeconds();
     int getTradeCooldownSeconds();

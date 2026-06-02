@@ -13,10 +13,6 @@ public final class TradeMessages {
         return Component.literal(player.getScoreboardName()).withStyle(ChatFormatting.AQUA);
     }
 
-    public static Component playerName(String name) {
-        return Component.literal(name).withStyle(ChatFormatting.AQUA);
-    }
-
     public static void info(ServerPlayer player, Component message) {
         send(player, message, ChatFormatting.GRAY);
     }

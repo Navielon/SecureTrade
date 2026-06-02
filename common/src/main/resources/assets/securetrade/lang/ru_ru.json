@@ -14,14 +14,8 @@
   "securetrade.trade_denied": "Обмен отклонен.",
   "securetrade.trade_successful": "Обмен успешно завершен.",
   "securetrade.trade_cancelled": "Обмен отменен.",
-  "securetrade.gui.me": "Вы",
-  "securetrade.gui.them": "Партнер",
   "securetrade.gui.lock": "Готов",
-  "securetrade.gui.ready": "Готов",
   "securetrade.gui.cancel": "Отмена",
-  "securetrade.gui.tab.items": "Вещи",
-  "securetrade.gui.tab.xp": "XP",
-  "securetrade.gui.items_help": "Положите предметы, затем нажмите «Готов».",
   "securetrade.error_too_far": "Вы находитесь слишком далеко от другого игрока для обмена.",
   "securetrade.error_different_dimensions": "Вы не можете обмениваться с игроками в других измерениях.",
   "securetrade.error_already_trading": "Вы уже торгуете!",
@@ -43,5 +37,12 @@
   "securetrade.gui.receive_xp": "Вы получаете: %d XP (~%d Ур.)",
   "securetrade.gui.xp_level_minus": "-%d Ур.",
   "securetrade.gui.xp_level_plus": "+%d Ур.",
-  "securetrade.gui.xp_level_zero": "0 Ур."
+  "securetrade.gui.xp_level_zero": "0 Ур.",
+  "securetrade.gui.you_offer": "Вы предлагаете",
+  "securetrade.gui.partner_offers": "%s предлагает",
+  "securetrade.gui.waiting": "Ожидание",
+  "securetrade.gui.confirmed": "Подтверждено",
+  "securetrade.trade_completed_overlay": "Обмен с %s завершён",
+  "securetrade.gui.trade_with": "Обмен с %s",
+  "securetrade.error_blacklisted_item": "Этот предмет запрещён сервером для обмена."
 }

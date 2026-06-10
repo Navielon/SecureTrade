@@ -1,9 +1,8 @@
 package com.securetrade;
 
 import com.securetrade.platform.Services;
-import java.lang.reflect.Method;
 import java.util.List;
-import java.util.Optional;
+import java.lang.reflect.Method;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.SimpleContainer;
@@ -78,31 +77,7 @@ public final class TradeItemValidator {
             return true;
         }
 
-        if (containsSophisticatedBackpackItems(stack, blacklist, depth + 1)) {
-            return true;
-        }
-
         return false;
-    }
-
-    private static boolean containsSophisticatedBackpackItems(ItemStack stack, List<String> blacklist, int depth) {
-        try {
-            Class<?> wrapperClass = Class.forName("net.p3pp3rf1y.sophisticatedbackpacks.backpack.wrapper.BackpackWrapper");
-            Method fromExistingData = wrapperClass.getMethod("fromExistingData", ItemStack.class);
-            Object optionalWrapper = fromExistingData.invoke(null, stack);
-            if (!(optionalWrapper instanceof Optional<?> optional) || optional.isEmpty()) {
-                return false;
-            }
-
-            Object wrapper = optional.get();
-            Method getInventoryHandler = wrapper.getClass().getMethod("getInventoryHandler");
-            Object handler = getInventoryHandler.invoke(wrapper);
-            return containsHandlerItems(handler, blacklist, depth);
-        } catch (ClassNotFoundException | NoSuchMethodException ignored) {
-            return false;
-        } catch (ReflectiveOperationException | RuntimeException ignored) {
-            return false;
-        }
     }
 
     public static boolean containsHandlerItems(Object handler, List<String> blacklist, int depth) throws ReflectiveOperationException {

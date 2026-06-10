@@ -4,23 +4,21 @@ import com.securetrade.command.TradeCommand;
 import com.securetrade.menu.TradeMenu;
 import com.securetrade.menu.TradeMenuType;
 import com.securetrade.menu.TradeSessionManager;
+import com.securetrade.network.TradeBlacklistWarningPacket;
 import com.securetrade.network.TradeLockPacket;
 import com.securetrade.network.TradeStateSyncPacket;
 import com.securetrade.network.TradeXPChangePacket;
-import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;
-import com.securetrade.client.TradeScreen;
 
 public class FabricSecureTradeMod implements ModInitializer {
     public static final String MODID = "securetrade";
@@ -28,27 +26,24 @@ public class FabricSecureTradeMod implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        // Load configuration
         FabricTradeConfig.load();
 
-        // Register MenuType
         TradeMenuType.set(Registry.register(
                 BuiltInRegistries.MENU,
                 Identifier.fromNamespaceAndPath(MODID, "trade_menu"),
                 new MenuType<>(TradeMenu::new, FeatureFlags.DEFAULT_FLAGS)
         ));
+        SecureTradeSounds.register((id, sound) -> Registry.register(BuiltInRegistries.SOUND_EVENT, id, sound));
 
-        // Register Commands
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             TradeCommand.register(dispatcher);
         });
 
-        // Register Network Packets
         PayloadTypeRegistry.serverboundPlay().register(TradeLockPacket.TYPE, TradeLockPacket.STREAM_CODEC);
         PayloadTypeRegistry.serverboundPlay().register(TradeXPChangePacket.TYPE, TradeXPChangePacket.STREAM_CODEC);
         PayloadTypeRegistry.clientboundPlay().register(TradeStateSyncPacket.TYPE, TradeStateSyncPacket.STREAM_CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(TradeBlacklistWarningPacket.TYPE, TradeBlacklistWarningPacket.STREAM_CODEC);
 
-        // Register Server-Side Packet Receivers
         ServerPlayNetworking.registerGlobalReceiver(TradeLockPacket.TYPE, (payload, context) -> {
             context.server().execute(() -> {
                 if (context.player().containerMenu instanceof TradeMenu menu) {
@@ -65,7 +60,6 @@ public class FabricSecureTradeMod implements ModInitializer {
             });
         });
 
-        // Register Ticking Event
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             TradeSessionManager.tick();
             cleanupTicks++;

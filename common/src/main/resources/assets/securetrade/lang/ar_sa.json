@@ -14,14 +14,8 @@
   "securetrade.trade_denied": "تم رفض التداول.",
   "securetrade.trade_successful": "اكتمل التداول.",
   "securetrade.trade_cancelled": "تم إلغاء التداول.",
-  "securetrade.gui.me": "أنت",
-  "securetrade.gui.them": "الآخر",
   "securetrade.gui.lock": "جاهز",
-  "securetrade.gui.ready": "جاهز",
   "securetrade.gui.cancel": "إلغاء",
-  "securetrade.gui.tab.items": "أغراض",
-  "securetrade.gui.tab.xp": "XP",
-  "securetrade.gui.items_help": "ضع الأغراض ثم اضغط جاهز.",
   "securetrade.error_too_far": "أنت بعيد جداً عن اللاعب الآخر للتداول.",
   "securetrade.error_different_dimensions": "لا يمكنك التداول مع لاعبين في أبعاد أخرى.",
   "securetrade.error_already_trading": "أنت تتداول بالفعل!",
@@ -43,5 +37,12 @@
   "securetrade.gui.receive_xp": "تستلم: %d XP (~%d مستوى)",
   "securetrade.gui.xp_level_minus": "-%d مستوى",
   "securetrade.gui.xp_level_plus": "+%d مستوى",
-  "securetrade.gui.xp_level_zero": "0 مستوى"
+  "securetrade.gui.xp_level_zero": "0 مستوى",
+  "securetrade.gui.you_offer": "أنت تعرض",
+  "securetrade.gui.partner_offers": "%s يعرض",
+  "securetrade.gui.waiting": "انتظار",
+  "securetrade.gui.confirmed": "تم التأكيد",
+  "securetrade.trade_completed_overlay": "اكتملت المبادلة مع %s",
+  "securetrade.gui.trade_with": "مبادلة مع %s",
+  "securetrade.error_blacklisted_item": "هذا العنصر محظور من الخادم ولا يمكن مبادلته."
 }

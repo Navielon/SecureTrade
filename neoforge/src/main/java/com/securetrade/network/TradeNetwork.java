@@ -7,7 +7,6 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 public class TradeNetwork {
     public static void register(PayloadRegistrar registrar) {
-        // FIX #6: Use directional registration instead of Bidirectional
         registrar.playToServer(
                 TradeLockPacket.TYPE,
                 TradeLockPacket.STREAM_CODEC,
@@ -17,6 +16,11 @@ public class TradeNetwork {
                 TradeStateSyncPacket.TYPE,
                 TradeStateSyncPacket.STREAM_CODEC,
                 TradeNetwork::handleStateSyncPacket
+        );
+        registrar.playToClient(
+                TradeBlacklistWarningPacket.TYPE,
+                TradeBlacklistWarningPacket.STREAM_CODEC,
+                TradeNetwork::handleBlacklistWarningPacket
         );
         registrar.playToServer(
                 TradeXPChangePacket.TYPE,
@@ -47,8 +51,16 @@ public class TradeNetwork {
         context.enqueueWork(() -> {
             Player player = context.player();
             if (player.containerMenu instanceof TradeMenu tradeMenu) {
-                // FIX #5: Use updateFields on client side (no re-send)
-                tradeMenu.updateFields(payload.myLock(), payload.otherLock(), payload.countdownSeconds(), payload.myXP(), payload.otherXP());
+                tradeMenu.updateFields(payload.myLock(), payload.otherLock(), payload.countdownSeconds(), payload.myXP(), payload.otherXP(), payload.otherTotalXP(), payload.partnerName());
+            }
+        });
+    }
+
+    private static void handleBlacklistWarningPacket(TradeBlacklistWarningPacket payload, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            Player player = context.player();
+            if (player.containerMenu instanceof TradeMenu tradeMenu) {
+                tradeMenu.showBlacklistWarning();
             }
         });
     }

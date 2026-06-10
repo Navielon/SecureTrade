@@ -14,14 +14,8 @@
   "securetrade.trade_denied": "Dagang ditolak.",
   "securetrade.trade_successful": "Dagang selesai.",
   "securetrade.trade_cancelled": "Dagang dibatalkan.",
-  "securetrade.gui.me": "Kamu",
-  "securetrade.gui.them": "Mereka",
   "securetrade.gui.lock": "Siap",
-  "securetrade.gui.ready": "Siap",
   "securetrade.gui.cancel": "Batal",
-  "securetrade.gui.tab.items": "Item",
-  "securetrade.gui.tab.xp": "XP",
-  "securetrade.gui.items_help": "Letakkan item, lalu tekan Siap.",
   "securetrade.error_too_far": "Kamu terlalu jauh dari pemain lain untuk berdagang.",
   "securetrade.error_different_dimensions": "Kamu tidak bisa berdagang dengan pemain di dimensi lain.",
   "securetrade.error_already_trading": "Kamu sudah sedang berdagang!",
@@ -43,5 +37,12 @@
   "securetrade.gui.receive_xp": "Kamu menerima: %d XP (~%d Lv.)",
   "securetrade.gui.xp_level_minus": "-%d Lv.",
   "securetrade.gui.xp_level_plus": "+%d Lv.",
-  "securetrade.gui.xp_level_zero": "0 Lv."
+  "securetrade.gui.xp_level_zero": "0 Lv.",
+  "securetrade.gui.you_offer": "Anda menawarkan",
+  "securetrade.gui.partner_offers": "%s menawarkan",
+  "securetrade.gui.waiting": "Menunggu",
+  "securetrade.gui.confirmed": "Dikonfirmasi",
+  "securetrade.trade_completed_overlay": "Pertukaran dengan %s selesai",
+  "securetrade.gui.trade_with": "Pertukaran dengan %s",
+  "securetrade.error_blacklisted_item": "Item ini diblokir oleh server dan tidak dapat diperdagangkan."
 }

@@ -14,7 +14,7 @@
   "securetrade.trade_denied": "Trade denied.",
   "securetrade.trade_successful": "Trade successful.",
   "securetrade.trade_cancelled": "Trade cancelled.",
-  "securetrade.gui.lock": "Lock",
+  "securetrade.gui.lock": "Ready",
   "securetrade.gui.cancel": "Cancel",
   "securetrade.error_too_far": "You are too far from the other player to trade.",
   "securetrade.error_different_dimensions": "You cannot trade with players in other dimensions.",

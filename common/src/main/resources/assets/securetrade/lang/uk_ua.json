@@ -14,14 +14,8 @@
   "securetrade.trade_denied": "Обмін відхилено.",
   "securetrade.trade_successful": "Обмін завершено.",
   "securetrade.trade_cancelled": "Обмін скасовано.",
-  "securetrade.gui.me": "Ви",
-  "securetrade.gui.them": "Партнер",
   "securetrade.gui.lock": "Готово",
-  "securetrade.gui.ready": "Готово",
   "securetrade.gui.cancel": "Скас.",
-  "securetrade.gui.tab.items": "Речі",
-  "securetrade.gui.tab.xp": "XP",
-  "securetrade.gui.items_help": "Покладіть предмети, потім натисніть Готово.",
   "securetrade.error_too_far": "Ви надто далеко від іншого гравця для обміну.",
   "securetrade.error_different_dimensions": "Ви не можете обмінюватися з гравцями в інших вимірах.",
   "securetrade.error_already_trading": "Ви вже обмінюєтеся!",
@@ -43,5 +37,12 @@
   "securetrade.gui.receive_xp": "Ви отримуєте: %d XP (~%d рів.)",
   "securetrade.gui.xp_level_minus": "-%d рів.",
   "securetrade.gui.xp_level_plus": "+%d рів.",
-  "securetrade.gui.xp_level_zero": "0 рів."
+  "securetrade.gui.xp_level_zero": "0 рів.",
+  "securetrade.gui.you_offer": "Ви пропонуєте",
+  "securetrade.gui.partner_offers": "%s пропонує",
+  "securetrade.gui.waiting": "Очікування",
+  "securetrade.gui.confirmed": "Підтверджено",
+  "securetrade.trade_completed_overlay": "Обмін із %s завершено",
+  "securetrade.gui.trade_with": "Обмін із %s",
+  "securetrade.error_blacklisted_item": "Цей предмет заборонено сервером для обміну."
 }

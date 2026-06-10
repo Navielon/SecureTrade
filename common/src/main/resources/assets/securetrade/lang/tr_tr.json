@@ -14,14 +14,8 @@
   "securetrade.trade_denied": "Takas reddedildi.",
   "securetrade.trade_successful": "Takas tamamlandı.",
   "securetrade.trade_cancelled": "Takas iptal edildi.",
-  "securetrade.gui.me": "Sen",
-  "securetrade.gui.them": "Diğeri",
   "securetrade.gui.lock": "Hazır",
-  "securetrade.gui.ready": "Hazır",
   "securetrade.gui.cancel": "İptal",
-  "securetrade.gui.tab.items": "Eşya",
-  "securetrade.gui.tab.xp": "XP",
-  "securetrade.gui.items_help": "Eşyaları koy, sonra Hazır'a bas.",
   "securetrade.error_too_far": "Takas yapmak için diğer oyuncudan çok uzaktasın.",
   "securetrade.error_different_dimensions": "Başka boyutlardaki oyuncularla takas yapamazsın.",
   "securetrade.error_already_trading": "Zaten takas yapıyorsun!",
@@ -43,5 +37,12 @@
   "securetrade.gui.receive_xp": "Alıyorsun: %d XP (~%d Sv.)",
   "securetrade.gui.xp_level_minus": "-%d Sv.",
   "securetrade.gui.xp_level_plus": "+%d Sv.",
-  "securetrade.gui.xp_level_zero": "0 Sv."
+  "securetrade.gui.xp_level_zero": "0 Sv.",
+  "securetrade.gui.you_offer": "Teklifiniz",
+  "securetrade.gui.partner_offers": "%s teklif ediyor",
+  "securetrade.gui.waiting": "Bekleniyor",
+  "securetrade.gui.confirmed": "Onaylandı",
+  "securetrade.trade_completed_overlay": "%s ile takas tamamlandı",
+  "securetrade.gui.trade_with": "%s ile takas",
+  "securetrade.error_blacklisted_item": "Bu eşya sunucu tarafından engellendi ve takas edilemez."
 }

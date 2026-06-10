@@ -11,18 +11,23 @@ import net.minecraft.client.gui.screens.MenuScreens;
 public class FabricClientInitializer implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
-        // Register Screen
         MenuScreens.register(TradeMenuType.get(), TradeScreen::new);
 
-        // Register Client-Side Packet Receivers (S2C)
         ClientPlayNetworking.registerGlobalReceiver(FabricSecureTradeMod.TRADE_STATE_SYNC_ID,
                 (client, handler, buf, responseSender) -> {
                     TradeStateSyncPacket packet = new TradeStateSyncPacket(buf);
                     client.execute(() -> {
                         if (client.player != null && client.player.containerMenu instanceof TradeMenu tradeMenu) {
-                            tradeMenu.updateFields(packet.myLock(), packet.otherLock(), packet.countdownSeconds(), packet.myXP(), packet.otherXP());
+                            tradeMenu.updateFields(packet.myLock(), packet.otherLock(), packet.countdownSeconds(), packet.myXP(), packet.otherXP(), packet.otherTotalXP(), packet.partnerName());
                         }
                     });
                 });
+
+        ClientPlayNetworking.registerGlobalReceiver(FabricSecureTradeMod.TRADE_BLACKLIST_WARNING_ID,
+                (client, handler, buf, responseSender) -> client.execute(() -> {
+                    if (client.player != null && client.player.containerMenu instanceof TradeMenu tradeMenu) {
+                        tradeMenu.showBlacklistWarning();
+                    }
+                }));
     }
 }

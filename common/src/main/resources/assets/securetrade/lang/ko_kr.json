@@ -14,14 +14,8 @@
   "securetrade.trade_denied": "거래를 거절했습니다.",
   "securetrade.trade_successful": "거래가 완료되었습니다.",
   "securetrade.trade_cancelled": "거래가 취소되었습니다.",
-  "securetrade.gui.me": "나",
-  "securetrade.gui.them": "상대",
   "securetrade.gui.lock": "준비",
-  "securetrade.gui.ready": "준비",
   "securetrade.gui.cancel": "취소",
-  "securetrade.gui.tab.items": "아이템",
-  "securetrade.gui.tab.xp": "XP",
-  "securetrade.gui.items_help": "아이템을 놓고 준비를 누르세요.",
   "securetrade.error_too_far": "상대 플레이어와 너무 멀어 거래할 수 없습니다.",
   "securetrade.error_different_dimensions": "다른 차원에 있는 플레이어와는 거래할 수 없습니다.",
   "securetrade.error_already_trading": "이미 거래 중입니다!",
@@ -43,5 +37,12 @@
   "securetrade.gui.receive_xp": "받음: %d XP (~%d 레벨)",
   "securetrade.gui.xp_level_minus": "-%d 레벨",
   "securetrade.gui.xp_level_plus": "+%d 레벨",
-  "securetrade.gui.xp_level_zero": "0 레벨"
+  "securetrade.gui.xp_level_zero": "0 레벨",
+  "securetrade.gui.you_offer": "내 제안",
+  "securetrade.gui.partner_offers": "%s의 제안",
+  "securetrade.gui.waiting": "대기 중",
+  "securetrade.gui.confirmed": "확인됨",
+  "securetrade.trade_completed_overlay": "%s님과의 거래가 완료되었습니다",
+  "securetrade.gui.trade_with": "%s님과 거래",
+  "securetrade.error_blacklisted_item": "이 아이템은 서버에서 차단되어 거래할 수 없습니다."
 }

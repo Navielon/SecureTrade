@@ -29,7 +29,7 @@ loom {
             client()
             runDir "run"
             programArg "--username"
-            programArg "Dev2"
+            programArg "DevTwoMaxName123"
         }
         server {
             server()

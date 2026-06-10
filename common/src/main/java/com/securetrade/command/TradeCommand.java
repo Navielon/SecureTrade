@@ -5,6 +5,7 @@ import com.securetrade.platform.Services;
 import com.securetrade.menu.TradeMenu;
 import com.securetrade.TradeHistoryManager;
 import com.securetrade.TradeMessages;
+import com.securetrade.SecureTradeSounds;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -14,6 +15,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -161,6 +163,7 @@ public class TradeCommand {
         pendingRequests.put(target.getUUID(), new TradeRequest(sender.getUUID(), expireAt));
 
         TradeMessages.info(sender, Component.translatable("securetrade.request_sent", TradeMessages.playerName(target)));
+        sender.playNotifySound(SecureTradeSounds.TRADE_REQUEST_SENT, SoundSource.MASTER, 0.8f, 1.0f);
 
         Component acceptText = Component.translatable("securetrade.accept_button")
                 .withStyle(Style.EMPTY.withColor(0x55FF55).withBold(true)
@@ -272,8 +275,10 @@ public class TradeCommand {
 
         ServerPlayer sender = target.server.getPlayerList().getPlayer(request.senderId);
         if (sender != null) {
+            sender.playNotifySound(SecureTradeSounds.TRADE_CANCEL, SoundSource.MASTER, 0.9f, 1.0f);
             TradeMessages.warning(sender, Component.translatable("securetrade.target_denied", TradeMessages.playerName(target)));
         }
+        target.playNotifySound(SecureTradeSounds.TRADE_CANCEL, SoundSource.MASTER, 0.9f, 1.0f);
         TradeMessages.warning(target, Component.translatable("securetrade.trade_denied"));
 
         return 1;

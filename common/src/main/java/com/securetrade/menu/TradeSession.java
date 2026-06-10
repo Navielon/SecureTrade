@@ -5,11 +5,11 @@ import com.securetrade.TradeLogger;
 import com.securetrade.TradeHistoryManager;
 import com.securetrade.TradeItemValidator;
 import com.securetrade.TradeMessages;
+import com.securetrade.SecureTradeSounds;
 import com.securetrade.XPMath;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
@@ -101,8 +101,6 @@ public class TradeSession {
             return;
         }
 
-        playNotifySound(SoundEvents.UI_BUTTON_CLICK.value(), 1.0f, 1.0f);
-
         if (player1Locked && player2Locked) {
             countdownTicks = Services.PLATFORM.getCountdownSeconds() * 20;
         } else {
@@ -158,8 +156,7 @@ public class TradeSession {
             if (countdownTicks % 20 == 0) {
                 int secsRemaining = countdownTicks / 20;
                 if (secsRemaining > 0) {
-                    float pitch = 1.0f + (3.0f - secsRemaining) * 0.2f;
-                    playNotifySound(SoundEvents.UI_BUTTON_CLICK.value(), 1.0f, pitch);
+                    playNotifySound(SecureTradeSounds.TRADE_COUNTDOWN_TICK, 1.6f, 1.0f);
                 }
                 syncState();
             }
@@ -200,7 +197,7 @@ public class TradeSession {
     }
 
     private void playAbortedSound() {
-        playNotifySound(SoundEvents.DISPENSER_FAIL, 1.0f, 1.0f);
+        playNotifySound(SecureTradeSounds.TRADE_CANCEL, 0.9f, 1.0f);
     }
 
     private void executeTrade() {
@@ -252,7 +249,7 @@ public class TradeSession {
             true
         );
 
-        playNotifySound(SoundEvents.PLAYER_LEVELUP, 1.0f, 1.0f);
+        playNotifySound(SecureTradeSounds.TRADE_SUCCESS, 1.0f, 1.0f);
 
         XPMath.setPlayerXP(player1, p1Xp - player1XP + player2XP);
         XPMath.setPlayerXP(player2, p2Xp - player2XP + player1XP);
@@ -313,12 +310,12 @@ public class TradeSession {
         transferItems(inventory2, player2);
 
         if (isPlayerOnline(player1)) {
-            player1.playNotifySound(SoundEvents.DISPENSER_FAIL, SoundSource.MASTER, 1.0f, 1.0f);
+            player1.playNotifySound(SecureTradeSounds.TRADE_CANCEL, SoundSource.MASTER, 0.9f, 1.0f);
             TradeMessages.warning(player1, Component.translatable("securetrade.trade_cancelled"));
             if (player1.containerMenu instanceof TradeMenu) player1.closeContainer();
         }
         if (isPlayerOnline(player2)) {
-            player2.playNotifySound(SoundEvents.DISPENSER_FAIL, SoundSource.MASTER, 1.0f, 1.0f);
+            player2.playNotifySound(SecureTradeSounds.TRADE_CANCEL, SoundSource.MASTER, 0.9f, 1.0f);
             TradeMessages.warning(player2, Component.translatable("securetrade.trade_cancelled"));
             if (player2.containerMenu instanceof TradeMenu) player2.closeContainer();
         }

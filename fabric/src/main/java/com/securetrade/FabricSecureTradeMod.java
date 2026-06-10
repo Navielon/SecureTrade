@@ -33,6 +33,7 @@ public class FabricSecureTradeMod implements ModInitializer {
                 ResourceLocation.fromNamespaceAndPath(MODID, "trade_menu"),
                 new MenuType<>(TradeMenu::new, FeatureFlags.DEFAULT_FLAGS)
         ));
+        SecureTradeSounds.register((id, sound) -> Registry.register(BuiltInRegistries.SOUND_EVENT, id, sound));
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             TradeCommand.register(dispatcher);

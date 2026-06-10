@@ -7,6 +7,7 @@ import com.securetrade.menu.TradeMenuType;
 import com.securetrade.network.TradeNetwork;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -25,6 +26,7 @@ public class SecureTradeMod {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(ForgeRegistries.MENU_TYPES, MODID);
+    public static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, MODID);
 
     public static final RegistryObject<MenuType<TradeMenu>> TRADE_MENU = MENUS.register("trade_menu", () -> {
         MenuType<TradeMenu> type = new MenuType<>(TradeMenu::new, FeatureFlags.DEFAULT_FLAGS);
@@ -32,12 +34,17 @@ public class SecureTradeMod {
         return type;
     });
 
+    static {
+        SecureTradeSounds.register((id, sound) -> SOUNDS.register(id.getPath(), () -> sound));
+    }
+
     public SecureTradeMod() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, TradeConfig.SPEC);
 
         MENUS.register(modEventBus);
+        SOUNDS.register(modEventBus);
 
         TradeNetwork.register();
 

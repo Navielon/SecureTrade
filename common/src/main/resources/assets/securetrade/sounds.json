@@ -1,0 +1,32 @@
+{
+  "trade_item_add": {
+    "sounds": [
+      "securetrade:trade_item_add"
+    ]
+  },
+  "trade_item_blocked": {
+    "sounds": [
+      "securetrade:trade_item_blocked"
+    ]
+  },
+  "trade_cancel": {
+    "sounds": [
+      "securetrade:trade_cancel"
+    ]
+  },
+  "trade_countdown_tick": {
+    "sounds": [
+      "securetrade:trade_countdown_tick"
+    ]
+  },
+  "trade_request_sent": {
+    "sounds": [
+      "securetrade:trade_request_sent"
+    ]
+  },
+  "trade_success": {
+    "sounds": [
+      "securetrade:trade_success"
+    ]
+  }
+}

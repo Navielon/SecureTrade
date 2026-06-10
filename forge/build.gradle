@@ -19,7 +19,7 @@ minecraft {
         client2 {
             parent runs.client
             workingDirectory project.file('run/client2')
-            args '--username', 'Dev2'
+            args '--username', 'DevTwoMaxName123'
         }
         server {
             workingDirectory project.file('run/server')

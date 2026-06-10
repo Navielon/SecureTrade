@@ -14,14 +14,8 @@
   "securetrade.trade_denied": "Đã từ chối giao dịch.",
   "securetrade.trade_successful": "Giao dịch hoàn tất.",
   "securetrade.trade_cancelled": "Giao dịch đã bị hủy.",
-  "securetrade.gui.me": "Bạn",
-  "securetrade.gui.them": "Họ",
   "securetrade.gui.lock": "Sẵn sàng",
-  "securetrade.gui.ready": "Sẵn sàng",
   "securetrade.gui.cancel": "Hủy",
-  "securetrade.gui.tab.items": "Đồ",
-  "securetrade.gui.tab.xp": "XP",
-  "securetrade.gui.items_help": "Đặt vật phẩm, rồi nhấn Sẵn sàng.",
   "securetrade.error_too_far": "Bạn ở quá xa người chơi kia để giao dịch.",
   "securetrade.error_different_dimensions": "Bạn không thể giao dịch với người chơi ở chiều không gian khác.",
   "securetrade.error_already_trading": "Bạn đang giao dịch rồi!",
@@ -43,5 +37,12 @@
   "securetrade.gui.receive_xp": "Bạn nhận: %d XP (~%d cấp)",
   "securetrade.gui.xp_level_minus": "-%d cấp",
   "securetrade.gui.xp_level_plus": "+%d cấp",
-  "securetrade.gui.xp_level_zero": "0 cấp"
+  "securetrade.gui.xp_level_zero": "0 cấp",
+  "securetrade.gui.you_offer": "Bạn đề nghị",
+  "securetrade.gui.partner_offers": "%s đề nghị",
+  "securetrade.gui.waiting": "Đang chờ",
+  "securetrade.gui.confirmed": "Đã xác nhận",
+  "securetrade.trade_completed_overlay": "Đã hoàn tất trao đổi với %s",
+  "securetrade.gui.trade_with": "Trao đổi với %s",
+  "securetrade.error_blacklisted_item": "Vật phẩm này bị máy chủ chặn và không thể trao đổi."
 }

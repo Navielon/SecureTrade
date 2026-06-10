@@ -49,7 +49,18 @@ public class TradeNetwork {
                 .consumerMainThread((msg, ctx) -> {
                     Minecraft mc = Minecraft.getInstance();
                     if (mc.player != null && mc.player.containerMenu instanceof TradeMenu tradeMenu) {
-                        tradeMenu.updateFields(msg.myLock(), msg.otherLock(), msg.countdownSeconds(), msg.myXP(), msg.otherXP());
+                        tradeMenu.updateFields(msg.myLock(), msg.otherLock(), msg.countdownSeconds(), msg.myXP(), msg.otherXP(), msg.otherTotalXP(), msg.partnerName());
+                    }
+                })
+                .add();
+
+        CHANNEL.messageBuilder(TradeBlacklistWarningPacket.class, id++, NetworkDirection.PLAY_TO_CLIENT)
+                .decoder(TradeBlacklistWarningPacket::new)
+                .encoder(TradeBlacklistWarningPacket::write)
+                .consumerMainThread((msg, ctx) -> {
+                    Minecraft mc = Minecraft.getInstance();
+                    if (mc.player != null && mc.player.containerMenu instanceof TradeMenu tradeMenu) {
+                        tradeMenu.showBlacklistWarning();
                     }
                 })
                 .add();

@@ -8,13 +8,11 @@ import com.securetrade.network.TradeLockPacket;
 import com.securetrade.network.TradeXPChangePacket;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;
@@ -24,26 +22,24 @@ public class FabricSecureTradeMod implements ModInitializer {
     public static final ResourceLocation TRADE_LOCK_ID = new ResourceLocation(MODID, "trade_lock");
     public static final ResourceLocation TRADE_XP_CHANGE_ID = new ResourceLocation(MODID, "trade_xp_change");
     public static final ResourceLocation TRADE_STATE_SYNC_ID = new ResourceLocation(MODID, "trade_state_sync");
-
+    public static final ResourceLocation TRADE_BLACKLIST_WARNING_ID = new ResourceLocation(MODID, "trade_blacklist_warning");
     private int cleanupTicks = 0;
 
     @Override
     public void onInitialize() {
-        // Load configuration
         FabricTradeConfig.load();
 
-        // Register MenuType
         TradeMenuType.set(Registry.register(
                 BuiltInRegistries.MENU,
                 new ResourceLocation(MODID, "trade_menu"),
                 new MenuType<>(TradeMenu::new, FeatureFlags.DEFAULT_FLAGS)
         ));
+        SecureTradeSounds.register((id, sound) -> Registry.register(BuiltInRegistries.SOUND_EVENT, id, sound));
 
-        // Register Commands
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
-                TradeCommand.register(dispatcher));
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+            TradeCommand.register(dispatcher);
+        });
 
-        // Register Server-Side Packet Receivers (C2S)
         ServerPlayNetworking.registerGlobalReceiver(TRADE_LOCK_ID,
                 (server, player, handler, buf, responseSender) -> {
                     TradeLockPacket packet = new TradeLockPacket(buf);
@@ -64,7 +60,6 @@ public class FabricSecureTradeMod implements ModInitializer {
                     });
                 });
 
-        // Register Ticking Event
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             TradeSessionManager.tick();
             cleanupTicks++;

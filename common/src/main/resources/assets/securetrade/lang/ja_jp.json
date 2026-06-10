@@ -14,14 +14,8 @@
   "securetrade.trade_denied": "取引を拒否しました。",
   "securetrade.trade_successful": "取引が完了しました。",
   "securetrade.trade_cancelled": "取引をキャンセルしました。",
-  "securetrade.gui.me": "自分",
-  "securetrade.gui.them": "相手",
   "securetrade.gui.lock": "準備",
-  "securetrade.gui.ready": "準備",
   "securetrade.gui.cancel": "取消",
-  "securetrade.gui.tab.items": "アイテム",
-  "securetrade.gui.tab.xp": "XP",
-  "securetrade.gui.items_help": "アイテムを置き、準備を押します。",
   "securetrade.error_too_far": "相手のプレイヤーから遠すぎるため取引できません。",
   "securetrade.error_different_dimensions": "別のディメンションにいるプレイヤーとは取引できません。",
   "securetrade.error_already_trading": "すでに取引中です！",
@@ -43,5 +37,12 @@
   "securetrade.gui.receive_xp": "受取: %d XP（約%dレベル）",
   "securetrade.gui.xp_level_minus": "-%d Lv",
   "securetrade.gui.xp_level_plus": "+%d Lv",
-  "securetrade.gui.xp_level_zero": "0 Lv"
+  "securetrade.gui.xp_level_zero": "0 Lv",
+  "securetrade.gui.you_offer": "あなたの提示",
+  "securetrade.gui.partner_offers": "%s の提示",
+  "securetrade.gui.waiting": "待機中",
+  "securetrade.gui.confirmed": "確認済み",
+  "securetrade.trade_completed_overlay": "%s との取引が完了しました",
+  "securetrade.gui.trade_with": "%s と取引",
+  "securetrade.error_blacklisted_item": "このアイテムはサーバーで禁止されているため、取引できません。"
 }

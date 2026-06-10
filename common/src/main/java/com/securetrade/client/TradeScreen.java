@@ -4,36 +4,103 @@ import com.securetrade.XPMath;
 import com.securetrade.menu.TradeMenu;
 import com.securetrade.platform.Services;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
 
-public class TradeScreen extends AbstractContainerScreen<TradeMenu> {
-    private static final int CENTER_X = 61;
-    private static final int CENTER_WIDTH = 54;
-    private static final int XP_BAR_X = 64;
-    private static final int XP_BAR_Y = 48;
-    private static final int XP_BAR_WIDTH = 48;
-    private static final int XP_BAR_HEIGHT = 5;
-    private static final int STATUS_LEFT_OFFSET = 64;
-    private static final int STATUS_TOP_OFFSET = 36;
-    private static final int STATUS_RIGHT_OFFSET = 112;
-    private static final int STATUS_BOTTOM_OFFSET = 62;
+import java.util.List;
 
-    private Button lockButton;
-    private Button itemsTabButton;
-    private Button xpTabButton;
+public class TradeScreen extends AbstractContainerScreen<TradeMenu> {
+    public static final ResourceLocation TRADE_TEXTURE = new ResourceLocation("securetrade", "textures/gui/trade.png");
+
+    // Coordinates matching the new trade.png template
+    private static final int LEFT_READY_X = 30;
+    private static final int LEFT_READY_Y = 98;
+    private static final int READY_W = 117;
+    private static final int READY_H = 20;
+
+    private static final int RIGHT_READY_X = 210;
+    private static final int RIGHT_READY_Y = 98;
+
+    private static final int LEFT_MINUS_X = 12;
+    private static final int LEFT_MINUS_Y = 82;
+    private static final int LEFT_PLUS_X = 151;
+    private static final int LEFT_PLUS_Y = 82;
+    private static final int BUTTON_SIZE = 13;
+
+    private static final int LEFT_XP_BAR_X = 29;
+    private static final int LEFT_XP_BAR_Y = 85;
+    private static final int XP_BAR_W = 118;
+    private static final int XP_BAR_H = 7;
+
+    private static final int LEFT_XP_FILL_X = 30;
+    private static final int RIGHT_XP_FILL_X = 210;
+    private static final int XP_FILL_Y = 86;
+    private static final int XP_FILL_W = 116;
+
+    private static final int ARROW_X = 162;
+    private static final int ARROW_Y = 98;
+    private static final float ARROW_ANIMATION_SECONDS = 0.17f;
+    private static final float SLOT_HIGHLIGHT_ANIMATION_SECONDS = 0.16f;
+    private static final float READY_HOVER_ANIMATION_SECONDS = 0.10f;
+
+    private static final int LEFT_XP_TEXT_X = 71;
+    private static final int RIGHT_XP_TEXT_X = 251;
+    private static final int XP_TEXT_Y = 73;
+
+    // Sprite UVs on the right side of the sheet
+    private static final int SPRITE_LEFT_ARROW_U = 356;
+    private static final int SPRITE_LEFT_ARROW_V = 0;
+    private static final int SPRITE_LEFT_ARROW_W = 31;
+    private static final int SPRITE_LEFT_ARROW_H = 22;
+
+    private static final int SPRITE_RIGHT_ARROW_U = 387;
+    private static final int SPRITE_RIGHT_ARROW_V = 0;
+    private static final int SPRITE_RIGHT_ARROW_W = 31;
+    private static final int SPRITE_RIGHT_ARROW_H = 22;
+
+    private static final int SPRITE_PLUS_U = 356;
+    private static final int SPRITE_MINUS_U = 369;
+
+    private static final int SPRITE_HOVER_PLUS_U = 382;
+    private static final int SPRITE_HOVER_MINUS_U = 395;
+    private static final int SPRITE_DISABLED_PLUS_U = 408;
+    private static final int SPRITE_DISABLED_MINUS_U = 421;
+    private static final int SPRITE_CONTROL_V = 27;
+
+    private static final int SPRITE_GREEN_BAR_U = 356;
+    private static final int SPRITE_GREEN_BAR_V = 22;
+    private static final int SPRITE_GREEN_BAR_H = 5;
+
+    private static final int SPRITE_KNOB_U = 356;
+    private static final int SPRITE_KNOB_V = 100;
+    private static final int SPRITE_KNOB_W = 5;
+    private static final int SPRITE_KNOB_H = 13;
+
+    private static final int SPRITE_READY_BG_U = 356;
+    private static final int SPRITE_READY_NORMAL_V = 40;
+    private static final int SPRITE_READY_ACTIVE_V = 60;
+    private static final int SPRITE_READY_DISABLED_V = 80;
+
+    private AbstractButton lockButton;
     private float sliderValue = 0.0f;
     private boolean isDraggingSlider = false;
-    private boolean xpTabSelected = false;
-    private int lastOtherXP = 0;
+    private float myArrowProgress = 0.0f;
+    private float otherArrowProgress = 0.0f;
+    private float mySlotHighlightProgress = 0.0f;
+    private float otherSlotHighlightProgress = 0.0f;
+    private float readyHoverProgress = 0.0f;
+    private long lastArrowFrameNanos = System.nanoTime();
 
     public TradeScreen(TradeMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
-        this.imageWidth = 176;
-        this.imageHeight = 185;
+        this.imageWidth = 356;
+        this.imageHeight = 205;
     }
 
     @Override
@@ -43,49 +110,39 @@ public class TradeScreen extends AbstractContainerScreen<TradeMenu> {
         int x = (this.width - this.imageWidth) / 2;
         int y = (this.height - this.imageHeight) / 2;
 
-        this.itemsTabButton = Button.builder(Component.translatable("securetrade.gui.tab.items"), button -> {
-            this.xpTabSelected = false;
-            updateWidgetPositions();
-        }).bounds(x + 61, y + 18, 34, 14).build();
+        this.lockButton = new AbstractButton(x + LEFT_READY_X, y + LEFT_READY_Y, READY_W, READY_H, Component.empty()) {
+            @Override
+            public void onPress() {
+                boolean newState = !TradeScreen.this.menu.myLock;
+                Services.PLATFORM.sendLockPacket(newState);
+            }
 
-        this.xpTabButton = Button.builder(Component.translatable("securetrade.gui.tab.xp"), button -> {
-            this.xpTabSelected = true;
-            updateWidgetPositions();
-        }).bounds(x + 95, y + 18, 20, 14).build();
+            @Override
+            protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+                boolean activeReady = TradeScreen.this.menu.myLock || TradeScreen.this.menu.countdownSeconds > 0;
+                int spriteV = activeReady
+                        ? SPRITE_READY_ACTIVE_V
+                        : SPRITE_READY_NORMAL_V;
+                guiGraphics.blit(TRADE_TEXTURE, this.getX(), this.getY(), SPRITE_READY_BG_U, spriteV, this.width, this.height, 512, 512);
+                TradeScreen.this.drawReadyHoverFrame(guiGraphics, this.getX(), this.getY(), TradeScreen.this.readyHoverProgress, activeReady);
 
-        this.lockButton = Button.builder(Component.translatable("securetrade.gui.lock"), button -> {
-            boolean newState = !this.menu.myLock;
-            Services.PLATFORM.sendLockPacket(newState);
-        }).bounds(x + 63, y + 67, 50, 18).build();
+                Component msg = TradeScreen.this.lockButtonText();
+                int color = activeReady ? 0xF2F2F2 : this.active ? 0xFFFFFF : 0xA0A0A0;
+                TradeScreen.this.drawCenteredButtonText(guiGraphics, msg, this.getX() + this.width / 2, this.getY() + (this.height - 8) / 2, color, activeReady);
+            }
 
-        this.addRenderableWidget(this.itemsTabButton);
-        this.addRenderableWidget(this.xpTabButton);
+            @Override
+            protected void updateWidgetNarration(net.minecraft.client.gui.narration.NarrationElementOutput narrationElementOutput) {
+                this.defaultButtonNarrationText(narrationElementOutput);
+            }
+        };
+
         this.addRenderableWidget(this.lockButton);
-
-        if (this.menu.myXP > 0 || this.menu.otherXP > 0) {
-            this.xpTabSelected = true;
-        }
-        this.lastOtherXP = this.menu.otherXP;
-
-        updateWidgetPositions();
-    }
-
-    private void updateWidgetPositions() {
-        int x = (this.width - this.imageWidth) / 2;
-        int y = (this.height - this.imageHeight) / 2;
-
-        this.itemsTabButton.setX(x + 61);
-        this.itemsTabButton.setY(y + 18);
-        this.xpTabButton.setX(x + 95);
-        this.xpTabButton.setY(y + 18);
-        this.lockButton.setX(x + 63);
-        this.lockButton.setY(y + 67);
     }
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        updateDynamicWidgetText();
-
+        updateReadyAnimations(mouseX, mouseY);
         this.renderBackground(guiGraphics);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
@@ -93,155 +150,274 @@ public class TradeScreen extends AbstractContainerScreen<TradeMenu> {
         int y = (this.height - this.imageHeight) / 2;
 
         drawSlotHighlights(guiGraphics, x, y);
-        if (this.xpTabSelected) {
-            drawXPTab(guiGraphics, x, y, mouseX, mouseY);
-        } else {
-            drawItemsTab(guiGraphics, x, y, mouseX, mouseY);
-        }
+        drawActiveOverlays(guiGraphics, x, y, mouseX, mouseY);
 
         this.renderTooltip(guiGraphics, mouseX, mouseY);
     }
 
-    private void updateDynamicWidgetText() {
-        this.lockButton.setMessage(Component.translatable(
+    private Component lockButtonText() {
+        return Component.translatable(
                 this.menu.countdownSeconds > 0 || this.menu.myLock
                         ? "securetrade.gui.cancel"
                         : "securetrade.gui.lock"
-        ));
+        );
     }
 
     private void drawSlotHighlights(GuiGraphics guiGraphics, int x, int y) {
-        if (this.menu.myLock) {
-            for (int row = 0; row < 4; ++row) {
-                for (int col = 0; col < 3; ++col) {
-                    guiGraphics.fill(x + 8 + col * 18, y + 18 + row * 18, x + 24 + col * 18, y + 34 + row * 18, 0x3500FF00);
-                }
-            }
-        }
-
-        if (this.menu.otherLock) {
-            for (int row = 0; row < 4; ++row) {
-                for (int col = 0; col < 3; ++col) {
-                    guiGraphics.fill(x + 116 + col * 18, y + 18 + row * 18, x + 132 + col * 18, y + 34 + row * 18, 0x3500FF00);
-                }
-            }
-        }
+        drawSlotHighlightGrid(guiGraphics, x, y, 8, 17, this.mySlotHighlightProgress);
+        drawSlotHighlightGrid(guiGraphics, x, y, 188, 17, this.otherSlotHighlightProgress);
     }
 
-    private void drawItemsTab(GuiGraphics guiGraphics, int x, int y, int mouseX, int mouseY) {
-        drawStatusWell(guiGraphics, x, y);
-
-        if (this.menu.countdownSeconds > 0) {
-            drawScaledCenteredText(guiGraphics, String.valueOf(this.menu.countdownSeconds), x + 88, y + 40, 2.0f, 0x55FF55, false);
-        }
-
-        if (this.menu.countdownSeconds <= 0 && !this.menu.myLock && (isOverItemsHint(mouseX, mouseY) || this.lockButton.isMouseOver(mouseX, mouseY))) {
-            guiGraphics.renderTooltip(this.font, Component.translatable("securetrade.gui.items_help"), mouseX, mouseY);
-        }
-    }
-
-    private void drawStatusWell(GuiGraphics guiGraphics, int x, int y) {
-        int left = x + STATUS_LEFT_OFFSET;
-        int top = y + STATUS_TOP_OFFSET;
-        int right = x + STATUS_RIGHT_OFFSET;
-        int bottom = y + STATUS_BOTTOM_OFFSET;
-
-        guiGraphics.fill(left, top, right, bottom, 0x55303030);
-        guiGraphics.fill(left, top, right, top + 1, 0x66464646);
-        guiGraphics.fill(left, bottom - 1, right, bottom, 0x66FFFFFF);
-        guiGraphics.fill(left, top, left + 1, bottom, 0x66464646);
-        guiGraphics.fill(right - 1, top, right, bottom, 0x66FFFFFF);
-
-        if (this.menu.countdownSeconds > 0) {
+    private void drawSlotHighlightGrid(GuiGraphics guiGraphics, int x, int y, int slotX, int slotY, float progress) {
+        int color = slotHighlightColor(progress);
+        if (color == 0) {
             return;
         }
 
-        if (!this.menu.myLock && !this.menu.otherLock) {
-            drawItemsHintIcon(guiGraphics, left, top);
-            return;
-        }
-
-        if (this.menu.myLock || this.menu.otherLock) {
-            int readyLeft = left + 4;
-            int readyRight = right - 4;
-            int readyY = bottom - 5;
-            if (this.menu.myLock) {
-                guiGraphics.fill(readyLeft, readyY, readyLeft + 18, readyY + 2, 0xFF55FF55);
-            }
-            if (this.menu.otherLock) {
-                guiGraphics.fill(readyRight - 18, readyY, readyRight, readyY + 2, 0xFF55FF55);
+        for (int row = 0; row < 3; ++row) {
+            for (int col = 0; col < 9; ++col) {
+                guiGraphics.fill(x + slotX + col * 18, y + slotY + row * 18, x + slotX + 16 + col * 18, y + slotY + 16 + row * 18, color);
             }
         }
     }
 
-    private void drawItemsHintIcon(GuiGraphics guiGraphics, int left, int top) {
-        int slotX = left + 7;
-        int slotY = top + 8;
-        guiGraphics.fill(slotX, slotY, slotX + 10, slotY + 10, 0x55303030);
-        guiGraphics.fill(slotX, slotY, slotX + 10, slotY + 1, 0x88707070);
-        guiGraphics.fill(slotX, slotY, slotX + 1, slotY + 10, 0x88707070);
-        guiGraphics.fill(slotX + 9, slotY, slotX + 10, slotY + 10, 0x88D0D0D0);
-        guiGraphics.fill(slotX, slotY + 9, slotX + 10, slotY + 10, 0x88D0D0D0);
-
-        int arrowX = left + 22;
-        int arrowY = top + 13;
-        guiGraphics.fill(arrowX, arrowY, arrowX + 10, arrowY + 2, 0x88707070);
-        guiGraphics.fill(arrowX + 8, arrowY - 2, arrowX + 10, arrowY + 4, 0x88707070);
-        guiGraphics.fill(arrowX + 10, arrowY - 1, arrowX + 12, arrowY + 3, 0x88707070);
-
-        int checkX = left + 37;
-        int checkY = top + 10;
-        guiGraphics.fill(checkX, checkY + 6, checkX + 2, checkY + 8, 0xAA55FF55);
-        guiGraphics.fill(checkX + 2, checkY + 8, checkX + 4, checkY + 10, 0xAA55FF55);
-        guiGraphics.fill(checkX + 4, checkY + 4, checkX + 6, checkY + 8, 0xAA55FF55);
-        guiGraphics.fill(checkX + 6, checkY + 2, checkX + 8, checkY + 6, 0xAA55FF55);
+    private int slotHighlightColor(float progress) {
+        int alpha = Math.round(0x35 * progress);
+        if (alpha <= 0) {
+            return 0;
+        }
+        return (alpha << 24) | 0x00FF00;
     }
 
-    private void drawXPTab(GuiGraphics guiGraphics, int x, int y, int mouseX, int mouseY) {
-        int totalXP = XPMath.getPlayerXP(this.minecraft.player);
+    private static int lerpColor(int from, int to, float progress) {
+        float clamped = Math.max(0.0f, Math.min(1.0f, progress));
+        int fromR = (from >> 16) & 0xFF;
+        int fromG = (from >> 8) & 0xFF;
+        int fromB = from & 0xFF;
+        int toR = (to >> 16) & 0xFF;
+        int toG = (to >> 8) & 0xFF;
+        int toB = to & 0xFF;
+        int r = Math.round(fromR + (toR - fromR) * clamped);
+        int g = Math.round(fromG + (toG - fromG) * clamped);
+        int b = Math.round(fromB + (toB - fromB) * clamped);
+        return (r << 16) | (g << 8) | b;
+    }
+
+    private boolean isMouseOver(int btnX, int btnY, int btnSize, double mouseX, double mouseY) {
+        return isMouseOver(btnX, btnY, btnSize, btnSize, mouseX, mouseY);
+    }
+
+    private boolean isMouseOver(int btnX, int btnY, int btnW, int btnH, double mouseX, double mouseY) {
+        int x = (this.width - this.imageWidth) / 2;
+        int y = (this.height - this.imageHeight) / 2;
+        return mouseX >= x + btnX && mouseX <= x + btnX + btnW && mouseY >= y + btnY && mouseY <= y + btnY + btnH;
+    }
+
+    private void drawActiveOverlays(GuiGraphics guiGraphics, int x, int y, int mouseX, int mouseY) {
+        drawArrowFill(guiGraphics, x, y, this.myArrowProgress, true);
+        drawArrowFill(guiGraphics, x, y, this.otherArrowProgress, false);
+
+        drawXPControlButtons(guiGraphics, x, y, mouseX, mouseY);
+
+        long maxXP = XPMath.getPlayerXP(this.minecraft.player);
         if (!this.isDraggingSlider) {
-            this.sliderValue = totalXP > 0 ? (float) this.menu.myXP / totalXP : 0.0f;
+            this.sliderValue = maxXP > 0 ? (float) this.menu.myXP / maxXP : 0.0f;
         }
 
-        if (this.menu.countdownSeconds > 0) {
-            drawStatusWell(guiGraphics, x, y);
-            drawScaledCenteredText(guiGraphics, String.valueOf(this.menu.countdownSeconds), x + 88, y + 40, 2.0f, 0x55FF55, false);
-            return;
+        int leftFilledW = Math.round(XP_FILL_W * this.sliderValue);
+        if (leftFilledW > 0) {
+            guiGraphics.blit(TRADE_TEXTURE, x + LEFT_XP_FILL_X, y + XP_FILL_Y, SPRITE_GREEN_BAR_U, SPRITE_GREEN_BAR_V, leftFilledW, SPRITE_GREEN_BAR_H, 512, 512);
         }
+
+        int knobX = x + LEFT_XP_FILL_X + leftFilledW - SPRITE_KNOB_W / 2;
+        int knobY = y + LEFT_XP_BAR_Y + (XP_BAR_H - SPRITE_KNOB_H) / 2;
+        guiGraphics.blit(TRADE_TEXTURE, knobX, knobY, SPRITE_KNOB_U, SPRITE_KNOB_V, SPRITE_KNOB_W, SPRITE_KNOB_H, 512, 512);
+
+        float otherSliderValue = this.menu.otherTotalXP > 0
+                ? Math.min(1.0f, (float) this.menu.otherXP / this.menu.otherTotalXP)
+                : 0.0f;
+        int rightFilledW = Math.round(XP_FILL_W * otherSliderValue);
+        if (rightFilledW > 0) {
+            guiGraphics.blit(TRADE_TEXTURE, x + RIGHT_XP_FILL_X, y + XP_FILL_Y, SPRITE_GREEN_BAR_U, SPRITE_GREEN_BAR_V, rightFilledW, SPRITE_GREEN_BAR_H, 512, 512);
+        }
+        int rightKnobX = x + RIGHT_XP_FILL_X + rightFilledW - SPRITE_KNOB_W / 2;
+        guiGraphics.blit(TRADE_TEXTURE, rightKnobX, knobY, SPRITE_KNOB_U, SPRITE_KNOB_V, SPRITE_KNOB_W, SPRITE_KNOB_H, 512, 512);
+
+        int otherReadySpriteV = this.menu.otherLock || this.menu.countdownSeconds > 0
+                ? SPRITE_READY_ACTIVE_V
+                : SPRITE_READY_DISABLED_V;
+        guiGraphics.blit(TRADE_TEXTURE, x + RIGHT_READY_X, y + RIGHT_READY_Y, SPRITE_READY_BG_U, otherReadySpriteV, READY_W, READY_H, 512, 512);
+
+        Component otherMsg;
+        if (this.menu.countdownSeconds > 0) {
+            otherMsg = Component.translatable("securetrade.gui.confirmed");
+        } else if (this.menu.otherLock) {
+            otherMsg = Component.translatable("securetrade.gui.lock");
+        } else {
+            otherMsg = Component.translatable("securetrade.gui.waiting");
+        }
+        int otherTextColor = this.menu.otherLock || this.menu.countdownSeconds > 0 ? 0xF2F2F2 : 0xD0D0D0;
+        drawCenteredButtonText(guiGraphics, otherMsg, x + RIGHT_READY_X + READY_W / 2, y + RIGHT_READY_Y + (READY_H - 8) / 2, otherTextColor, false);
 
         int myLevel = XPMath.getLevelForXp(this.menu.myXP);
         int otherLevel = XPMath.getLevelForXp(this.menu.otherXP);
-        String myText = this.menu.myXP > 0 ? "-" + this.menu.myXP + " XP" : "0 XP";
-        drawCenteredText(guiGraphics, myText, x + 88, y + 36, this.menu.myXP > 0 ? 0xC84E4E : 0x686868, false);
+        guiGraphics.drawString(this.font, xpLabel(this.menu.myXP, false), x + LEFT_XP_TEXT_X, y + XP_TEXT_Y, this.menu.myXP > 0 ? 0xD05050 : 0x686868, false);
+        guiGraphics.drawString(this.font, xpLabel(this.menu.otherXP, true), x + RIGHT_XP_TEXT_X, y + XP_TEXT_Y, this.menu.otherXP > 0 ? 0x168A22 : 0x686868, false);
 
-        drawExperienceBar(guiGraphics, x + XP_BAR_X, y + XP_BAR_Y, XP_BAR_WIDTH, this.sliderValue, true);
-        if (this.menu.otherXP > 0) {
-            String otherText = "+" + this.menu.otherXP + " XP";
-            drawScaledCenteredText(guiGraphics, otherText, x + 88, y + 56, 0.85f, 0x1FB81F, false);
-        }
-
-        if (mouseX >= x + XP_BAR_X && mouseX <= x + XP_BAR_X + XP_BAR_WIDTH && mouseY >= y + 39 && mouseY <= y + 56) {
+        if (isOverXPInfo(x, y, 0, mouseX, mouseY)) {
             Component tooltip = this.menu.myXP > 0
                     ? Component.translatable("securetrade.gui.give_xp", this.menu.myXP, myLevel)
                     : Component.translatable("securetrade.gui.choose_xp");
             guiGraphics.renderTooltip(this.font, tooltip, mouseX, mouseY);
         }
-        if (mouseX >= x + 64 && mouseX <= x + 112 && mouseY >= y + 56 && mouseY <= y + 70) {
+        if (isOverXPInfo(x, y, 180, mouseX, mouseY)) {
             guiGraphics.renderTooltip(this.font, Component.translatable("securetrade.gui.receive_xp", this.menu.otherXP, otherLevel), mouseX, mouseY);
+        }
+
+        if (this.menu.countdownSeconds > 0) {
+            int cx = x + 178;
+            int cy = y + 60;
+
+            guiGraphics.fill(cx - 10, cy - 12, cx + 10, cy + 12, 0x70000000);
+            guiGraphics.fill(cx - 12, cy - 10, cx + 12, cy + 10, 0x70000000);
+
+            drawScaledCenteredText(guiGraphics, String.valueOf(this.menu.countdownSeconds), cx, cy - 8, 2.0f, 0x55FF55, false);
+        }
+
+        drawBlacklistWarning(guiGraphics, x, y);
+    }
+
+    private void drawBlacklistWarning(GuiGraphics guiGraphics, int x, int y) {
+        long remainingMillis = this.menu.getBlacklistWarningRemainingMillis();
+        if (remainingMillis <= 0) {
+            return;
+        }
+
+        float fade = Math.min(1.0f, remainingMillis / 350.0f);
+        int alpha = Math.round(0xE8 * fade);
+        int centerX = x + this.imageWidth / 2;
+        List<FormattedCharSequence> lines = this.font.split(
+                Component.translatable("securetrade.error_blacklisted_item"),
+                214
+        );
+        int textWidth = lines.stream().mapToInt(this.font::width).max().orElse(0);
+        int panelWidth = Math.min(238, textWidth + 16);
+        int panelHeight = lines.size() * 9 + 10;
+        int left = centerX - panelWidth / 2;
+        int right = centerX + panelWidth / 2;
+        int top = y + 42;
+        int bottom = top + panelHeight;
+
+        guiGraphics.flush();
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(0.0f, 0.0f, 400.0f);
+        guiGraphics.fill(left, top, right, bottom, (alpha << 24) | 0x181818);
+        guiGraphics.hLine(left + 1, right - 2, top, (alpha << 24) | 0xD0A020);
+        guiGraphics.hLine(left + 1, right - 2, bottom - 1, (alpha << 24) | 0xD0A020);
+        for (int i = 0; i < lines.size(); i++) {
+            FormattedCharSequence line = lines.get(i);
+            guiGraphics.drawString(this.font, line, centerX - this.font.width(line) / 2, top + 5 + i * 9, 0xFFF0B040, false);
+        }
+        guiGraphics.pose().popPose();
+        guiGraphics.flush();
+    }
+
+    private void drawXPControlButtons(GuiGraphics guiGraphics, int x, int y, int mouseX, int mouseY) {
+        boolean canChange = this.menu.countdownSeconds <= 0;
+        boolean canSub = canChange && this.menu.myXP > 0;
+        boolean canAdd = canChange && this.menu.myXP < XPMath.getPlayerXP(this.minecraft.player);
+
+        int leftMinusU = !canSub
+                ? SPRITE_DISABLED_MINUS_U
+                : isMouseOver(LEFT_MINUS_X, LEFT_MINUS_Y, BUTTON_SIZE, mouseX, mouseY) ? SPRITE_HOVER_MINUS_U : SPRITE_MINUS_U;
+        int leftPlusU = !canAdd
+                ? SPRITE_DISABLED_PLUS_U
+                : isMouseOver(LEFT_PLUS_X, LEFT_PLUS_Y, BUTTON_SIZE, mouseX, mouseY) ? SPRITE_HOVER_PLUS_U : SPRITE_PLUS_U;
+
+        guiGraphics.blit(TRADE_TEXTURE, x + LEFT_MINUS_X, y + LEFT_MINUS_Y, leftMinusU, SPRITE_CONTROL_V, BUTTON_SIZE, BUTTON_SIZE, 512, 512);
+        guiGraphics.blit(TRADE_TEXTURE, x + LEFT_PLUS_X, y + LEFT_PLUS_Y, leftPlusU, SPRITE_CONTROL_V, BUTTON_SIZE, BUTTON_SIZE, 512, 512);
+        guiGraphics.blit(TRADE_TEXTURE, x + LEFT_MINUS_X + 180, y + LEFT_MINUS_Y, SPRITE_DISABLED_MINUS_U, SPRITE_CONTROL_V, BUTTON_SIZE, BUTTON_SIZE, 512, 512);
+        guiGraphics.blit(TRADE_TEXTURE, x + LEFT_PLUS_X + 180, y + LEFT_PLUS_Y, SPRITE_DISABLED_PLUS_U, SPRITE_CONTROL_V, BUTTON_SIZE, BUTTON_SIZE, 512, 512);
+    }
+
+    private void drawReadyHoverFrame(GuiGraphics guiGraphics, int x, int y, float progress, boolean activeReady) {
+        int alpha = Math.round(0xCC * progress);
+        if (alpha <= 0) {
+            return;
+        }
+
+        int color = (alpha << 24) | 0xFFFFFF;
+        if (activeReady) {
+            guiGraphics.hLine(x + 2, x + READY_W - 3, y + READY_H - 2, color);
+            return;
+        }
+
+        guiGraphics.hLine(x + 2, x + READY_W - 3, y + 1, color);
+        guiGraphics.hLine(x + 2, x + READY_W - 3, y + READY_H - 2, color);
+        guiGraphics.vLine(x + 1, y + 2, y + READY_H - 3, color);
+        guiGraphics.vLine(x + READY_W - 2, y + 2, y + READY_H - 3, color);
+    }
+
+    private void updateReadyAnimations(int mouseX, int mouseY) {
+        long now = System.nanoTime();
+        float elapsedSeconds = Math.min(0.1f, (now - this.lastArrowFrameNanos) / 1_000_000_000.0f);
+        this.lastArrowFrameNanos = now;
+        float arrowStep = elapsedSeconds / ARROW_ANIMATION_SECONDS;
+        float slotStep = elapsedSeconds / SLOT_HIGHLIGHT_ANIMATION_SECONDS;
+        float hoverStep = elapsedSeconds / READY_HOVER_ANIMATION_SECONDS;
+        this.myArrowProgress = approach(this.myArrowProgress, this.menu.myLock ? 1.0f : 0.0f, arrowStep);
+        this.otherArrowProgress = approach(this.otherArrowProgress, this.menu.otherLock ? 1.0f : 0.0f, arrowStep);
+        this.mySlotHighlightProgress = approach(this.mySlotHighlightProgress, this.menu.myLock ? 1.0f : 0.0f, slotStep);
+        this.otherSlotHighlightProgress = approach(this.otherSlotHighlightProgress, this.menu.otherLock ? 1.0f : 0.0f, slotStep);
+        boolean readyHovered = isMouseOver(LEFT_READY_X, LEFT_READY_Y, READY_W, READY_H, mouseX, mouseY);
+        this.readyHoverProgress = approach(this.readyHoverProgress, readyHovered ? 1.0f : 0.0f, hoverStep);
+    }
+
+    private static float approach(float current, float target, float step) {
+        if (current < target) {
+            return Math.min(target, current + step);
+        }
+        return Math.max(target, current - step);
+    }
+
+    private void drawArrowFill(GuiGraphics guiGraphics, int x, int y, float progress, boolean leftArrow) {
+        int width = Math.round(SPRITE_LEFT_ARROW_W * progress);
+        if (width <= 0) {
+            return;
+        }
+
+        if (leftArrow) {
+            guiGraphics.blit(TRADE_TEXTURE, x + ARROW_X, y + ARROW_Y, SPRITE_LEFT_ARROW_U, SPRITE_LEFT_ARROW_V, width, SPRITE_LEFT_ARROW_H, 512, 512);
+        } else {
+            int crop = SPRITE_RIGHT_ARROW_W - width;
+            guiGraphics.blit(TRADE_TEXTURE, x + ARROW_X + crop, y + ARROW_Y, SPRITE_RIGHT_ARROW_U + crop, SPRITE_RIGHT_ARROW_V, width, SPRITE_RIGHT_ARROW_H, 512, 512);
         }
     }
 
-    private void drawCenteredText(GuiGraphics guiGraphics, String text, int centerX, int y, int color) {
-        drawCenteredText(guiGraphics, text, centerX, y, color, true);
+    private Component xpLabel(long xp, boolean received) {
+        if (xp <= 0) {
+            return Component.translatable("securetrade.gui.xp_level_zero");
+        }
+        return Component.translatable(
+                received ? "securetrade.gui.xp_level_plus" : "securetrade.gui.xp_level_minus",
+                XPMath.getLevelForXp(xp)
+        );
     }
 
-    private void drawCenteredText(GuiGraphics guiGraphics, String text, int centerX, int y, int color, boolean shadow) {
+    private boolean isOverXPInfo(int x, int y, int panelOffset, double mouseX, double mouseY) {
+        return mouseX >= x + LEFT_XP_BAR_X + panelOffset
+                && mouseX <= x + LEFT_XP_BAR_X + panelOffset + XP_BAR_W
+                && mouseY >= y + LEFT_XP_BAR_Y - 14
+                && mouseY <= y + LEFT_XP_BAR_Y + XP_BAR_H + 4;
+    }
+
+    private void drawCenteredButtonText(GuiGraphics guiGraphics, Component text, int centerX, int y, int color, boolean shadow) {
         int textWidth = this.font.width(text);
-        guiGraphics.drawString(this.font, text, centerX - textWidth / 2, y, color, shadow);
-    }
-
-    private void drawScaledCenteredText(GuiGraphics guiGraphics, String text, int centerX, int y, float scale, int color) {
-        drawScaledCenteredText(guiGraphics, text, centerX, y, scale, color, true);
+        int textX = centerX - textWidth / 2;
+        if (shadow) {
+            guiGraphics.drawString(this.font, text, textX + 1, y + 1, 0x303030, false);
+        }
+        guiGraphics.drawString(this.font, text, textX, y, color, false);
     }
 
     private void drawScaledCenteredText(GuiGraphics guiGraphics, String text, int centerX, int y, float scale, int color, boolean shadow) {
@@ -252,74 +428,98 @@ public class TradeScreen extends AbstractContainerScreen<TradeMenu> {
         guiGraphics.pose().popPose();
     }
 
-    private boolean isOverItemsHint(double mouseX, double mouseY) {
-        int x = (this.width - this.imageWidth) / 2;
-        int y = (this.height - this.imageHeight) / 2;
-        return !this.xpTabSelected
-                && mouseX >= x + STATUS_LEFT_OFFSET
-                && mouseX <= x + STATUS_RIGHT_OFFSET
-                && mouseY >= y + STATUS_TOP_OFFSET
-                && mouseY <= y + STATUS_BOTTOM_OFFSET;
-    }
-
-    private void drawExperienceBar(GuiGraphics guiGraphics, int x, int y, int width, float value, boolean interactive) {
-        float clamped = Math.max(0.0f, Math.min(1.0f, value));
-        int fillWidth = (int) ((width - 2) * clamped);
-
-        guiGraphics.fill(x, y, x + width, y + XP_BAR_HEIGHT, 0xFF1F1F1F);
-        guiGraphics.fill(x + 1, y + 1, x + width - 1, y + XP_BAR_HEIGHT - 1, 0xFF3F3F3F);
-        if (fillWidth > 0) {
-            guiGraphics.fill(x + 1, y + 1, x + 1 + fillWidth, y + 2, 0xFFD8FF77);
-            guiGraphics.fill(x + 1, y + 2, x + 1 + fillWidth, y + 4, 0xFF6FCC20);
+    private void drawCenteredPanelText(GuiGraphics guiGraphics, Component text, int centerX, int y, int maxWidth, int color) {
+        int textWidth = this.font.width(text);
+        if (textWidth <= maxWidth) {
+            guiGraphics.drawString(this.font, text, centerX - textWidth / 2, y, color, false);
+            return;
         }
 
-        for (int tick = 6; tick < width - 2; tick += 6) {
-            guiGraphics.fill(x + tick, y + 1, x + tick + 1, y + XP_BAR_HEIGHT - 1, 0x88000000);
-        }
-
-        if (interactive) {
-            int markerX = x + 1 + fillWidth;
-            guiGraphics.fill(markerX - 1, y - 2, markerX + 1, y + XP_BAR_HEIGHT + 2, 0xFFFFFFFF);
-            guiGraphics.fill(markerX, y - 1, markerX + 1, y + XP_BAR_HEIGHT + 1, 0xFF202020);
-        }
+        float scale = Math.max(0.7f, (float) maxWidth / textWidth);
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().scale(scale, scale, 1.0f);
+        guiGraphics.drawString(this.font, text, (int) (centerX / scale - textWidth / 2.0f), (int) (y / scale), color, false);
+        guiGraphics.pose().popPose();
     }
 
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        int myColor = this.menu.myLock ? 0x00AA00 : 4210752;
-        int otherColor = this.menu.otherLock ? 0x00AA00 : 4210752;
+        int myColor = lerpColor(0x404040, 0x00AA00, this.mySlotHighlightProgress);
+        int otherColor = lerpColor(0x404040, 0x00AA00, this.otherSlotHighlightProgress);
 
-        guiGraphics.drawString(this.font, Component.translatable("securetrade.gui.me"), 8, 6, myColor, false);
-        guiGraphics.drawString(this.font, Component.translatable("securetrade.gui.them"), 116, 6, otherColor, false);
-        guiGraphics.drawString(this.font, this.playerInventoryTitle, 8, this.imageHeight - 94, 4210752, false);
+        drawCenteredPanelText(guiGraphics, Component.translatable("securetrade.gui.you_offer"), 88, 6, 162, myColor);
 
-        if (this.menu.otherXP > this.lastOtherXP && this.menu.otherXP > 0 && !this.xpTabSelected) {
-            this.xpTabSelected = true;
-            updateWidgetPositions();
+        if (!this.menu.partnerName.isEmpty()) {
+            Component partnerText = Component.translatable("securetrade.gui.partner_offers", this.menu.partnerName);
+            drawCenteredPanelText(guiGraphics, partnerText, 268, 6, 162, otherColor);
         }
-        this.lastOtherXP = this.menu.otherXP;
     }
 
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
         int x = (this.width - this.imageWidth) / 2;
         int y = (this.height - this.imageHeight) / 2;
-
-        ResourceLocation generic54 = new ResourceLocation("minecraft", "textures/gui/container/generic_54.png");
-
-        guiGraphics.blit(generic54, x, y, 0, 0, this.imageWidth, 4 * 18 + 17);
-        guiGraphics.blit(generic54, x, y + 4 * 18 + 17, 0, 126, this.imageWidth, 96);
-        guiGraphics.fill(x + CENTER_X, y + 17, x + CENTER_X + CENTER_WIDTH, y + 89, 0xFFC6C6C6);
+        guiGraphics.blit(TRADE_TEXTURE, x, y, 0, 0, 356, 205, 512, 512);
     }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (button == 0 && this.xpTabSelected && this.menu.countdownSeconds <= 0 && isOverMySlider(mouseX, mouseY)) {
-            this.isDraggingSlider = true;
-            updateXPFromSlider(mouseX);
-            return true;
+        if (button == 0 && this.menu.countdownSeconds <= 0) {
+            int x = (this.width - this.imageWidth) / 2;
+            int y = (this.height - this.imageHeight) / 2;
+
+            if (mouseX >= x + LEFT_MINUS_X && mouseX <= x + LEFT_MINUS_X + BUTTON_SIZE &&
+                mouseY >= y + LEFT_MINUS_Y && mouseY <= y + LEFT_MINUS_Y + BUTTON_SIZE) {
+                if (this.menu.myXP > 0) {
+                    playButtonClickSound();
+                    adjustXPByLevel(false);
+                    return true;
+                }
+            }
+
+            if (mouseX >= x + LEFT_PLUS_X && mouseX <= x + LEFT_PLUS_X + BUTTON_SIZE &&
+                mouseY >= y + LEFT_PLUS_Y && mouseY <= y + LEFT_PLUS_Y + BUTTON_SIZE) {
+                if (this.menu.myXP < XPMath.getPlayerXP(this.minecraft.player)) {
+                    playButtonClickSound();
+                    adjustXPByLevel(true);
+                    return true;
+                }
+            }
+
+            if (isOverMySlider(mouseX, mouseY)) {
+                this.isDraggingSlider = true;
+                updateXPFromSlider(mouseX);
+                return true;
+            }
         }
         return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    private void playButtonClickSound() {
+        this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+    }
+
+    private void adjustXPByLevel(boolean increase) {
+        long currentXP = this.menu.myXP;
+        int currentLevel = XPMath.getLevelForXp(currentXP);
+        long maxXP = XPMath.getPlayerXP(this.minecraft.player);
+        long targetXP;
+
+        if (increase) {
+            targetXP = XPMath.getXpForLevels(currentLevel + 1);
+            if (targetXP > maxXP) {
+                targetXP = maxXP;
+            }
+        } else {
+            long currentLevelXP = XPMath.getXpForLevels(currentLevel);
+            if (currentXP > currentLevelXP) {
+                targetXP = currentLevelXP;
+            } else {
+                targetXP = XPMath.getXpForLevels(Math.max(0, currentLevel - 1));
+            }
+        }
+
+        setOfferedXP(targetXP);
     }
 
     @Override
@@ -340,32 +540,32 @@ public class TradeScreen extends AbstractContainerScreen<TradeMenu> {
     }
 
     private boolean isOverMySlider(double mouseX, double mouseY) {
-        int sliderX = this.leftPos + XP_BAR_X;
-        int sliderY = this.topPos + XP_BAR_Y;
-        int sliderW = XP_BAR_WIDTH;
-        int sliderH = XP_BAR_HEIGHT;
-        return mouseX >= sliderX - 2 && mouseX <= sliderX + sliderW + 2 && mouseY >= sliderY - 4 && mouseY <= sliderY + sliderH + 4;
+        int x = (this.width - this.imageWidth) / 2;
+        int y = (this.height - this.imageHeight) / 2;
+        int sliderX = x + LEFT_XP_BAR_X;
+        int sliderY = y + LEFT_XP_BAR_Y;
+        return mouseX >= sliderX - 2 && mouseX <= sliderX + XP_BAR_W + 2 && mouseY >= sliderY - 4 && mouseY <= sliderY + XP_BAR_H + 4;
     }
 
     private void updateXPFromSlider(double mouseX) {
-        int totalXP = XPMath.getPlayerXP(this.minecraft.player);
+        long totalXP = XPMath.getPlayerXP(this.minecraft.player);
         if (totalXP <= 0) {
             this.sliderValue = 0.0f;
             setOfferedXP(0);
             return;
         }
 
-        int sliderX = this.leftPos + XP_BAR_X;
-        int sliderW = XP_BAR_WIDTH;
-        double pct = (mouseX - (sliderX + 1)) / (double)(sliderW - 2);
+        int x = (this.width - this.imageWidth) / 2;
+        int sliderX = x + LEFT_XP_BAR_X;
+        double pct = (mouseX - sliderX) / (double) XP_BAR_W;
         pct = Math.max(0.0, Math.min(1.0, pct));
 
-        int newXP = (int) (pct * totalXP);
+        long newXP = (long) (pct * totalXP);
         this.sliderValue = (float) newXP / totalXP;
         setOfferedXP(newXP);
     }
 
-    private void setOfferedXP(int xp) {
+    private void setOfferedXP(long xp) {
         if (this.menu.myXP != xp) {
             this.menu.myXP = xp;
             Services.PLATFORM.sendXPChangePacket(xp);

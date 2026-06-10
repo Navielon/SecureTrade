@@ -14,14 +14,8 @@
   "securetrade.trade_denied": "Scambio rifiutato.",
   "securetrade.trade_successful": "Scambio completato.",
   "securetrade.trade_cancelled": "Scambio annullato.",
-  "securetrade.gui.me": "Tu",
-  "securetrade.gui.them": "Altro",
   "securetrade.gui.lock": "Pronto",
-  "securetrade.gui.ready": "Pronto",
   "securetrade.gui.cancel": "Annulla",
-  "securetrade.gui.tab.items": "Oggetti",
-  "securetrade.gui.tab.xp": "XP",
-  "securetrade.gui.items_help": "Inserisci oggetti, poi premi Pronto.",
   "securetrade.error_too_far": "Sei troppo lontano dall'altro giocatore per scambiare.",
   "securetrade.error_different_dimensions": "Non puoi scambiare con giocatori in altre dimensioni.",
   "securetrade.error_already_trading": "Stai già scambiando!",
@@ -43,5 +37,12 @@
   "securetrade.gui.receive_xp": "Ricevi: %d XP (~%d liv.)",
   "securetrade.gui.xp_level_minus": "-%d liv.",
   "securetrade.gui.xp_level_plus": "+%d liv.",
-  "securetrade.gui.xp_level_zero": "0 liv."
+  "securetrade.gui.xp_level_zero": "0 liv.",
+  "securetrade.gui.you_offer": "Offri",
+  "securetrade.gui.partner_offers": "%s offre",
+  "securetrade.gui.waiting": "In attesa",
+  "securetrade.gui.confirmed": "Confermato",
+  "securetrade.trade_completed_overlay": "Scambio con %s completato",
+  "securetrade.gui.trade_with": "Scambio con %s",
+  "securetrade.error_blacklisted_item": "Questo oggetto è bloccato dal server e non può essere scambiato."
 }

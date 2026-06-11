@@ -14,14 +14,8 @@
   "securetrade.trade_denied": "Obchod odmítnut.",
   "securetrade.trade_successful": "Obchod dokončen.",
   "securetrade.trade_cancelled": "Obchod zrušen.",
-  "securetrade.gui.me": "Ty",
-  "securetrade.gui.them": "Partner",
   "securetrade.gui.lock": "Hotovo",
-  "securetrade.gui.ready": "Hotovo",
   "securetrade.gui.cancel": "Zrušit",
-  "securetrade.gui.tab.items": "Věci",
-  "securetrade.gui.tab.xp": "XP",
-  "securetrade.gui.items_help": "Vlož věci a klikni na Hotovo.",
   "securetrade.error_too_far": "Jsi příliš daleko od druhého hráče na obchodování.",
   "securetrade.error_different_dimensions": "Nemůžeš obchodovat s hráči v jiných dimenzích.",
   "securetrade.error_already_trading": "Už obchoduješ!",
@@ -43,5 +37,12 @@
   "securetrade.gui.receive_xp": "Získáš: %d XP (~%d úr.)",
   "securetrade.gui.xp_level_minus": "-%d úr.",
   "securetrade.gui.xp_level_plus": "+%d úr.",
-  "securetrade.gui.xp_level_zero": "0 úr."
+  "securetrade.gui.xp_level_zero": "0 úr.",
+  "securetrade.gui.you_offer": "Nabízíte",
+  "securetrade.gui.partner_offers": "%s nabízí",
+  "securetrade.gui.waiting": "Čekání",
+  "securetrade.gui.confirmed": "Potvrzeno",
+  "securetrade.trade_completed_overlay": "Obchod s hráčem %s dokončen",
+  "securetrade.gui.trade_with": "Obchod s hráčem %s",
+  "securetrade.error_blacklisted_item": "Tento předmět je serverem zakázán a nelze jej obchodovat."
 }

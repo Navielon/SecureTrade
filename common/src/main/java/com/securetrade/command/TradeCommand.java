@@ -6,6 +6,7 @@ import com.securetrade.platform.Services;
 import com.securetrade.menu.TradeMenu;
 import com.securetrade.TradeHistoryManager;
 import com.securetrade.TradeMessages;
+import com.securetrade.SecureTradeSounds;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
@@ -15,6 +16,7 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.event.HoverEvent;
 import net.minecraft.util.text.Style;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.util.SoundCategory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -55,10 +57,8 @@ public class TradeCommand {
         }
     }
 
-    // Maps Target Player UUID to Sender Player TradeRequest
     private static final Map<UUID, TradeRequest> pendingRequests = new HashMap<>();
 
-    // Maps CooldownKey to Cooldown Expiration Timestamp (epoch ms)
     private static final Map<CooldownKey, Long> tradeCooldowns = new HashMap<>();
 
     public static void register(CommandDispatcher<CommandSource> dispatcher) {
@@ -82,7 +82,6 @@ public class TradeCommand {
             return 0;
         }
 
-        // Busy Check: Check if either player is already trading
         if (sender.containerMenu instanceof TradeMenu) {
             TradeMessages.error(sender, TradeMessages.trans("securetrade.error_already_trading"));
             return 0;
@@ -92,7 +91,6 @@ public class TradeCommand {
             return 0;
         }
 
-        // Dimension Restrictions Check
         String senderDim = sender.level.dimension().location().toString();
         String targetDim = target.level.dimension().location().toString();
 
@@ -105,7 +103,6 @@ public class TradeCommand {
             return 0;
         }
 
-        // Distance Check
         double maxDist = Services.PLATFORM.getMaxTradeDistance();
         if (maxDist > 0) {
             if (!sender.level.dimension().equals(target.level.dimension())) {
@@ -121,23 +118,17 @@ public class TradeCommand {
 
         long now = System.currentTimeMillis();
 
-        // Prune expired cooldowns
         tradeCooldowns.entrySet().removeIf(entry -> now > entry.getValue());
 
-        // Check and prune target's expired pending requests
         TradeRequest targetPending = pendingRequests.get(target.getUUID());
         if (targetPending != null) {
             if (now > targetPending.expirationTime) {
                 pendingRequests.remove(target.getUUID());
-                long cooldownTime = Services.PLATFORM.getTradeCooldownSeconds() * 1000L;
-                if (cooldownTime > 0) {
-                    tradeCooldowns.put(new CooldownKey(targetPending.senderId, target.getUUID()), targetPending.expirationTime + cooldownTime);
-                }
+                applyExpiredRequestCooldown(target.getUUID(), targetPending);
                 targetPending = null;
             }
         }
 
-        // If target still has an active pending request from someone else
         if (targetPending != null) {
             if (targetPending.senderId.equals(sender.getUUID())) {
                 TradeMessages.warning(sender, TradeMessages.trans("securetrade.error_already_requested"));
@@ -147,7 +138,6 @@ public class TradeCommand {
             return 0;
         }
 
-        // Cooldown Check: Is the sender on cooldown towards target?
         CooldownKey cooldownKey = new CooldownKey(sender.getUUID(), target.getUUID());
         Long cooldownExpire = tradeCooldowns.get(cooldownKey);
         if (cooldownExpire != null) {
@@ -160,7 +150,6 @@ public class TradeCommand {
             }
         }
 
-        // Mutual Request Detection: Does target have a pending request towards sender?
         TradeRequest senderPending = pendingRequests.get(sender.getUUID());
         if (senderPending != null && senderPending.senderId.equals(target.getUUID()) && now <= senderPending.expirationTime) {
             pendingRequests.remove(sender.getUUID());
@@ -170,11 +159,11 @@ public class TradeCommand {
             return 1;
         }
 
-        // Create new request
         long expireAt = now + (Services.PLATFORM.getRequestTimeoutSeconds() * 1000L);
         pendingRequests.put(target.getUUID(), new TradeRequest(sender.getUUID(), expireAt));
 
         TradeMessages.info(sender, TradeMessages.trans("securetrade.request_sent", TradeMessages.playerName(target)));
+        sender.playNotifySound(SecureTradeSounds.TRADE_REQUEST_SENT, SoundCategory.MASTER, 0.8f, 1.0f);
 
         ITextComponent acceptText = TradeMessages.trans("securetrade.accept_button")
                 .withStyle(Style.EMPTY.withColor(TextFormatting.GREEN).withBold(true)
@@ -197,7 +186,6 @@ public class TradeCommand {
     private static int acceptTrade(CommandSource source) throws CommandSyntaxException {
         ServerPlayerEntity target = source.getPlayerOrException();
 
-        // Busy Check: is target already trading?
         if (target.containerMenu instanceof TradeMenu) {
             TradeMessages.error(target, TradeMessages.trans("securetrade.error_already_trading"));
             return 0;
@@ -208,10 +196,7 @@ public class TradeCommand {
         if (request == null || now > request.expirationTime) {
             if (request != null) {
                 pendingRequests.remove(target.getUUID());
-                long cooldownTime = Services.PLATFORM.getTradeCooldownSeconds() * 1000L;
-                if (cooldownTime > 0) {
-                    tradeCooldowns.put(new CooldownKey(request.senderId, target.getUUID()), request.expirationTime + cooldownTime);
-                }
+                applyExpiredRequestCooldown(target.getUUID(), request);
             }
             TradeMessages.warning(target, TradeMessages.trans("securetrade.no_pending_requests"));
             return 0;
@@ -225,13 +210,11 @@ public class TradeCommand {
             return 0;
         }
 
-        // Busy Check: is sender already trading?
         if (sender.containerMenu instanceof TradeMenu) {
             TradeMessages.error(target, TradeMessages.trans("securetrade.error_target_already_trading", TradeMessages.playerName(sender)));
             return 0;
         }
 
-        // Dimension Restrictions Check at Acceptance
         String targetDim = target.level.dimension().location().toString();
         String senderDim = sender.level.dimension().location().toString();
 
@@ -244,7 +227,6 @@ public class TradeCommand {
             return 0;
         }
 
-        // Distance Check at Acceptance
         double maxDist = Services.PLATFORM.getMaxTradeDistance();
         if (maxDist > 0) {
             if (!sender.level.dimension().equals(target.level.dimension()) || 
@@ -258,7 +240,6 @@ public class TradeCommand {
         TradeMessages.success(target, TradeMessages.trans("securetrade.trade_accepted"));
         TradeMessages.success(sender, TradeMessages.trans("securetrade.target_accepted", TradeMessages.playerName(target)));
 
-        // Open Trade Menu for both players
         TradeMenu.openTrade(sender, target);
 
         return 1;
@@ -267,7 +248,6 @@ public class TradeCommand {
     private static int denyTrade(CommandSource source) throws CommandSyntaxException {
         ServerPlayerEntity target = source.getPlayerOrException();
 
-        // Busy Check: is target already trading?
         if (target.containerMenu instanceof TradeMenu) {
             TradeMessages.error(target, TradeMessages.trans("securetrade.error_already_trading"));
             return 0;
@@ -278,10 +258,7 @@ public class TradeCommand {
         if (request == null || now > request.expirationTime) {
             if (request != null) {
                 pendingRequests.remove(target.getUUID());
-                long cooldownTime = Services.PLATFORM.getTradeCooldownSeconds() * 1000L;
-                if (cooldownTime > 0) {
-                    tradeCooldowns.put(new CooldownKey(request.senderId, target.getUUID()), request.expirationTime + cooldownTime);
-                }
+                applyExpiredRequestCooldown(target.getUUID(), request);
             }
             TradeMessages.warning(target, TradeMessages.trans("securetrade.no_pending_requests"));
             return 0;
@@ -289,7 +266,6 @@ public class TradeCommand {
 
         pendingRequests.remove(target.getUUID());
 
-        // Apply Cooldown
         long cooldownTime = Services.PLATFORM.getTradeCooldownSeconds() * 1000L;
         if (cooldownTime > 0) {
             tradeCooldowns.put(new CooldownKey(request.senderId, target.getUUID()), now + cooldownTime);
@@ -297,8 +273,10 @@ public class TradeCommand {
 
         ServerPlayerEntity sender = target.server.getPlayerList().getPlayer(request.senderId);
         if (sender != null) {
+            sender.playNotifySound(SecureTradeSounds.TRADE_CANCEL, SoundCategory.MASTER, 0.9f, 1.0f);
             TradeMessages.warning(sender, TradeMessages.trans("securetrade.target_denied", TradeMessages.playerName(target)));
         }
+        target.playNotifySound(SecureTradeSounds.TRADE_CANCEL, SoundCategory.MASTER, 0.9f, 1.0f);
         TradeMessages.warning(target, TradeMessages.trans("securetrade.trade_denied"));
 
         return 1;
@@ -324,16 +302,33 @@ public class TradeCommand {
         return 1;
     }
 
-    // FIX #4: Clear all cached data on server stop to prevent memory leaks
     public static void clearAll() {
         pendingRequests.clear();
         tradeCooldowns.clear();
     }
 
-    // FIX #4: Periodic cleanup of expired entries (called from server tick)
     public static void pruneExpired() {
         long now = System.currentTimeMillis();
-        pendingRequests.entrySet().removeIf(entry -> now > entry.getValue().expirationTime);
+        pendingRequests.entrySet().removeIf(entry -> {
+            TradeRequest request = entry.getValue();
+            if (now <= request.expirationTime) {
+                return false;
+            }
+            applyExpiredRequestCooldown(entry.getKey(), request);
+            return true;
+        });
         tradeCooldowns.entrySet().removeIf(entry -> now > entry.getValue());
     }
+
+    private static void applyExpiredRequestCooldown(UUID targetId, TradeRequest request) {
+        long cooldownTime = Services.PLATFORM.getTradeCooldownSeconds() * 1000L;
+        if (cooldownTime > 0) {
+            tradeCooldowns.put(new CooldownKey(request.senderId, targetId), request.expirationTime + cooldownTime);
+        }
+    }
 }
+
+
+
+
+

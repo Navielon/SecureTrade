@@ -17,16 +17,12 @@ public class TradeSessionManager {
     }
 
     public static synchronized void tick() {
-        List<TradeSession> copy;
-        synchronized (TradeSessionManager.class) {
-            copy = new ArrayList<>(activeSessions);
-        }
+        List<TradeSession> copy = new ArrayList<>(activeSessions);
         for (TradeSession session : copy) {
             session.tick();
         }
     }
 
-    // FIX #9: Cancel all active sessions and clear the list (called on server stop)
     public static synchronized void cancelAllAndClear() {
         List<TradeSession> copy = new ArrayList<>(activeSessions);
         for (TradeSession session : copy) {

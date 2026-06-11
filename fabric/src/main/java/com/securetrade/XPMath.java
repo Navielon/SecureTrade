@@ -5,39 +5,54 @@ import net.minecraft.network.packet.s2c.play.ExperienceBarUpdateS2CPacket;
 
 public class XPMath {
 
-    public static int getPlayerXP(net.minecraft.entity.player.PlayerEntity player) {
+    public static long getPlayerXP(net.minecraft.entity.player.PlayerEntity player) {
         int level = player.experienceLevel;
-        int xp = getXpForLevels(level);
+        long xp = getXpForLevels(level);
         xp += Math.round(player.experienceProgress * player.getNextLevelExperience());
         return xp;
     }
 
-    public static int getXpForLevels(int level) {
+    public static long getXpForLevels(int level) {
         if (level <= 16) {
-            return level * level + 6 * level;
+            return (long) level * level + 6L * level;
         } else if (level <= 31) {
-            return (int) (2.5 * level * level - 40.5 * level + 360);
+            return Math.round(2.5D * level * level - 40.5D * level + 360D);
         } else {
-            return (int) (4.5 * level * level - 162.5 * level + 2220);
+            return Math.round(4.5D * level * level - 162.5D * level + 2220D);
         }
     }
 
-    public static int getLevelForXp(int xp) {
-        int level = 0;
-        while (getXpForLevels(level + 1) <= xp) {
-            level++;
+    public static int getLevelForXp(long xp) {
+        if (xp <= 0) {
+            return 0;
         }
-        return level;
+
+        int low = 0;
+        int high = 1;
+        while (getXpForLevels(high) <= xp && high < Integer.MAX_VALUE / 2) {
+            high *= 2;
+        }
+
+        while (low < high) {
+            int mid = low + (high - low + 1) / 2;
+            if (getXpForLevels(mid) <= xp) {
+                low = mid;
+            } else {
+                high = mid - 1;
+            }
+        }
+        return low;
     }
 
-    public static void setPlayerXP(ServerPlayerEntity player, int totalXp) {
-        int clampedXp = Math.max(0, totalXp);
-        int delta = clampedXp - getPlayerXP(player);
-        player.totalExperience = Math.max(0, player.totalExperience + delta);
+    public static void setPlayerXP(ServerPlayerEntity player, long totalXp) {
+        long clampedXp = Math.max(0L, totalXp);
+        long delta = clampedXp - getPlayerXP(player);
+        long newTotal = Math.max(0L, (long) player.totalExperience + delta);
+        player.totalExperience = (int) Math.min(Integer.MAX_VALUE, newTotal);
         player.experienceLevel = getLevelForXp(clampedXp);
-        int xpForCurrentLevel = getXpForLevels(player.experienceLevel);
-        int xpForNextLevel = getXpForLevels(player.experienceLevel + 1);
-        int difference = xpForNextLevel - xpForCurrentLevel;
+        long xpForCurrentLevel = getXpForLevels(player.experienceLevel);
+        long xpForNextLevel = getXpForLevels(player.experienceLevel + 1);
+        long difference = xpForNextLevel - xpForCurrentLevel;
         if (difference > 0) {
             player.experienceProgress = (float) (clampedXp - xpForCurrentLevel) / (float) difference;
         } else {

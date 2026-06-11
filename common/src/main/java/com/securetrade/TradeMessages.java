@@ -49,13 +49,10 @@ public final class TradeMessages {
     }
 
     public static IFormattableTextComponent format(ITextComponent message, TextFormatting color) {
-        IFormattableTextComponent formattable = message instanceof IFormattableTextComponent
-                ? (IFormattableTextComponent) message
-                : message.copy();
         return empty()
                 .append(text("Secure Trade").withStyle(TextFormatting.GOLD, TextFormatting.BOLD))
                 .append(text(" | ").withStyle(TextFormatting.DARK_GRAY))
-                .append(formattable.withStyle(color));
+                .append(message.copy().withStyle(color));
     }
 
     public static void sendRaw(ServerPlayerEntity player, ITextComponent message) {
@@ -66,3 +63,5 @@ public final class TradeMessages {
         sendRaw(player, format(message, color));
     }
 }
+
+

@@ -14,14 +14,8 @@
   "securetrade.trade_denied": "Kereskedés elutasítva.",
   "securetrade.trade_successful": "Kereskedés befejezve.",
   "securetrade.trade_cancelled": "Kereskedés megszakítva.",
-  "securetrade.gui.me": "Te",
-  "securetrade.gui.them": "Másik",
   "securetrade.gui.lock": "Kész",
-  "securetrade.gui.ready": "Kész",
   "securetrade.gui.cancel": "Mégse",
-  "securetrade.gui.tab.items": "Tárgyak",
-  "securetrade.gui.tab.xp": "XP",
-  "securetrade.gui.items_help": "Tedd be a tárgyakat, majd kattints: Kész.",
   "securetrade.error_too_far": "Túl messze vagy a másik játékostól a kereskedéshez.",
   "securetrade.error_different_dimensions": "Nem kereskedhetsz más dimenzióban lévő játékosokkal.",
   "securetrade.error_already_trading": "Már kereskedsz!",
@@ -43,5 +37,12 @@
   "securetrade.gui.receive_xp": "Kapsz: %d XP (~%d szint)",
   "securetrade.gui.xp_level_minus": "-%d szint",
   "securetrade.gui.xp_level_plus": "+%d szint",
-  "securetrade.gui.xp_level_zero": "0 szint"
+  "securetrade.gui.xp_level_zero": "0 szint",
+  "securetrade.gui.you_offer": "Te ajánlod",
+  "securetrade.gui.partner_offers": "%s ajánlja",
+  "securetrade.gui.waiting": "Várakozás",
+  "securetrade.gui.confirmed": "Megerősítve",
+  "securetrade.trade_completed_overlay": "Csere befejezve ezzel a játékossal: %s",
+  "securetrade.gui.trade_with": "Csere ezzel a játékossal: %s",
+  "securetrade.error_blacklisted_item": "Ezt a tárgyat a szerver letiltotta, ezért nem cserélhető."
 }

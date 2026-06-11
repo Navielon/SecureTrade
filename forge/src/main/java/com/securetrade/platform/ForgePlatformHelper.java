@@ -2,6 +2,7 @@ package com.securetrade.platform;
 
 import com.securetrade.TradeConfig;
 import com.securetrade.TradeItemValidator;
+import com.securetrade.network.TradeBlacklistWarningPacket;
 import com.securetrade.network.TradeLockPacket;
 import com.securetrade.network.TradeNetwork;
 import com.securetrade.network.TradeStateSyncPacket;
@@ -20,24 +21,30 @@ public class ForgePlatformHelper implements IPlatformHelper {
     }
 
     @Override
-    public void sendXPChangePacket(int xpPoints) {
+    public void sendXPChangePacket(long xpPoints) {
         TradeNetwork.sendToServer(new TradeXPChangePacket(xpPoints));
     }
 
     @Override
-    public void sendStateSync(ServerPlayerEntity player, boolean myLock, boolean otherLock, int countdownSeconds, int myXP, int otherXP) {
-        TradeNetwork.sendToPlayer(player, new TradeStateSyncPacket(myLock, otherLock, countdownSeconds, myXP, otherXP));
+    public void sendStateSync(ServerPlayerEntity player, boolean myLock, boolean otherLock, int countdownSeconds, long myXP, long otherXP, long otherTotalXP, String partnerName) {
+        TradeNetwork.sendToPlayer(player, new TradeStateSyncPacket(myLock, otherLock, countdownSeconds, myXP, otherXP, otherTotalXP, partnerName));
+    }
+
+    @Override
+    public void sendBlacklistWarning(ServerPlayerEntity player) {
+        TradeNetwork.sendToPlayer(player, new TradeBlacklistWarningPacket());
     }
 
     @Override
     public boolean containsPlatformContainerItems(ItemStack stack, List<String> blacklist, int depth) {
         try {
-            Class<?> forgeCapabilitiesClass = Class.forName("net.minecraftforge.common.capabilities.ForgeCapabilities");
+            Class<?> forgeCapabilitiesClass = Class.forName("net.minecraftforge.items.CapabilityItemHandler");
             Class<?> capabilityClass = Class.forName("net.minecraftforge.common.capabilities.Capability");
-            Field itemHandlerField = forgeCapabilitiesClass.getField("ITEM_HANDLER");
+            Class<?> directionClass = Class.forName("net.minecraft.util.Direction");
+            Field itemHandlerField = forgeCapabilitiesClass.getField("ITEM_HANDLER_CAPABILITY");
             Object itemHandlerCapability = itemHandlerField.get(null);
-            Method getCapability = stack.getClass().getMethod("getCapability", capabilityClass);
-            Object lazyOptional = getCapability.invoke(stack, itemHandlerCapability);
+            Method getCapability = stack.getClass().getMethod("getCapability", capabilityClass, directionClass);
+            Object lazyOptional = getCapability.invoke(stack, itemHandlerCapability, null);
             Method resolve = lazyOptional.getClass().getMethod("resolve");
             Object optional = resolve.invoke(lazyOptional);
             if (!(optional instanceof Optional)) {
@@ -100,3 +107,5 @@ public class ForgePlatformHelper implements IPlatformHelper {
         return TradeConfig.MAX_HISTORY_ENTRIES.get();
     }
 }
+
+

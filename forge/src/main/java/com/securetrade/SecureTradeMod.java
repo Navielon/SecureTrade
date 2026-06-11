@@ -5,9 +5,12 @@ import com.securetrade.menu.TradeMenu;
 import com.securetrade.menu.TradeMenuType;
 import com.securetrade.network.TradeNetwork;
 import net.minecraft.inventory.container.ContainerType;
+import net.minecraft.util.SoundEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
+import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
@@ -34,10 +37,16 @@ public class SecureTradeMod {
         ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, TradeConfig.SPEC);
 
         MENUS.register(modEventBus);
+        modEventBus.register(this);
 
         TradeNetwork.register();
 
         MinecraftForge.EVENT_BUS.addListener(this::onRegisterCommands);
+    }
+
+    @SubscribeEvent
+    public void onRegisterSounds(RegistryEvent.Register<SoundEvent> event) {
+        SecureTradeSounds.register((id, sound) -> event.getRegistry().register(sound.setRegistryName(id)));
     }
 
     private void onRegisterCommands(RegisterCommandsEvent event) {

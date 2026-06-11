@@ -14,14 +14,8 @@
   "securetrade.trade_denied": "Ruil geweigerd.",
   "securetrade.trade_successful": "Ruil voltooid.",
   "securetrade.trade_cancelled": "Ruil geannuleerd.",
-  "securetrade.gui.me": "Jij",
-  "securetrade.gui.them": "Ander",
   "securetrade.gui.lock": "Klaar",
-  "securetrade.gui.ready": "Klaar",
   "securetrade.gui.cancel": "Annul.",
-  "securetrade.gui.tab.items": "Items",
-  "securetrade.gui.tab.xp": "XP",
-  "securetrade.gui.items_help": "Plaats items en klik op Klaar.",
   "securetrade.error_too_far": "Je bent te ver van de andere speler om te ruilen.",
   "securetrade.error_different_dimensions": "Je kunt niet ruilen met spelers in andere dimensies.",
   "securetrade.error_already_trading": "Je bent al aan het ruilen!",
@@ -43,5 +37,12 @@
   "securetrade.gui.receive_xp": "Je ontvangt: %d XP (~%d niv.)",
   "securetrade.gui.xp_level_minus": "-%d niv.",
   "securetrade.gui.xp_level_plus": "+%d niv.",
-  "securetrade.gui.xp_level_zero": "0 niv."
+  "securetrade.gui.xp_level_zero": "0 niv.",
+  "securetrade.gui.you_offer": "Jij biedt aan",
+  "securetrade.gui.partner_offers": "%s biedt aan",
+  "securetrade.gui.waiting": "Wachten",
+  "securetrade.gui.confirmed": "Bevestigd",
+  "securetrade.trade_completed_overlay": "Ruil met %s voltooid",
+  "securetrade.gui.trade_with": "Ruil met %s",
+  "securetrade.error_blacklisted_item": "Dit item is door de server geblokkeerd en kan niet worden geruild."
 }

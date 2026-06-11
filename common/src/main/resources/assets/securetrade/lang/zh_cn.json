@@ -14,14 +14,8 @@
   "securetrade.trade_denied": "交易已拒绝。",
   "securetrade.trade_successful": "交易完成。",
   "securetrade.trade_cancelled": "交易已取消。",
-  "securetrade.gui.me": "你",
-  "securetrade.gui.them": "对方",
   "securetrade.gui.lock": "就绪",
-  "securetrade.gui.ready": "就绪",
   "securetrade.gui.cancel": "取消",
-  "securetrade.gui.tab.items": "物品",
-  "securetrade.gui.tab.xp": "XP",
-  "securetrade.gui.items_help": "放入物品，然后点击就绪。",
   "securetrade.error_too_far": "你离对方玩家太远，无法交易。",
   "securetrade.error_different_dimensions": "你不能与其他维度的玩家交易。",
   "securetrade.error_already_trading": "你已经在交易了！",
@@ -43,5 +37,12 @@
   "securetrade.gui.receive_xp": "你收到：%d XP（约 %d 级）",
   "securetrade.gui.xp_level_minus": "-%d 级",
   "securetrade.gui.xp_level_plus": "+%d 级",
-  "securetrade.gui.xp_level_zero": "0 级"
+  "securetrade.gui.xp_level_zero": "0 级",
+  "securetrade.gui.you_offer": "你提供",
+  "securetrade.gui.partner_offers": "%s 提供",
+  "securetrade.gui.waiting": "等待中",
+  "securetrade.gui.confirmed": "已确认",
+  "securetrade.trade_completed_overlay": "与 %s 的交易已完成",
+  "securetrade.gui.trade_with": "与 %s 交易",
+  "securetrade.error_blacklisted_item": "此物品已被服务器禁用，无法交易。"
 }

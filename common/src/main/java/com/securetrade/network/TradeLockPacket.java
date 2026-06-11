@@ -21,3 +21,4 @@ public class TradeLockPacket {
         return this.locked;
     }
 }
+

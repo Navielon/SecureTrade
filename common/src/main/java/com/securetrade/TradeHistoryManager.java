@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.securetrade.platform.Services;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.JsonToNBT;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.server.MinecraftServer;
@@ -22,7 +24,9 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class TradeHistoryManager {
 
@@ -36,23 +40,25 @@ public class TradeHistoryManager {
         public String targetUuid;
         public List<ItemInfo> senderItems;
         public List<ItemInfo> targetItems;
-        public int senderXP;
-        public int targetXP;
+        public long senderXP;
+        public long targetXP;
     }
 
     public static class ItemInfo {
         public String id;
         public int count;
         public String displayName;
+        public String stackData;
 
-        public ItemInfo(String id, int count, String displayName) {
+        public ItemInfo(String id, int count, String displayName, String stackData) {
             this.id = id;
             this.count = count;
             this.displayName = displayName;
+            this.stackData = stackData;
         }
     }
 
-    public static void recordTrade(ServerPlayerEntity p1, ServerPlayerEntity p2, net.minecraft.inventory.Inventory inv1, net.minecraft.inventory.Inventory inv2, int p1XP, int p2XP) {
+    public static void recordTrade(ServerPlayerEntity p1, ServerPlayerEntity p2, net.minecraft.inventory.Inventory inv1, net.minecraft.inventory.Inventory inv2, long p1XP, long p2XP) {
         try {
             MinecraftServer server = p1.getServer();
             if (server == null) return;
@@ -71,7 +77,7 @@ public class TradeHistoryManager {
             entry.senderXP = p1XP;
             entry.targetXP = p2XP;
 
-            history.add(0, entry); // Add to the beginning of the list
+            history.add(0, entry);
 
             int limit = Math.max(100, Services.PLATFORM.getMaxHistoryEntries() * 10);
             while (history.size() > limit) {
@@ -92,7 +98,10 @@ public class TradeHistoryManager {
                 String id = Registry.ITEM.getKey(stack.getItem()).toString();
                 int count = stack.getCount();
                 String displayName = stack.getHoverName().getString();
-                list.add(new ItemInfo(id, count, displayName));
+                ItemStack stackCopy = stack.copy();
+                stackCopy.setCount(1);
+                String stackData = stackCopy.save(new CompoundNBT()).toString();
+                list.add(new ItemInfo(id, count, displayName, stackData));
             }
         }
         return list;
@@ -153,31 +162,28 @@ public class TradeHistoryManager {
             for (int i = 0; i < toShow; i++) {
                 TradeEntry entry = playerHistory.get(i);
                 
-                // Determine other player name
                 String otherName = playerUuid.equals(entry.senderUuid) ? entry.targetName : entry.senderName;
                 
-                // Format entry title, e.g. "1. Trade with Player2:"
-                ITextComponent otherNameComponent = TradeMessages.text(otherName).withStyle(TextFormatting.AQUA);
-                TradeMessages.sendRaw(player, TradeMessages.trans("securetrade.history.entry", i + 1, otherNameComponent).withStyle(TextFormatting.GRAY));
+                ITextComponent otherNameITextComponent = TradeMessages.text(otherName).withStyle(TextFormatting.AQUA);
+                TradeMessages.sendRaw(player, TradeMessages.trans("securetrade.history.entry", i + 1, otherNameITextComponent).withStyle(TextFormatting.GRAY));
 
-                // Determine what was given and received by THIS player
                 List<ItemInfo> gaveItems = playerUuid.equals(entry.senderUuid) ? entry.senderItems : entry.targetItems;
                 List<ItemInfo> receivedItems = playerUuid.equals(entry.senderUuid) ? entry.targetItems : entry.senderItems;
-                int gaveXP = playerUuid.equals(entry.senderUuid) ? entry.senderXP : entry.targetXP;
-                int receivedXP = playerUuid.equals(entry.senderUuid) ? entry.targetXP : entry.senderXP;
+                long gaveXP = playerUuid.equals(entry.senderUuid) ? entry.senderXP : entry.targetXP;
+                long receivedXP = playerUuid.equals(entry.senderUuid) ? entry.targetXP : entry.senderXP;
 
-                ITextComponent gaveComponent = formatItemsAndXP(gaveItems, gaveXP);
-                TradeMessages.sendRaw(player, TradeMessages.trans("securetrade.history.gave", gaveComponent).withStyle(TextFormatting.RED));
+                ITextComponent gaveITextComponent = formatItemsAndXP(gaveItems, gaveXP);
+                TradeMessages.sendRaw(player, TradeMessages.trans("securetrade.history.gave", gaveITextComponent).withStyle(TextFormatting.RED));
 
-                ITextComponent receivedComponent = formatItemsAndXP(receivedItems, receivedXP);
-                TradeMessages.sendRaw(player, TradeMessages.trans("securetrade.history.received", receivedComponent).withStyle(TextFormatting.GREEN));
+                ITextComponent receivedITextComponent = formatItemsAndXP(receivedItems, receivedXP);
+                TradeMessages.sendRaw(player, TradeMessages.trans("securetrade.history.received", receivedITextComponent).withStyle(TextFormatting.GREEN));
             }
         } catch (Exception e) {
             TradeMessages.sendRaw(player, TradeMessages.text("Error reading trade history: " + e.getMessage()).withStyle(TextFormatting.RED));
         }
     }
 
-    private static ITextComponent formatItemsAndXP(List<ItemInfo> items, int xp) {
+    private static ITextComponent formatItemsAndXP(List<ItemInfo> items, long xp) {
         boolean hasItems = items != null && !items.isEmpty();
         if (!hasItems && xp <= 0) {
             return TradeMessages.trans("securetrade.history.nothing").withStyle(TextFormatting.GRAY);
@@ -187,7 +193,7 @@ public class TradeHistoryManager {
         boolean hasContent = false;
 
         if (hasItems) {
-            for (ItemInfo item : items) {
+            for (ItemInfo item : aggregateItems(items)) {
                 if (hasContent) {
                     result.append(TradeMessages.text(", ").withStyle(TextFormatting.GRAY));
                 }
@@ -206,14 +212,46 @@ public class TradeHistoryManager {
         return result;
     }
 
-    private static ITextComponent formatItem(ItemInfo item) {
-        IFormattableTextComponent itemName = resolveItemName(item).withStyle(TextFormatting.YELLOW);
-        ITextComponent hoverText = TradeMessages.text(item.id + "\n" + item.count + "x").withStyle(TextFormatting.GRAY);
+    private static List<ItemInfo> aggregateItems(List<ItemInfo> items) {
+        Map<String, ItemInfo> aggregated = new LinkedHashMap<>();
+        for (ItemInfo item : items) {
+            if (item == null || item.id == null) {
+                continue;
+            }
 
-        return TradeMessages.empty()
+            String key = getAggregationKey(item);
+            ItemInfo existing = aggregated.get(key);
+            if (existing == null) {
+                aggregated.put(key, new ItemInfo(item.id, item.count, item.displayName, item.stackData));
+            } else {
+                existing.count = (int) Math.min(Integer.MAX_VALUE, (long) existing.count + item.count);
+            }
+        }
+        return new ArrayList<>(aggregated.values());
+    }
+
+    private static String getAggregationKey(ItemInfo item) {
+        if (item.stackData != null && !item.stackData.trim().isEmpty()) {
+            return item.stackData;
+        }
+        return item.id + "\u0000" + (item.displayName == null ? "" : item.displayName);
+    }
+
+    private static ITextComponent formatItem(ItemInfo item) {
+        ItemStack hoverStack = resolveItemStack(item);
+        IFormattableTextComponent itemName = (hoverStack.isEmpty() ? resolveItemName(item) : hoverStack.getHoverName().copy())
+                .withStyle(TextFormatting.YELLOW);
+        IFormattableTextComponent result = TradeMessages.empty()
                 .append(TradeMessages.text(item.count + "x ").withStyle(TextFormatting.GRAY))
-                .append(itemName)
-                .withStyle(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText)));
+                .append(itemName);
+        if (!hoverStack.isEmpty()) {
+            return result.withStyle(style -> style.withHoverEvent(
+                    new HoverEvent(HoverEvent.Action.SHOW_ITEM, new HoverEvent.ItemHover(hoverStack))
+            ));
+        }
+
+        ITextComponent hoverText = TradeMessages.text(item.id + "\n" + item.count + "x").withStyle(TextFormatting.GRAY);
+        return result.withStyle(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText)));
     }
 
     private static IFormattableTextComponent resolveItemName(ItemInfo item) {
@@ -224,7 +262,7 @@ public class TradeHistoryManager {
         try {
             ResourceLocation id = new ResourceLocation(item.id);
             Item resolvedItem = Registry.ITEM.get(id);
-            if (resolvedItem != null && (resolvedItem != Items.AIR || "minecraft:air".equals(item.id))) {
+            if (resolvedItem != Items.AIR || "minecraft:air".equals(item.id)) {
                 return TradeMessages.trans(resolvedItem.getDescriptionId());
             }
         } catch (Exception ignored) {
@@ -238,4 +276,32 @@ public class TradeHistoryManager {
         return TradeMessages.text(item.id);
     }
 
+    private static ItemStack resolveItemStack(ItemInfo item) {
+        if (item == null || item.id == null || item.id.trim().isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+
+        if (item.stackData != null && !item.stackData.trim().isEmpty()) {
+            try {
+                return ItemStack.of(JsonToNBT.parseTag(item.stackData));
+            } catch (Exception ignored) {
+            }
+        }
+
+        try {
+            ResourceLocation id = new ResourceLocation(item.id);
+            Item resolvedItem = Registry.ITEM.get(id);
+            if (resolvedItem != Items.AIR || "minecraft:air".equals(item.id)) {
+                return new ItemStack(resolvedItem);
+            }
+        } catch (Exception ignored) {
+        }
+
+        return ItemStack.EMPTY;
+    }
+
 }
+
+
+
+

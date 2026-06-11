@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.securetrade.platform.Services;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.StringNbtReader;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.server.MinecraftServer;
@@ -22,7 +24,9 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class TradeHistoryManager {
 
@@ -36,23 +40,25 @@ public class TradeHistoryManager {
         public String targetUuid;
         public List<ItemInfo> senderItems;
         public List<ItemInfo> targetItems;
-        public int senderXP;
-        public int targetXP;
+        public long senderXP;
+        public long targetXP;
     }
 
     public static class ItemInfo {
         public String id;
         public int count;
         public String displayName;
+        public String stackData;
 
-        public ItemInfo(String id, int count, String displayName) {
+        public ItemInfo(String id, int count, String displayName, String stackData) {
             this.id = id;
             this.count = count;
             this.displayName = displayName;
+            this.stackData = stackData;
         }
     }
 
-    public static void recordTrade(ServerPlayerEntity p1, ServerPlayerEntity p2, net.minecraft.inventory.SimpleInventory inv1, net.minecraft.inventory.SimpleInventory inv2, int p1XP, int p2XP) {
+    public static void recordTrade(ServerPlayerEntity p1, ServerPlayerEntity p2, net.minecraft.inventory.SimpleInventory inv1, net.minecraft.inventory.SimpleInventory inv2, long p1XP, long p2XP) {
         try {
             MinecraftServer server = p1.getServer();
             if (server == null) return;
@@ -92,7 +98,10 @@ public class TradeHistoryManager {
                 String id = Registry.ITEM.getId(stack.getItem()).toString();
                 int count = stack.getCount();
                 String displayName = stack.getName().getString();
-                list.add(new ItemInfo(id, count, displayName));
+                ItemStack stackCopy = stack.copy();
+                stackCopy.setCount(1);
+                String stackData = stackCopy.writeNbt(new NbtCompound()).toString();
+                list.add(new ItemInfo(id, count, displayName, stackData));
             }
         }
         return list;
@@ -163,8 +172,8 @@ public class TradeHistoryManager {
                 // Determine what was given and received by THIS player
                 List<ItemInfo> gaveItems = playerUuid.equals(entry.senderUuid) ? entry.senderItems : entry.targetItems;
                 List<ItemInfo> receivedItems = playerUuid.equals(entry.senderUuid) ? entry.targetItems : entry.senderItems;
-                int gaveXP = playerUuid.equals(entry.senderUuid) ? entry.senderXP : entry.targetXP;
-                int receivedXP = playerUuid.equals(entry.senderUuid) ? entry.targetXP : entry.senderXP;
+                long gaveXP = playerUuid.equals(entry.senderUuid) ? entry.senderXP : entry.targetXP;
+                long receivedXP = playerUuid.equals(entry.senderUuid) ? entry.targetXP : entry.senderXP;
 
                 Text gaveComponent = formatItemsAndXP(gaveItems, gaveXP);
                 TradeMessages.sendRaw(player, TradeMessages.trans("securetrade.history.gave", gaveComponent).formatted(Formatting.RED));
@@ -177,7 +186,7 @@ public class TradeHistoryManager {
         }
     }
 
-    private static Text formatItemsAndXP(List<ItemInfo> items, int xp) {
+    private static Text formatItemsAndXP(List<ItemInfo> items, long xp) {
         boolean hasItems = items != null && !items.isEmpty();
         if (!hasItems && xp <= 0) {
             return TradeMessages.trans("securetrade.history.nothing").formatted(Formatting.GRAY);
@@ -187,7 +196,7 @@ public class TradeHistoryManager {
         boolean hasContent = false;
 
         if (hasItems) {
-            for (ItemInfo item : items) {
+            for (ItemInfo item : aggregateItems(items)) {
                 if (hasContent) {
                     result.append(TradeMessages.text(", ").formatted(Formatting.GRAY));
                 }
@@ -206,14 +215,46 @@ public class TradeHistoryManager {
         return result;
     }
 
-    private static Text formatItem(ItemInfo item) {
-        MutableText itemName = resolveItemName(item).formatted(Formatting.YELLOW);
-        Text hoverText = TradeMessages.text(item.id + "\n" + item.count + "x").formatted(Formatting.GRAY);
+    private static List<ItemInfo> aggregateItems(List<ItemInfo> items) {
+        Map<String, ItemInfo> aggregated = new LinkedHashMap<>();
+        for (ItemInfo item : items) {
+            if (item == null || item.id == null) {
+                continue;
+            }
 
-        return TradeMessages.empty()
+            String key = getAggregationKey(item);
+            ItemInfo existing = aggregated.get(key);
+            if (existing == null) {
+                aggregated.put(key, new ItemInfo(item.id, item.count, item.displayName, item.stackData));
+            } else {
+                existing.count = (int) Math.min(Integer.MAX_VALUE, (long) existing.count + item.count);
+            }
+        }
+        return new ArrayList<>(aggregated.values());
+    }
+
+    private static String getAggregationKey(ItemInfo item) {
+        if (item.stackData != null && !item.stackData.trim().isEmpty()) {
+            return item.stackData;
+        }
+        return item.id + "\u0000" + (item.displayName == null ? "" : item.displayName);
+    }
+
+    private static Text formatItem(ItemInfo item) {
+        ItemStack hoverStack = resolveItemStack(item);
+        MutableText itemName = (hoverStack.isEmpty() ? resolveItemName(item) : hoverStack.getName().copy())
+                .formatted(Formatting.YELLOW);
+        MutableText result = TradeMessages.empty()
                 .append(TradeMessages.text(item.count + "x ").formatted(Formatting.GRAY))
-                .append(itemName)
-                .styled(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText)));
+                .append(itemName);
+        if (!hoverStack.isEmpty()) {
+            return result.styled(style -> style.withHoverEvent(
+                    new HoverEvent(HoverEvent.Action.SHOW_ITEM, new HoverEvent.ItemStackContent(hoverStack))
+            ));
+        }
+
+        Text hoverText = TradeMessages.text(item.id + "\n" + item.count + "x").formatted(Formatting.GRAY);
+        return result.styled(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText)));
     }
 
     private static MutableText resolveItemName(ItemInfo item) {
@@ -236,6 +277,30 @@ public class TradeHistoryManager {
         }
 
         return TradeMessages.text(item.id);
+    }
+
+    private static ItemStack resolveItemStack(ItemInfo item) {
+        if (item == null || item.id == null || item.id.trim().isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+
+        if (item.stackData != null && !item.stackData.trim().isEmpty()) {
+            try {
+                return ItemStack.fromNbt(StringNbtReader.parse(item.stackData));
+            } catch (Exception ignored) {
+            }
+        }
+
+        try {
+            Identifier id = new Identifier(item.id);
+            Item resolvedItem = Registry.ITEM.get(id);
+            if (resolvedItem != null && (resolvedItem != Items.AIR || "minecraft:air".equals(item.id))) {
+                return new ItemStack(resolvedItem);
+            }
+        } catch (Exception ignored) {
+        }
+
+        return ItemStack.EMPTY;
     }
 
 }

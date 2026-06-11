@@ -14,14 +14,8 @@
   "securetrade.trade_denied": "Handel nekad.",
   "securetrade.trade_successful": "Handel slutförd.",
   "securetrade.trade_cancelled": "Handel avbruten.",
-  "securetrade.gui.me": "Du",
-  "securetrade.gui.them": "Andra",
   "securetrade.gui.lock": "Klar",
-  "securetrade.gui.ready": "Klar",
   "securetrade.gui.cancel": "Avbryt",
-  "securetrade.gui.tab.items": "Saker",
-  "securetrade.gui.tab.xp": "XP",
-  "securetrade.gui.items_help": "Lägg in saker och klicka på Klar.",
   "securetrade.error_too_far": "Du är för långt från den andra spelaren för att handla.",
   "securetrade.error_different_dimensions": "Du kan inte handla med spelare i andra dimensioner.",
   "securetrade.error_already_trading": "Du handlar redan!",
@@ -43,5 +37,12 @@
   "securetrade.gui.receive_xp": "Du får: %d XP (~%d niv.)",
   "securetrade.gui.xp_level_minus": "-%d niv.",
   "securetrade.gui.xp_level_plus": "+%d niv.",
-  "securetrade.gui.xp_level_zero": "0 niv."
+  "securetrade.gui.xp_level_zero": "0 niv.",
+  "securetrade.gui.you_offer": "Du erbjuder",
+  "securetrade.gui.partner_offers": "%s erbjuder",
+  "securetrade.gui.waiting": "Väntar",
+  "securetrade.gui.confirmed": "Bekräftat",
+  "securetrade.trade_completed_overlay": "Byte med %s slutfört",
+  "securetrade.gui.trade_with": "Byte med %s",
+  "securetrade.error_blacklisted_item": "Det här föremålet är blockerat av servern och kan inte bytas."
 }

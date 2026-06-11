@@ -42,6 +42,12 @@ public class TradeNetwork {
                 TradeStateSyncPacket::new,
                 TradeNetwork::handleStateSync,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+
+        CHANNEL.registerMessage(id++, TradeBlacklistWarningPacket.class,
+                TradeBlacklistWarningPacket::write,
+                TradeBlacklistWarningPacket::new,
+                TradeNetwork::handleBlacklistWarning,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
     }
 
     private static void handleLock(TradeLockPacket msg, Supplier<NetworkEvent.Context> contextSupplier) {
@@ -74,7 +80,19 @@ public class TradeNetwork {
             Minecraft mc = Minecraft.getInstance();
             if (mc.player != null && mc.player.containerMenu instanceof TradeMenu) {
                 TradeMenu tradeMenu = (TradeMenu) mc.player.containerMenu;
-                tradeMenu.updateFields(msg.myLock(), msg.otherLock(), msg.countdownSeconds(), msg.myXP(), msg.otherXP());
+                tradeMenu.updateFields(msg.myLock(), msg.otherLock(), msg.countdownSeconds(), msg.myXP(), msg.otherXP(), msg.otherTotalXP(), msg.partnerName());
+            }
+        });
+        context.setPacketHandled(true);
+    }
+
+    private static void handleBlacklistWarning(TradeBlacklistWarningPacket msg, Supplier<NetworkEvent.Context> contextSupplier) {
+        NetworkEvent.Context context = contextSupplier.get();
+        context.enqueueWork(() -> {
+            Minecraft mc = Minecraft.getInstance();
+            if (mc.player != null && mc.player.containerMenu instanceof TradeMenu) {
+                TradeMenu tradeMenu = (TradeMenu) mc.player.containerMenu;
+                tradeMenu.showBlacklistWarning();
             }
         });
         context.setPacketHandled(true);
@@ -88,3 +106,5 @@ public class TradeNetwork {
         CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), message);
     }
 }
+
+

@@ -2,6 +2,7 @@ package com.securetrade.platform;
 
 import com.securetrade.FabricSecureTradeMod;
 import com.securetrade.FabricTradeConfig;
+import com.securetrade.network.TradeBlacklistWarningPacket;
 import com.securetrade.network.TradeLockPacket;
 import com.securetrade.network.TradeStateSyncPacket;
 import com.securetrade.network.TradeXPChangePacket;
@@ -22,17 +23,24 @@ public class FabricPlatformHelper implements IPlatformHelper {
     }
 
     @Override
-    public void sendXPChangePacket(int xpPoints) {
+    public void sendXPChangePacket(long xpPoints) {
         PacketByteBuf buf = PacketByteBufs.create();
         new TradeXPChangePacket(xpPoints).write(buf);
         ClientPlayNetworking.send(FabricSecureTradeMod.TRADE_XP_CHANGE_ID, buf);
     }
 
     @Override
-    public void sendStateSync(ServerPlayerEntity player, boolean myLock, boolean otherLock, int countdownSeconds, int myXP, int otherXP) {
+    public void sendStateSync(ServerPlayerEntity player, boolean myLock, boolean otherLock, int countdownSeconds, long myXP, long otherXP, long otherTotalXP, String partnerName) {
         PacketByteBuf buf = PacketByteBufs.create();
-        new TradeStateSyncPacket(myLock, otherLock, countdownSeconds, myXP, otherXP).write(buf);
+        new TradeStateSyncPacket(myLock, otherLock, countdownSeconds, myXP, otherXP, otherTotalXP, partnerName).write(buf);
         ServerPlayNetworking.send(player, FabricSecureTradeMod.TRADE_STATE_SYNC_ID, buf);
+    }
+
+    @Override
+    public void sendBlacklistWarning(ServerPlayerEntity player) {
+        PacketByteBuf buf = PacketByteBufs.create();
+        new TradeBlacklistWarningPacket().write(buf);
+        ServerPlayNetworking.send(player, FabricSecureTradeMod.TRADE_BLACKLIST_WARNING_ID, buf);
     }
 
     @Override

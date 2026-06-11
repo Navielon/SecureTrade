@@ -1,41 +1,105 @@
 package com.securetrade.client;
 
-import com.securetrade.XPMath;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.securetrade.TradeMessages;
+import com.securetrade.XPMath;
 import com.securetrade.menu.TradeMenu;
 import com.securetrade.platform.Services;
-import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.client.gui.widget.ButtonWidget;
+import java.util.List;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
+import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.sound.PositionedSoundInstance;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.OrderedText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import net.minecraft.entity.player.PlayerInventory;
 
 public class TradeScreen extends HandledScreen<TradeMenu> {
-    private static final int CENTER_X = 61;
-    private static final int CENTER_WIDTH = 54;
-    private static final int XP_BAR_X = 64;
-    private static final int XP_BAR_Y = 48;
-    private static final int XP_BAR_WIDTH = 48;
-    private static final int XP_BAR_HEIGHT = 5;
-    private static final int STATUS_LEFT_OFFSET = 64;
-    private static final int STATUS_TOP_OFFSET = 36;
-    private static final int STATUS_RIGHT_OFFSET = 112;
-    private static final int STATUS_BOTTOM_OFFSET = 62;
+    public static final Identifier TRADE_TEXTURE = new Identifier("securetrade", "textures/gui/trade.png");
 
-    private ButtonWidget lockButtonWidget;
-    private ButtonWidget itemsTabButtonWidget;
-    private ButtonWidget xpTabButtonWidget;
+    private static final int LEFT_READY_X = 30;
+    private static final int LEFT_READY_Y = 98;
+    private static final int READY_W = 117;
+    private static final int READY_H = 20;
+
+    private static final int RIGHT_READY_X = 210;
+    private static final int RIGHT_READY_Y = 98;
+
+    private static final int LEFT_MINUS_X = 12;
+    private static final int LEFT_MINUS_Y = 82;
+    private static final int LEFT_PLUS_X = 151;
+    private static final int LEFT_PLUS_Y = 82;
+    private static final int BUTTON_SIZE = 13;
+
+    private static final int LEFT_XP_BAR_X = 29;
+    private static final int LEFT_XP_BAR_Y = 85;
+    private static final int XP_BAR_W = 118;
+    private static final int XP_BAR_H = 7;
+
+    private static final int LEFT_XP_FILL_X = 30;
+    private static final int RIGHT_XP_FILL_X = 210;
+    private static final int XP_FILL_Y = 86;
+    private static final int XP_FILL_W = 116;
+
+    private static final int ARROW_X = 162;
+    private static final int ARROW_Y = 98;
+    private static final float ARROW_ANIMATION_SECONDS = 0.17f;
+    private static final float SLOT_HIGHLIGHT_ANIMATION_SECONDS = 0.16f;
+    private static final float READY_HOVER_ANIMATION_SECONDS = 0.10f;
+
+    private static final int LEFT_XP_TEXT_X = 71;
+    private static final int RIGHT_XP_TEXT_X = 251;
+    private static final int XP_TEXT_Y = 73;
+
+    private static final int SPRITE_LEFT_ARROW_U = 356;
+    private static final int SPRITE_LEFT_ARROW_V = 0;
+    private static final int SPRITE_LEFT_ARROW_W = 31;
+    private static final int SPRITE_LEFT_ARROW_H = 22;
+
+    private static final int SPRITE_RIGHT_ARROW_U = 387;
+    private static final int SPRITE_RIGHT_ARROW_V = 0;
+    private static final int SPRITE_RIGHT_ARROW_W = 31;
+    private static final int SPRITE_RIGHT_ARROW_H = 22;
+
+    private static final int SPRITE_PLUS_U = 356;
+    private static final int SPRITE_MINUS_U = 369;
+
+    private static final int SPRITE_HOVER_PLUS_U = 382;
+    private static final int SPRITE_HOVER_MINUS_U = 395;
+    private static final int SPRITE_DISABLED_PLUS_U = 408;
+    private static final int SPRITE_DISABLED_MINUS_U = 421;
+    private static final int SPRITE_CONTROL_V = 27;
+
+    private static final int SPRITE_GREEN_BAR_U = 356;
+    private static final int SPRITE_GREEN_BAR_V = 22;
+    private static final int SPRITE_GREEN_BAR_H = 5;
+
+    private static final int SPRITE_KNOB_U = 356;
+    private static final int SPRITE_KNOB_V = 100;
+    private static final int SPRITE_KNOB_W = 5;
+    private static final int SPRITE_KNOB_H = 13;
+
+    private static final int SPRITE_READY_BG_U = 356;
+    private static final int SPRITE_READY_NORMAL_V = 40;
+    private static final int SPRITE_READY_ACTIVE_V = 60;
+    private static final int SPRITE_READY_DISABLED_V = 80;
+
+    private ButtonWidget lockButton;
     private float sliderValue = 0.0f;
     private boolean isDraggingSlider = false;
-    private boolean xpTabSelected = false;
-    private int lastOtherXP = 0;
+    private float myArrowProgress = 0.0f;
+    private float otherArrowProgress = 0.0f;
+    private float mySlotHighlightProgress = 0.0f;
+    private float otherSlotHighlightProgress = 0.0f;
+    private float readyHoverProgress = 0.0f;
+    private long lastArrowFrameNanos = System.nanoTime();
 
     public TradeScreen(TradeMenu menu, PlayerInventory playerInventory, Text title) {
         super(menu, playerInventory, title);
-        this.backgroundWidth = 176;
-        this.backgroundHeight = 185;
+        this.backgroundWidth = 356;
+        this.backgroundHeight = 205;
     }
 
     @Override
@@ -45,294 +109,430 @@ public class TradeScreen extends HandledScreen<TradeMenu> {
         int x = (this.width - this.backgroundWidth) / 2;
         int y = (this.height - this.backgroundHeight) / 2;
 
-        this.itemsTabButtonWidget = new ButtonWidget(x + 61, y + 18, 34, 14, TradeMessages.trans("securetrade.gui.tab.items"), button -> {
-            this.xpTabSelected = false;
-            updateWidgetPositions();
-        });
-
-        this.xpTabButtonWidget = new ButtonWidget(x + 95, y + 18, 20, 14, TradeMessages.trans("securetrade.gui.tab.xp"), button -> {
-            this.xpTabSelected = true;
-            updateWidgetPositions();
-        });
-
-        this.lockButtonWidget = new ButtonWidget(x + 63, y + 67, 50, 18, TradeMessages.trans("securetrade.gui.lock"), button -> {
-            boolean newState = !this.handler.myLock;
+        this.lockButton = new ButtonWidget(x + LEFT_READY_X, y + LEFT_READY_Y, READY_W, READY_H, TradeMessages.empty(), button -> {
+            boolean newState = !TradeScreen.this.handler.myLock;
             Services.PLATFORM.sendLockPacket(newState);
-        });
+        }) {
+            @Override
+            public void renderButton(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+                boolean activeReady = TradeScreen.this.handler.myLock || TradeScreen.this.handler.countdownSeconds > 0;
+                int spriteV = activeReady ? SPRITE_READY_ACTIVE_V : SPRITE_READY_NORMAL_V;
+                TradeScreen.this.client.getTextureManager().bindTexture(TRADE_TEXTURE);
+                TradeScreen.this.blit512(matrices, this.x, this.y, SPRITE_READY_BG_U, spriteV, this.width, this.height);
+                TradeScreen.this.drawReadyHoverFrame(matrices, this.x, this.y, TradeScreen.this.readyHoverProgress, activeReady);
 
-        this.addButton(this.itemsTabButtonWidget);
-        this.addButton(this.xpTabButtonWidget);
-        this.addButton(this.lockButtonWidget);
+                Text msg = TradeScreen.this.lockButtonText();
+                int color = activeReady ? 0xF2F2F2 : this.active ? 0xFFFFFF : 0xA0A0A0;
+                TradeScreen.this.drawCenteredButtonText(matrices, msg, this.x + this.width / 2, this.y + (this.height - 8) / 2, color, activeReady);
+            }
+        };
 
-        if (this.handler.myXP > 0 || this.handler.otherXP > 0) {
-            this.xpTabSelected = true;
-        }
-        this.lastOtherXP = this.handler.otherXP;
-
-        updateWidgetPositions();
-    }
-
-    private void updateWidgetPositions() {
-        int x = (this.width - this.backgroundWidth) / 2;
-        int y = (this.height - this.backgroundHeight) / 2;
-
-        this.itemsTabButtonWidget.x = x + 61;
-        this.itemsTabButtonWidget.y = y + 18;
-        this.xpTabButtonWidget.x = x + 95;
-        this.xpTabButtonWidget.y = y + 18;
-        this.lockButtonWidget.x = x + 63;
-        this.lockButtonWidget.y = y + 67;
+        this.addButton(this.lockButton);
     }
 
     @Override
-    public void render(MatrixStack poseStack, int mouseX, int mouseY, float partialTick) {
-        updateDynamicWidgetText();
-
-        this.renderBackground(poseStack);
-        super.render(poseStack, mouseX, mouseY, partialTick);
+    public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+        updateReadyAnimations(mouseX, mouseY);
+        this.renderBackground(matrices);
+        super.render(matrices, mouseX, mouseY, delta);
 
         int x = (this.width - this.backgroundWidth) / 2;
         int y = (this.height - this.backgroundHeight) / 2;
 
-        drawSlotHighlights(poseStack, x, y);
-        if (this.xpTabSelected) {
-            drawXPTab(poseStack, x, y, mouseX, mouseY);
-        } else {
-            drawItemsTab(poseStack, x, y, mouseX, mouseY);
-        }
+        drawSlotHighlights(matrices, x, y);
+        this.client.getTextureManager().bindTexture(TRADE_TEXTURE);
+        drawActiveOverlays(matrices, x, y, mouseX, mouseY);
 
-        this.drawMouseoverTooltip(poseStack, mouseX, mouseY);
+        this.drawMouseoverTooltip(matrices, mouseX, mouseY);
     }
 
-    private void updateDynamicWidgetText() {
-        this.lockButtonWidget.setMessage(TradeMessages.trans(
+    private Text lockButtonText() {
+        return TradeMessages.trans(
                 this.handler.countdownSeconds > 0 || this.handler.myLock
                         ? "securetrade.gui.cancel"
                         : "securetrade.gui.lock"
-        ));
+        );
     }
 
-    private void drawSlotHighlights(MatrixStack poseStack, int x, int y) {
-        if (this.handler.myLock) {
-            for (int row = 0; row < 4; ++row) {
-                for (int col = 0; col < 3; ++col) {
-                    fill(poseStack, x + 8 + col * 18, y + 18 + row * 18, x + 24 + col * 18, y + 34 + row * 18, 0x3500FF00);
-                }
-            }
-        }
-
-        if (this.handler.otherLock) {
-            for (int row = 0; row < 4; ++row) {
-                for (int col = 0; col < 3; ++col) {
-                    fill(poseStack, x + 116 + col * 18, y + 18 + row * 18, x + 132 + col * 18, y + 34 + row * 18, 0x3500FF00);
-                }
-            }
-        }
+    private void drawSlotHighlights(MatrixStack matrices, int x, int y) {
+        drawSlotHighlightGrid(matrices, x, y, 8, 17, this.mySlotHighlightProgress);
+        drawSlotHighlightGrid(matrices, x, y, 188, 17, this.otherSlotHighlightProgress);
     }
 
-    private void drawItemsTab(MatrixStack poseStack, int x, int y, int mouseX, int mouseY) {
-        drawStatusWell(poseStack, x, y);
-
-        if (this.handler.countdownSeconds > 0) {
-            drawScaledCenteredText(poseStack, String.valueOf(this.handler.countdownSeconds), x + 88, y + 40, 2.0f, 0x55FF55, false);
-        }
-
-        if (this.handler.countdownSeconds <= 0 && !this.handler.myLock && (isOverItemsHint(mouseX, mouseY) || this.lockButtonWidget.isMouseOver(mouseX, mouseY))) {
-            this.renderTooltip(poseStack, TradeMessages.trans("securetrade.gui.items_help"), mouseX, mouseY);
-        }
-    }
-
-    private void drawStatusWell(MatrixStack poseStack, int x, int y) {
-        int left = x + STATUS_LEFT_OFFSET;
-        int top = y + STATUS_TOP_OFFSET;
-        int right = x + STATUS_RIGHT_OFFSET;
-        int bottom = y + STATUS_BOTTOM_OFFSET;
-
-        fill(poseStack, left, top, right, bottom, 0x55303030);
-        fill(poseStack, left, top, right, top + 1, 0x66464646);
-        fill(poseStack, left, bottom - 1, right, bottom, 0x66FFFFFF);
-        fill(poseStack, left, top, left + 1, bottom, 0x66464646);
-        fill(poseStack, right - 1, top, right, bottom, 0x66FFFFFF);
-
-        if (this.handler.countdownSeconds > 0) {
+    private void drawSlotHighlightGrid(MatrixStack matrices, int x, int y, int slotX, int slotY, float progress) {
+        int color = slotHighlightColor(progress);
+        if (color == 0) {
             return;
         }
 
-        if (!this.handler.myLock && !this.handler.otherLock) {
-            drawItemsHintIcon(poseStack, left, top);
-            return;
-        }
-
-        if (this.handler.myLock || this.handler.otherLock) {
-            int readyLeft = left + 4;
-            int readyRight = right - 4;
-            int readyY = bottom - 5;
-            if (this.handler.myLock) {
-                fill(poseStack, readyLeft, readyY, readyLeft + 18, readyY + 2, 0xFF55FF55);
-            }
-            if (this.handler.otherLock) {
-                fill(poseStack, readyRight - 18, readyY, readyRight, readyY + 2, 0xFF55FF55);
+        for (int row = 0; row < 3; ++row) {
+            for (int col = 0; col < 9; ++col) {
+                fill(matrices, x + slotX + col * 18, y + slotY + row * 18, x + slotX + 16 + col * 18, y + slotY + 16 + row * 18, color);
             }
         }
     }
 
-    private void drawItemsHintIcon(MatrixStack poseStack, int left, int top) {
-        int slotX = left + 7;
-        int slotY = top + 8;
-        fill(poseStack, slotX, slotY, slotX + 10, slotY + 10, 0x55303030);
-        fill(poseStack, slotX, slotY, slotX + 10, slotY + 1, 0x88707070);
-        fill(poseStack, slotX, slotY, slotX + 1, slotY + 10, 0x88707070);
-        fill(poseStack, slotX + 9, slotY, slotX + 10, slotY + 10, 0x88D0D0D0);
-        fill(poseStack, slotX, slotY + 9, slotX + 10, slotY + 10, 0x88D0D0D0);
-
-        int arrowX = left + 22;
-        int arrowY = top + 13;
-        fill(poseStack, arrowX, arrowY, arrowX + 10, arrowY + 2, 0x88707070);
-        fill(poseStack, arrowX + 8, arrowY - 2, arrowX + 10, arrowY + 4, 0x88707070);
-        fill(poseStack, arrowX + 10, arrowY - 1, arrowX + 12, arrowY + 3, 0x88707070);
-
-        int checkX = left + 37;
-        int checkY = top + 10;
-        fill(poseStack, checkX, checkY + 6, checkX + 2, checkY + 8, 0xAA55FF55);
-        fill(poseStack, checkX + 2, checkY + 8, checkX + 4, checkY + 10, 0xAA55FF55);
-        fill(poseStack, checkX + 4, checkY + 4, checkX + 6, checkY + 8, 0xAA55FF55);
-        fill(poseStack, checkX + 6, checkY + 2, checkX + 8, checkY + 6, 0xAA55FF55);
+    private int slotHighlightColor(float progress) {
+        int alpha = Math.round(0x35 * progress);
+        if (alpha <= 0) {
+            return 0;
+        }
+        return (alpha << 24) | 0x00FF00;
     }
 
-    private void drawXPTab(MatrixStack poseStack, int x, int y, int mouseX, int mouseY) {
-        int totalXP = XPMath.getPlayerXP(this.client.player);
+    private static int lerpColor(int from, int to, float progress) {
+        float clamped = Math.max(0.0f, Math.min(1.0f, progress));
+        int fromR = (from >> 16) & 0xFF;
+        int fromG = (from >> 8) & 0xFF;
+        int fromB = from & 0xFF;
+        int toR = (to >> 16) & 0xFF;
+        int toG = (to >> 8) & 0xFF;
+        int toB = to & 0xFF;
+        int r = Math.round(fromR + (toR - fromR) * clamped);
+        int g = Math.round(fromG + (toG - fromG) * clamped);
+        int b = Math.round(fromB + (toB - fromB) * clamped);
+        return (r << 16) | (g << 8) | b;
+    }
+
+    private boolean isMouseOver(int btnX, int btnY, int btnSize, double mouseX, double mouseY) {
+        return isMouseOver(btnX, btnY, btnSize, btnSize, mouseX, mouseY);
+    }
+
+    private boolean isMouseOver(int btnX, int btnY, int btnW, int btnH, double mouseX, double mouseY) {
+        int x = (this.width - this.backgroundWidth) / 2;
+        int y = (this.height - this.backgroundHeight) / 2;
+        return mouseX >= x + btnX && mouseX <= x + btnX + btnW && mouseY >= y + btnY && mouseY <= y + btnY + btnH;
+    }
+
+    private void drawActiveOverlays(MatrixStack matrices, int x, int y, int mouseX, int mouseY) {
+        drawArrowFill(matrices, x, y, this.myArrowProgress, true);
+        drawArrowFill(matrices, x, y, this.otherArrowProgress, false);
+
+        drawXPControlButtons(matrices, x, y, mouseX, mouseY);
+
+        long maxXP = XPMath.getPlayerXP(this.client.player);
         if (!this.isDraggingSlider) {
-            this.sliderValue = totalXP > 0 ? (float) this.handler.myXP / totalXP : 0.0f;
+            this.sliderValue = maxXP > 0 ? (float) this.handler.myXP / maxXP : 0.0f;
         }
 
-        if (this.handler.countdownSeconds > 0) {
-            drawStatusWell(poseStack, x, y);
-            drawScaledCenteredText(poseStack, String.valueOf(this.handler.countdownSeconds), x + 88, y + 40, 2.0f, 0x55FF55, false);
-            return;
+        int leftFilledW = Math.round(XP_FILL_W * this.sliderValue);
+        if (leftFilledW > 0) {
+            blit512(matrices, x + LEFT_XP_FILL_X, y + XP_FILL_Y, SPRITE_GREEN_BAR_U, SPRITE_GREEN_BAR_V, leftFilledW, SPRITE_GREEN_BAR_H);
         }
+
+        int knobX = x + LEFT_XP_FILL_X + leftFilledW - SPRITE_KNOB_W / 2;
+        int knobY = y + LEFT_XP_BAR_Y + (XP_BAR_H - SPRITE_KNOB_H) / 2;
+        blit512(matrices, knobX, knobY, SPRITE_KNOB_U, SPRITE_KNOB_V, SPRITE_KNOB_W, SPRITE_KNOB_H);
+
+        float otherSliderValue = this.handler.otherTotalXP > 0
+                ? Math.min(1.0f, (float) this.handler.otherXP / this.handler.otherTotalXP)
+                : 0.0f;
+        int rightFilledW = Math.round(XP_FILL_W * otherSliderValue);
+        if (rightFilledW > 0) {
+            blit512(matrices, x + RIGHT_XP_FILL_X, y + XP_FILL_Y, SPRITE_GREEN_BAR_U, SPRITE_GREEN_BAR_V, rightFilledW, SPRITE_GREEN_BAR_H);
+        }
+        int rightKnobX = x + RIGHT_XP_FILL_X + rightFilledW - SPRITE_KNOB_W / 2;
+        blit512(matrices, rightKnobX, knobY, SPRITE_KNOB_U, SPRITE_KNOB_V, SPRITE_KNOB_W, SPRITE_KNOB_H);
+
+        int otherReadySpriteV = this.handler.otherLock || this.handler.countdownSeconds > 0
+                ? SPRITE_READY_ACTIVE_V
+                : SPRITE_READY_DISABLED_V;
+        blit512(matrices, x + RIGHT_READY_X, y + RIGHT_READY_Y, SPRITE_READY_BG_U, otherReadySpriteV, READY_W, READY_H);
+
+        Text otherMsg;
+        if (this.handler.countdownSeconds > 0) {
+            otherMsg = TradeMessages.trans("securetrade.gui.confirmed");
+        } else if (this.handler.otherLock) {
+            otherMsg = TradeMessages.trans("securetrade.gui.lock");
+        } else {
+            otherMsg = TradeMessages.trans("securetrade.gui.waiting");
+        }
+        int otherTextColor = this.handler.otherLock || this.handler.countdownSeconds > 0 ? 0xF2F2F2 : 0xD0D0D0;
+        drawCenteredButtonText(matrices, otherMsg, x + RIGHT_READY_X + READY_W / 2, y + RIGHT_READY_Y + (READY_H - 8) / 2, otherTextColor, false);
 
         int myLevel = XPMath.getLevelForXp(this.handler.myXP);
         int otherLevel = XPMath.getLevelForXp(this.handler.otherXP);
-        String myText = this.handler.myXP > 0 ? "-" + this.handler.myXP + " XP" : "0 XP";
-        drawCenteredText(poseStack, myText, x + 88, y + 36, this.handler.myXP > 0 ? 0xC84E4E : 0x686868, false);
+        this.textRenderer.draw(matrices, xpLabel(this.handler.myXP, false), x + LEFT_XP_TEXT_X, y + XP_TEXT_Y, this.handler.myXP > 0 ? 0xD05050 : 0x686868);
+        this.textRenderer.draw(matrices, xpLabel(this.handler.otherXP, true), x + RIGHT_XP_TEXT_X, y + XP_TEXT_Y, this.handler.otherXP > 0 ? 0x168A22 : 0x686868);
 
-        drawExperienceBar(poseStack, x + XP_BAR_X, y + XP_BAR_Y, XP_BAR_WIDTH, this.sliderValue, true);
-        if (this.handler.otherXP > 0) {
-            String otherText = "+" + this.handler.otherXP + " XP";
-            drawScaledCenteredText(poseStack, otherText, x + 88, y + 56, 0.85f, 0x1FB81F, false);
-        }
-
-        if (mouseX >= x + XP_BAR_X && mouseX <= x + XP_BAR_X + XP_BAR_WIDTH && mouseY >= y + 39 && mouseY <= y + 56) {
+        if (isOverXPInfo(x, y, 0, mouseX, mouseY)) {
             Text tooltip = this.handler.myXP > 0
                     ? TradeMessages.trans("securetrade.gui.give_xp", this.handler.myXP, myLevel)
                     : TradeMessages.trans("securetrade.gui.choose_xp");
-            this.renderTooltip(poseStack, tooltip, mouseX, mouseY);
+            this.renderTooltip(matrices, tooltip, mouseX, mouseY);
         }
-        if (mouseX >= x + 64 && mouseX <= x + 112 && mouseY >= y + 56 && mouseY <= y + 70) {
-            this.renderTooltip(poseStack, TradeMessages.trans("securetrade.gui.receive_xp", this.handler.otherXP, otherLevel), mouseX, mouseY);
+        if (isOverXPInfo(x, y, 180, mouseX, mouseY)) {
+            this.renderTooltip(matrices, TradeMessages.trans("securetrade.gui.receive_xp", this.handler.otherXP, otherLevel), mouseX, mouseY);
         }
+
+        if (this.handler.countdownSeconds > 0) {
+            int cx = x + 178;
+            int cy = y + 60;
+
+            fill(matrices, cx - 10, cy - 12, cx + 10, cy + 12, 0x70000000);
+            fill(matrices, cx - 12, cy - 10, cx + 12, cy + 10, 0x70000000);
+
+            drawScaledCenteredText(matrices, String.valueOf(this.handler.countdownSeconds), cx, cy - 8, 2.0f, 0x55FF55, false);
+        }
+
+        drawBlacklistWarning(matrices, x, y);
     }
 
-    private void drawCenteredText(MatrixStack poseStack, String text, int centerX, int y, int color) {
-        drawCenteredText(poseStack, text, centerX, y, color, true);
+    private void drawBlacklistWarning(MatrixStack matrices, int x, int y) {
+        long remainingMillis = this.handler.getBlacklistWarningRemainingMillis();
+        if (remainingMillis <= 0) {
+            return;
+        }
+
+        float fade = Math.min(1.0f, remainingMillis / 350.0f);
+        int alpha = Math.round(0xE8 * fade);
+        int centerX = x + this.backgroundWidth / 2;
+        List<OrderedText> lines = this.textRenderer.wrapLines(TradeMessages.trans("securetrade.error_blacklisted_item"), 214);
+        int textWidth = lines.stream().mapToInt(this.textRenderer::getWidth).max().orElse(0);
+        int panelWidth = Math.min(238, textWidth + 16);
+        int panelHeight = lines.size() * 9 + 10;
+        int left = centerX - panelWidth / 2;
+        int right = centerX + panelWidth / 2;
+        int top = y + 42;
+        int bottom = top + panelHeight;
+
+        matrices.push();
+        matrices.translate(0.0f, 0.0f, 400.0f);
+        fill(matrices, left, top, right, bottom, (alpha << 24) | 0x181818);
+        hLine(matrices, left + 1, right - 2, top, (alpha << 24) | 0xD0A020);
+        hLine(matrices, left + 1, right - 2, bottom - 1, (alpha << 24) | 0xD0A020);
+        for (int i = 0; i < lines.size(); i++) {
+            OrderedText line = lines.get(i);
+            this.textRenderer.draw(matrices, line, centerX - this.textRenderer.getWidth(line) / 2, top + 5 + i * 9, 0xFFF0B040);
+        }
+        matrices.pop();
     }
 
-    private void drawCenteredText(MatrixStack poseStack, String text, int centerX, int y, int color, boolean shadow) {
-        int textWidth = this.textRenderer.getWidth(text);
-        if (shadow) {
-            this.textRenderer.drawWithShadow(poseStack, text, centerX - textWidth / 2.0f, y, color);
+    private void drawXPControlButtons(MatrixStack matrices, int x, int y, int mouseX, int mouseY) {
+        boolean canChange = this.handler.countdownSeconds <= 0;
+        boolean canSub = canChange && this.handler.myXP > 0;
+        boolean canAdd = canChange && this.handler.myXP < XPMath.getPlayerXP(this.client.player);
+
+        int leftMinusU = !canSub
+                ? SPRITE_DISABLED_MINUS_U
+                : isMouseOver(LEFT_MINUS_X, LEFT_MINUS_Y, BUTTON_SIZE, mouseX, mouseY) ? SPRITE_HOVER_MINUS_U : SPRITE_MINUS_U;
+        int leftPlusU = !canAdd
+                ? SPRITE_DISABLED_PLUS_U
+                : isMouseOver(LEFT_PLUS_X, LEFT_PLUS_Y, BUTTON_SIZE, mouseX, mouseY) ? SPRITE_HOVER_PLUS_U : SPRITE_PLUS_U;
+
+        blit512(matrices, x + LEFT_MINUS_X, y + LEFT_MINUS_Y, leftMinusU, SPRITE_CONTROL_V, BUTTON_SIZE, BUTTON_SIZE);
+        blit512(matrices, x + LEFT_PLUS_X, y + LEFT_PLUS_Y, leftPlusU, SPRITE_CONTROL_V, BUTTON_SIZE, BUTTON_SIZE);
+        blit512(matrices, x + LEFT_MINUS_X + 180, y + LEFT_MINUS_Y, SPRITE_DISABLED_MINUS_U, SPRITE_CONTROL_V, BUTTON_SIZE, BUTTON_SIZE);
+        blit512(matrices, x + LEFT_PLUS_X + 180, y + LEFT_PLUS_Y, SPRITE_DISABLED_PLUS_U, SPRITE_CONTROL_V, BUTTON_SIZE, BUTTON_SIZE);
+    }
+
+    private void drawReadyHoverFrame(MatrixStack matrices, int x, int y, float progress, boolean activeReady) {
+        int alpha = Math.round(0xCC * progress);
+        if (alpha <= 0) {
+            return;
+        }
+
+        int color = (alpha << 24) | 0xFFFFFF;
+        if (activeReady) {
+            hLine(matrices, x + 2, x + READY_W - 3, y + READY_H - 2, color);
+            return;
+        }
+
+        hLine(matrices, x + 2, x + READY_W - 3, y + 1, color);
+        hLine(matrices, x + 2, x + READY_W - 3, y + READY_H - 2, color);
+        vLine(matrices, x + 1, y + 2, y + READY_H - 3, color);
+        vLine(matrices, x + READY_W - 2, y + 2, y + READY_H - 3, color);
+    }
+
+    private void updateReadyAnimations(int mouseX, int mouseY) {
+        long now = System.nanoTime();
+        float elapsedSeconds = Math.min(0.1f, (now - this.lastArrowFrameNanos) / 1_000_000_000.0f);
+        this.lastArrowFrameNanos = now;
+        float arrowStep = elapsedSeconds / ARROW_ANIMATION_SECONDS;
+        float slotStep = elapsedSeconds / SLOT_HIGHLIGHT_ANIMATION_SECONDS;
+        float hoverStep = elapsedSeconds / READY_HOVER_ANIMATION_SECONDS;
+        this.myArrowProgress = approach(this.myArrowProgress, this.handler.myLock ? 1.0f : 0.0f, arrowStep);
+        this.otherArrowProgress = approach(this.otherArrowProgress, this.handler.otherLock ? 1.0f : 0.0f, arrowStep);
+        this.mySlotHighlightProgress = approach(this.mySlotHighlightProgress, this.handler.myLock ? 1.0f : 0.0f, slotStep);
+        this.otherSlotHighlightProgress = approach(this.otherSlotHighlightProgress, this.handler.otherLock ? 1.0f : 0.0f, slotStep);
+        boolean readyHovered = isMouseOver(LEFT_READY_X, LEFT_READY_Y, READY_W, READY_H, mouseX, mouseY);
+        this.readyHoverProgress = approach(this.readyHoverProgress, readyHovered ? 1.0f : 0.0f, hoverStep);
+    }
+
+    private static float approach(float current, float target, float step) {
+        if (current < target) {
+            return Math.min(target, current + step);
+        }
+        return Math.max(target, current - step);
+    }
+
+    private void drawArrowFill(MatrixStack matrices, int x, int y, float progress, boolean leftArrow) {
+        int width = Math.round(SPRITE_LEFT_ARROW_W * progress);
+        if (width <= 0) {
+            return;
+        }
+
+        if (leftArrow) {
+            blit512(matrices, x + ARROW_X, y + ARROW_Y, SPRITE_LEFT_ARROW_U, SPRITE_LEFT_ARROW_V, width, SPRITE_LEFT_ARROW_H);
         } else {
-            this.textRenderer.draw(poseStack, text, centerX - textWidth / 2.0f, y, color);
+            int crop = SPRITE_RIGHT_ARROW_W - width;
+            blit512(matrices, x + ARROW_X + crop, y + ARROW_Y, SPRITE_RIGHT_ARROW_U + crop, SPRITE_RIGHT_ARROW_V, width, SPRITE_RIGHT_ARROW_H);
         }
     }
 
-    private void drawScaledCenteredText(MatrixStack poseStack, String text, int centerX, int y, float scale, int color) {
-        drawScaledCenteredText(poseStack, text, centerX, y, scale, color, true);
+    private Text xpLabel(long xp, boolean received) {
+        if (xp <= 0) {
+            return TradeMessages.trans("securetrade.gui.xp_level_zero");
+        }
+        return TradeMessages.trans(
+                received ? "securetrade.gui.xp_level_plus" : "securetrade.gui.xp_level_minus",
+                XPMath.getLevelForXp(xp)
+        );
     }
 
-    private void drawScaledCenteredText(MatrixStack poseStack, String text, int centerX, int y, float scale, int color, boolean shadow) {
+    private boolean isOverXPInfo(int x, int y, int panelOffset, double mouseX, double mouseY) {
+        return mouseX >= x + LEFT_XP_BAR_X + panelOffset
+                && mouseX <= x + LEFT_XP_BAR_X + panelOffset + XP_BAR_W
+                && mouseY >= y + LEFT_XP_BAR_Y - 14
+                && mouseY <= y + LEFT_XP_BAR_Y + XP_BAR_H + 4;
+    }
+
+    private void drawCenteredButtonText(MatrixStack matrices, Text text, int centerX, int y, int color, boolean shadow) {
         int textWidth = this.textRenderer.getWidth(text);
-        poseStack.push();
-        poseStack.scale(scale, scale, 1.0f);
-        float textX = (centerX - textWidth * scale / 2.0f) / scale;
-        float textY = y / scale;
+        int textX = centerX - textWidth / 2;
         if (shadow) {
-            this.textRenderer.drawWithShadow(poseStack, text, textX, textY, color);
+            this.textRenderer.draw(matrices, text, textX + 1, y + 1, 0x303030);
+        }
+        this.textRenderer.draw(matrices, text, textX, y, color);
+    }
+
+    private void drawScaledCenteredText(MatrixStack matrices, String text, int centerX, int y, float scale, int color, boolean shadow) {
+        int textWidth = this.textRenderer.getWidth(text);
+        matrices.push();
+        matrices.scale(scale, scale, 1.0f);
+        if (shadow) {
+            this.textRenderer.drawWithShadow(matrices, text, (centerX - textWidth * scale / 2.0f) / scale, y / scale, color);
         } else {
-            this.textRenderer.draw(poseStack, text, textX, textY, color);
+            this.textRenderer.draw(matrices, text, (centerX - textWidth * scale / 2.0f) / scale, y / scale, color);
         }
-        poseStack.pop();
+        matrices.pop();
     }
 
-    private boolean isOverItemsHint(double mouseX, double mouseY) {
-        int x = (this.width - this.backgroundWidth) / 2;
-        int y = (this.height - this.backgroundHeight) / 2;
-        return !this.xpTabSelected
-                && mouseX >= x + STATUS_LEFT_OFFSET
-                && mouseX <= x + STATUS_RIGHT_OFFSET
-                && mouseY >= y + STATUS_TOP_OFFSET
-                && mouseY <= y + STATUS_BOTTOM_OFFSET;
+    private void drawCenteredPanelText(MatrixStack matrices, Text text, int centerX, int y, int maxWidth, int color) {
+        int textWidth = this.textRenderer.getWidth(text);
+        if (textWidth <= maxWidth) {
+            this.textRenderer.draw(matrices, text, centerX - textWidth / 2, y, color);
+            return;
+        }
+
+        float scale = Math.max(0.7f, (float) maxWidth / textWidth);
+        matrices.push();
+        matrices.scale(scale, scale, 1.0f);
+        this.textRenderer.draw(matrices, text, centerX / scale - textWidth / 2.0f, y / scale, color);
+        matrices.pop();
     }
 
-    private void drawExperienceBar(MatrixStack poseStack, int x, int y, int width, float value, boolean interactive) {
-        float clamped = Math.max(0.0f, Math.min(1.0f, value));
-        int fillWidth = (int) ((width - 2) * clamped);
+    @Override
+    protected void drawForeground(MatrixStack matrices, int mouseX, int mouseY) {
+        int myColor = lerpColor(0x404040, 0x00AA00, this.mySlotHighlightProgress);
+        int otherColor = lerpColor(0x404040, 0x00AA00, this.otherSlotHighlightProgress);
 
-        fill(poseStack, x, y, x + width, y + XP_BAR_HEIGHT, 0xFF1F1F1F);
-        fill(poseStack, x + 1, y + 1, x + width - 1, y + XP_BAR_HEIGHT - 1, 0xFF3F3F3F);
-        if (fillWidth > 0) {
-            fill(poseStack, x + 1, y + 1, x + 1 + fillWidth, y + 2, 0xFFD8FF77);
-            fill(poseStack, x + 1, y + 2, x + 1 + fillWidth, y + 4, 0xFF6FCC20);
-        }
+        drawCenteredPanelText(matrices, TradeMessages.trans("securetrade.gui.you_offer"), 88, 6, 162, myColor);
 
-        for (int tick = 6; tick < width - 2; tick += 6) {
-            fill(poseStack, x + tick, y + 1, x + tick + 1, y + XP_BAR_HEIGHT - 1, 0x88000000);
-        }
-
-        if (interactive) {
-            int markerX = x + 1 + fillWidth;
-            fill(poseStack, markerX - 1, y - 2, markerX + 1, y + XP_BAR_HEIGHT + 2, 0xFFFFFFFF);
-            fill(poseStack, markerX, y - 1, markerX + 1, y + XP_BAR_HEIGHT + 1, 0xFF202020);
+        if (!this.handler.partnerName.isEmpty()) {
+            Text partnerText = TradeMessages.trans("securetrade.gui.partner_offers", this.handler.partnerName);
+            drawCenteredPanelText(matrices, partnerText, 268, 6, 162, otherColor);
         }
     }
 
     @Override
-    protected void drawForeground(MatrixStack poseStack, int mouseX, int mouseY) {
-        int myColor = this.handler.myLock ? 0x00AA00 : 4210752;
-        int otherColor = this.handler.otherLock ? 0x00AA00 : 4210752;
-
-        this.textRenderer.draw(poseStack, TradeMessages.trans("securetrade.gui.me"), 8, 6, myColor);
-        this.textRenderer.draw(poseStack, TradeMessages.trans("securetrade.gui.them"), 116, 6, otherColor);
-        this.textRenderer.draw(poseStack, TradeMessages.trans("container.inventory"), 8, this.backgroundHeight - 94, 4210752);
-
-        if (this.handler.otherXP > this.lastOtherXP && this.handler.otherXP > 0 && !this.xpTabSelected) {
-            this.xpTabSelected = true;
-            updateWidgetPositions();
-        }
-        this.lastOtherXP = this.handler.otherXP;
-    }
-
-    @Override
-    protected void drawBackground(MatrixStack poseStack, float partialTick, int mouseX, int mouseY) {
+    protected void drawBackground(MatrixStack matrices, float delta, int mouseX, int mouseY) {
         int x = (this.width - this.backgroundWidth) / 2;
         int y = (this.height - this.backgroundHeight) / 2;
+        this.client.getTextureManager().bindTexture(TRADE_TEXTURE);
+        blit512(matrices, x, y, 0, 0, 356, 205);
+    }
 
-        Identifier generic54 = new Identifier("minecraft", "textures/gui/container/generic_54.png");
+    private void blit512(MatrixStack matrices, int x, int y, int u, int v, int width, int height) {
+        drawTexture(matrices, x, y, u, v, width, height, 512, 512);
+    }
 
-        this.client.getTextureManager().bindTexture(generic54);
-        drawTexture(poseStack, x, y, 0, 0, this.backgroundWidth, 4 * 18 + 17);
-        drawTexture(poseStack, x, y + 4 * 18 + 17, 0, 126, this.backgroundWidth, 96);
-        fill(poseStack, x + CENTER_X, y + 17, x + CENTER_X + CENTER_WIDTH, y + 89, 0xFFC6C6C6);
+    private static void hLine(MatrixStack matrices, int minX, int maxX, int y, int color) {
+        if (maxX < minX) {
+            int tmp = minX;
+            minX = maxX;
+            maxX = tmp;
+        }
+        fill(matrices, minX, y, maxX + 1, y + 1, color);
+    }
+
+    private static void vLine(MatrixStack matrices, int x, int minY, int maxY, int color) {
+        if (maxY < minY) {
+            int tmp = minY;
+            minY = maxY;
+            maxY = tmp;
+        }
+        fill(matrices, x, minY, x + 1, maxY + 1, color);
     }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (button == 0 && this.xpTabSelected && this.handler.countdownSeconds <= 0 && isOverMySlider(mouseX, mouseY)) {
-            this.isDraggingSlider = true;
-            updateXPFromSlider(mouseX);
-            return true;
+        if (button == 0 && this.handler.countdownSeconds <= 0) {
+            int x = (this.width - this.backgroundWidth) / 2;
+            int y = (this.height - this.backgroundHeight) / 2;
+
+            if (mouseX >= x + LEFT_MINUS_X && mouseX <= x + LEFT_MINUS_X + BUTTON_SIZE &&
+                mouseY >= y + LEFT_MINUS_Y && mouseY <= y + LEFT_MINUS_Y + BUTTON_SIZE) {
+                if (this.handler.myXP > 0) {
+                    playButtonClickSound();
+                    adjustXPByLevel(false);
+                    return true;
+                }
+            }
+
+            if (mouseX >= x + LEFT_PLUS_X && mouseX <= x + LEFT_PLUS_X + BUTTON_SIZE &&
+                mouseY >= y + LEFT_PLUS_Y && mouseY <= y + LEFT_PLUS_Y + BUTTON_SIZE) {
+                if (this.handler.myXP < XPMath.getPlayerXP(this.client.player)) {
+                    playButtonClickSound();
+                    adjustXPByLevel(true);
+                    return true;
+                }
+            }
+
+            if (isOverMySlider(mouseX, mouseY)) {
+                this.isDraggingSlider = true;
+                updateXPFromSlider(mouseX);
+                return true;
+            }
         }
         return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    private void playButtonClickSound() {
+        this.client.getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+    }
+
+    private void adjustXPByLevel(boolean increase) {
+        long currentXP = this.handler.myXP;
+        int currentLevel = XPMath.getLevelForXp(currentXP);
+        long maxXP = XPMath.getPlayerXP(this.client.player);
+        long targetXP;
+
+        if (increase) {
+            targetXP = XPMath.getXpForLevels(currentLevel + 1);
+            if (targetXP > maxXP) {
+                targetXP = maxXP;
+            }
+        } else {
+            long currentLevelXP = XPMath.getXpForLevels(currentLevel);
+            if (currentXP > currentLevelXP) {
+                targetXP = currentLevelXP;
+            } else {
+                targetXP = XPMath.getXpForLevels(Math.max(0, currentLevel - 1));
+            }
+        }
+
+        setOfferedXP(targetXP);
     }
 
     @Override
@@ -353,36 +553,35 @@ public class TradeScreen extends HandledScreen<TradeMenu> {
     }
 
     private boolean isOverMySlider(double mouseX, double mouseY) {
-        int sliderX = this.x + XP_BAR_X;
-        int sliderY = this.y + XP_BAR_Y;
-        int sliderW = XP_BAR_WIDTH;
-        int sliderH = XP_BAR_HEIGHT;
-        return mouseX >= sliderX - 2 && mouseX <= sliderX + sliderW + 2 && mouseY >= sliderY - 4 && mouseY <= sliderY + sliderH + 4;
+        int x = (this.width - this.backgroundWidth) / 2;
+        int y = (this.height - this.backgroundHeight) / 2;
+        int sliderX = x + LEFT_XP_BAR_X;
+        int sliderY = y + LEFT_XP_BAR_Y;
+        return mouseX >= sliderX - 2 && mouseX <= sliderX + XP_BAR_W + 2 && mouseY >= sliderY - 4 && mouseY <= sliderY + XP_BAR_H + 4;
     }
 
     private void updateXPFromSlider(double mouseX) {
-        int totalXP = XPMath.getPlayerXP(this.client.player);
+        long totalXP = XPMath.getPlayerXP(this.client.player);
         if (totalXP <= 0) {
             this.sliderValue = 0.0f;
             setOfferedXP(0);
             return;
         }
 
-        int sliderX = this.x + XP_BAR_X;
-        int sliderW = XP_BAR_WIDTH;
-        double pct = (mouseX - (sliderX + 1)) / (double)(sliderW - 2);
+        int x = (this.width - this.backgroundWidth) / 2;
+        int sliderX = x + LEFT_XP_BAR_X;
+        double pct = (mouseX - sliderX) / (double) XP_BAR_W;
         pct = Math.max(0.0, Math.min(1.0, pct));
 
-        int newXP = (int) (pct * totalXP);
+        long newXP = (long) (pct * totalXP);
         this.sliderValue = (float) newXP / totalXP;
         setOfferedXP(newXP);
     }
 
-    private void setOfferedXP(int xp) {
+    private void setOfferedXP(long xp) {
         if (this.handler.myXP != xp) {
             this.handler.myXP = xp;
             Services.PLATFORM.sendXPChangePacket(xp);
         }
     }
 }
-

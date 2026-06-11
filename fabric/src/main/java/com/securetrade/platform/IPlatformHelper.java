@@ -9,10 +9,13 @@ public interface IPlatformHelper {
     void sendLockPacket(boolean locked);
 
     // Client-to-Server: Send packet when player changes offered XP
-    void sendXPChangePacket(int xpPoints);
+    void sendXPChangePacket(long xpPoints);
 
     // Server-to-Client: Sync trade state (locks, countdown, offered XP) to specific player
-    void sendStateSync(ServerPlayerEntity player, boolean myLock, boolean otherLock, int countdownSeconds, int myXP, int otherXP);
+    void sendStateSync(ServerPlayerEntity player, boolean myLock, boolean otherLock, int countdownSeconds, long myXP, long otherXP, long otherTotalXP, String partnerName);
+
+    // Server-to-Client: Tell the client that a blocked item was rejected.
+    void sendBlacklistWarning(ServerPlayerEntity player);
 
     // Loader-specific nested item storage checks, such as Forge item handler capabilities.
     boolean containsPlatformContainerItems(ItemStack stack, List<String> blacklist, int depth);

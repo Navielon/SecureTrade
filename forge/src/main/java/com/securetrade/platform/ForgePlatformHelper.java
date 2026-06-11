@@ -2,6 +2,7 @@ package com.securetrade.platform;
 
 import com.securetrade.TradeConfig;
 import com.securetrade.TradeItemValidator;
+import com.securetrade.network.TradeBlacklistWarningPacket;
 import com.securetrade.network.TradeLockPacket;
 import com.securetrade.network.TradeNetwork;
 import com.securetrade.network.TradeStateSyncPacket;
@@ -20,13 +21,18 @@ public class ForgePlatformHelper implements IPlatformHelper {
     }
 
     @Override
-    public void sendXPChangePacket(int xpPoints) {
+    public void sendXPChangePacket(long xpPoints) {
         TradeNetwork.sendToServer(new TradeXPChangePacket(xpPoints));
     }
 
     @Override
-    public void sendStateSync(ServerPlayer player, boolean myLock, boolean otherLock, int countdownSeconds, int myXP, int otherXP) {
-        TradeNetwork.sendToPlayer(player, new TradeStateSyncPacket(myLock, otherLock, countdownSeconds, myXP, otherXP));
+    public void sendStateSync(ServerPlayer player, boolean myLock, boolean otherLock, int countdownSeconds, long myXP, long otherXP, long otherTotalXP, String partnerName) {
+        TradeNetwork.sendToPlayer(player, new TradeStateSyncPacket(myLock, otherLock, countdownSeconds, myXP, otherXP, otherTotalXP, partnerName));
+    }
+
+    @Override
+    public void sendBlacklistWarning(ServerPlayer player) {
+        TradeNetwork.sendToPlayer(player, new TradeBlacklistWarningPacket());
     }
 
     @Override

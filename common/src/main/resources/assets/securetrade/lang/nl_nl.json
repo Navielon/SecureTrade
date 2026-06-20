@@ -1,4 +1,4 @@
-{
+﻿{
   "securetrade.cannot_trade_self": "Je kunt niet met jezelf ruilen.",
   "securetrade.request_sent": "Ruilverzoek verzonden naar %s.",
   "securetrade.accept_button": "[Accepteren]",
@@ -44,5 +44,8 @@
   "securetrade.gui.confirmed": "Bevestigd",
   "securetrade.trade_completed_overlay": "Ruil met %s voltooid",
   "securetrade.gui.trade_with": "Ruil met %s",
-  "securetrade.error_blacklisted_item": "Dit item is door de server geblokkeerd en kan niet worden geruild."
+  "securetrade.error_blacklisted_item": "Dit item is door de server geblokkeerd en kan niet worden geruild.",
+  "securetrade.history.error": "History error: %s",
+  "securetrade.history.xp_amount": "%s XP"
 }
+

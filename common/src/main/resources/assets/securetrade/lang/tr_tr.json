@@ -1,4 +1,4 @@
-{
+﻿{
   "securetrade.cannot_trade_self": "Kendinle takas yapamazsın.",
   "securetrade.request_sent": "%s adlı oyuncuya takas isteği gönderildi.",
   "securetrade.accept_button": "[Kabul]",
@@ -44,5 +44,8 @@
   "securetrade.gui.confirmed": "Onaylandı",
   "securetrade.trade_completed_overlay": "%s ile takas tamamlandı",
   "securetrade.gui.trade_with": "%s ile takas",
-  "securetrade.error_blacklisted_item": "Bu eşya sunucu tarafından engellendi ve takas edilemez."
+  "securetrade.error_blacklisted_item": "Bu eşya sunucu tarafından engellendi ve takas edilemez.",
+  "securetrade.history.error": "History error: %s",
+  "securetrade.history.xp_amount": "%s XP"
 }
+

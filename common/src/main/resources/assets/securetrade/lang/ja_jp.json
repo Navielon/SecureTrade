@@ -1,4 +1,4 @@
-{
+﻿{
   "securetrade.cannot_trade_self": "自分自身とは取引できません。",
   "securetrade.request_sent": "%s に取引リクエストを送信しました。",
   "securetrade.accept_button": "[承諾]",
@@ -44,5 +44,8 @@
   "securetrade.gui.confirmed": "確認済み",
   "securetrade.trade_completed_overlay": "%s との取引が完了しました",
   "securetrade.gui.trade_with": "%s と取引",
-  "securetrade.error_blacklisted_item": "このアイテムはサーバーで禁止されているため、取引できません。"
+  "securetrade.error_blacklisted_item": "このアイテムはサーバーで禁止されているため、取引できません。",
+  "securetrade.history.error": "History error: %s",
+  "securetrade.history.xp_amount": "%s XP"
 }
+

@@ -5,6 +5,7 @@ import com.securetrade.platform.Services;
 import com.securetrade.menu.TradeMenu;
 import com.securetrade.TradeHistoryManager;
 import com.securetrade.TradeMessages;
+import com.securetrade.TradeRules;
 import com.securetrade.SecureTradeSounds;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
@@ -94,11 +95,11 @@ public class TradeCommand {
         String senderDim = sender.level().dimension().location().toString();
         String targetDim = target.level().dimension().location().toString();
 
-        if (!isDimensionAllowed(senderDim)) {
+        if (!TradeRules.isDimensionAllowed(senderDim)) {
             TradeMessages.error(sender, Component.translatable("securetrade.error_blocked_dimension_self"));
             return 0;
         }
-        if (!isDimensionAllowed(targetDim)) {
+        if (!TradeRules.isDimensionAllowed(targetDim)) {
             TradeMessages.error(sender, Component.translatable("securetrade.error_blocked_dimension_target"));
             return 0;
         }
@@ -219,11 +220,11 @@ public class TradeCommand {
         String targetDim = target.level().dimension().location().toString();
         String senderDim = sender.level().dimension().location().toString();
 
-        if (!isDimensionAllowed(targetDim)) {
+        if (!TradeRules.isDimensionAllowed(targetDim)) {
             TradeMessages.error(target, Component.translatable("securetrade.error_blocked_dimension_self"));
             return 0;
         }
-        if (!isDimensionAllowed(senderDim)) {
+        if (!TradeRules.isDimensionAllowed(senderDim)) {
             TradeMessages.error(target, Component.translatable("securetrade.error_blocked_dimension_target"));
             return 0;
         }
@@ -282,19 +283,6 @@ public class TradeCommand {
         TradeMessages.warning(target, Component.translatable("securetrade.trade_denied"));
 
         return 1;
-    }
-
-    private static boolean isDimensionAllowed(String dimensionId) {
-        java.util.List<String> allowed = Services.PLATFORM.getAllowedDimensions();
-        java.util.List<String> blocked = Services.PLATFORM.getBlockedDimensions();
-
-        if (allowed != null && !allowed.isEmpty()) {
-            return allowed.contains(dimensionId);
-        }
-        if (blocked != null && !blocked.isEmpty()) {
-            return !blocked.contains(dimensionId);
-        }
-        return true;
     }
 
     private static int showHistory(CommandSourceStack source) {

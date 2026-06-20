@@ -1,4 +1,4 @@
-{
+﻿{
   "securetrade.cannot_trade_self": "No puedes comerciar contigo mismo.",
   "securetrade.request_sent": "Solicitud de intercambio enviada a %s.",
   "securetrade.accept_button": "[Aceptar]",
@@ -44,5 +44,8 @@
   "securetrade.gui.confirmed": "Confirmado",
   "securetrade.trade_completed_overlay": "Intercambio con %s completado",
   "securetrade.gui.trade_with": "Intercambio con %s",
-  "securetrade.error_blacklisted_item": "El servidor ha bloqueado este objeto y no se puede intercambiar."
+  "securetrade.error_blacklisted_item": "El servidor ha bloqueado este objeto y no se puede intercambiar.",
+  "securetrade.history.error": "History error: %s",
+  "securetrade.history.xp_amount": "%s XP"
 }
+

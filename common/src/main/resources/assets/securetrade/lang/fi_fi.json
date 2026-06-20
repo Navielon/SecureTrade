@@ -1,4 +1,4 @@
-{
+﻿{
   "securetrade.cannot_trade_self": "Et voi vaihtaa itsesi kanssa.",
   "securetrade.request_sent": "Vaihtopyyntö lähetetty pelaajalle %s.",
   "securetrade.accept_button": "[Hyväksy]",
@@ -44,5 +44,8 @@
   "securetrade.gui.confirmed": "Vahvistettu",
   "securetrade.trade_completed_overlay": "Vaihto pelaajan %s kanssa suoritettu",
   "securetrade.gui.trade_with": "Vaihto pelaajan %s kanssa",
-  "securetrade.error_blacklisted_item": "Palvelin on estänyt tämän esineen, eikä sitä voi vaihtaa."
+  "securetrade.error_blacklisted_item": "Palvelin on estänyt tämän esineen, eikä sitä voi vaihtaa.",
+  "securetrade.history.error": "History error: %s",
+  "securetrade.history.xp_amount": "%s XP"
 }
+

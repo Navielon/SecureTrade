@@ -1,4 +1,4 @@
-{
+﻿{
   "securetrade.cannot_trade_self": "Du kan inte handla med dig själv.",
   "securetrade.request_sent": "Handelsförfrågan skickad till %s.",
   "securetrade.accept_button": "[Acceptera]",
@@ -44,5 +44,8 @@
   "securetrade.gui.confirmed": "Bekräftat",
   "securetrade.trade_completed_overlay": "Byte med %s slutfört",
   "securetrade.gui.trade_with": "Byte med %s",
-  "securetrade.error_blacklisted_item": "Det här föremålet är blockerat av servern och kan inte bytas."
+  "securetrade.error_blacklisted_item": "Det här föremålet är blockerat av servern och kan inte bytas.",
+  "securetrade.history.error": "History error: %s",
+  "securetrade.history.xp_amount": "%s XP"
 }
+

@@ -1,4 +1,4 @@
-{
+﻿{
   "securetrade.cannot_trade_self": "Вы не можете обмениваться с самим собой.",
   "securetrade.request_sent": "Запрос на обмен отправлен %s.",
   "securetrade.accept_button": "[Принять]",
@@ -44,5 +44,8 @@
   "securetrade.gui.confirmed": "Подтверждено",
   "securetrade.trade_completed_overlay": "Обмен с %s завершён",
   "securetrade.gui.trade_with": "Обмен с %s",
-  "securetrade.error_blacklisted_item": "Этот предмет запрещён сервером для обмена."
+  "securetrade.error_blacklisted_item": "Этот предмет запрещён сервером для обмена.",
+  "securetrade.history.error": "Ошибка чтения истории обменов: %s",
+  "securetrade.history.xp_amount": "%s XP"
 }
+

@@ -180,7 +180,7 @@ public class TradeHistoryManager {
                 player.sendSystemMessage(Component.translatable("securetrade.history.received", receivedComponent).withStyle(ChatFormatting.GREEN));
             }
         } catch (Exception e) {
-            player.sendSystemMessage(Component.literal("Error reading trade history: " + e.getMessage()).withStyle(ChatFormatting.RED));
+            player.sendSystemMessage(Component.translatable("securetrade.history.error", e.getMessage()).withStyle(ChatFormatting.RED));
         }
     }
 
@@ -207,7 +207,7 @@ public class TradeHistoryManager {
             if (hasContent) {
                 result.append(Component.literal(", ").withStyle(ChatFormatting.GRAY));
             }
-            result.append(Component.literal(xp + " XP").withStyle(ChatFormatting.AQUA));
+            result.append(Component.translatable("securetrade.history.xp_amount", xp).withStyle(ChatFormatting.AQUA));
         }
 
         return result;

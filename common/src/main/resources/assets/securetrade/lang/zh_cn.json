@@ -1,4 +1,4 @@
-{
+﻿{
   "securetrade.cannot_trade_self": "你不能与自己交易。",
   "securetrade.request_sent": "已向 %s 发送交易请求。",
   "securetrade.accept_button": "[接受]",
@@ -44,5 +44,8 @@
   "securetrade.gui.confirmed": "已确认",
   "securetrade.trade_completed_overlay": "与 %s 的交易已完成",
   "securetrade.gui.trade_with": "与 %s 交易",
-  "securetrade.error_blacklisted_item": "此物品已被服务器禁用，无法交易。"
+  "securetrade.error_blacklisted_item": "此物品已被服务器禁用，无法交易。",
+  "securetrade.history.error": "History error: %s",
+  "securetrade.history.xp_amount": "%s XP"
 }
+

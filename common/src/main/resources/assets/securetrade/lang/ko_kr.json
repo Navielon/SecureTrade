@@ -1,4 +1,4 @@
-{
+﻿{
   "securetrade.cannot_trade_self": "자기 자신과는 거래할 수 없습니다.",
   "securetrade.request_sent": "%s에게 거래 요청을 보냈습니다.",
   "securetrade.accept_button": "[수락]",
@@ -44,5 +44,8 @@
   "securetrade.gui.confirmed": "확인됨",
   "securetrade.trade_completed_overlay": "%s님과의 거래가 완료되었습니다",
   "securetrade.gui.trade_with": "%s님과 거래",
-  "securetrade.error_blacklisted_item": "이 아이템은 서버에서 차단되어 거래할 수 없습니다."
+  "securetrade.error_blacklisted_item": "이 아이템은 서버에서 차단되어 거래할 수 없습니다.",
+  "securetrade.history.error": "History error: %s",
+  "securetrade.history.xp_amount": "%s XP"
 }
+

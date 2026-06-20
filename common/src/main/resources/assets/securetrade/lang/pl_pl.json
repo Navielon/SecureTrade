@@ -1,4 +1,4 @@
-{
+﻿{
   "securetrade.cannot_trade_self": "Nie możesz handlować sam ze sobą.",
   "securetrade.request_sent": "Wysłano prośbę o wymianę do %s.",
   "securetrade.accept_button": "[Akceptuj]",
@@ -44,5 +44,8 @@
   "securetrade.gui.confirmed": "Potwierdzono",
   "securetrade.trade_completed_overlay": "Wymiana z graczem %s zakończona",
   "securetrade.gui.trade_with": "Wymiana z graczem %s",
-  "securetrade.error_blacklisted_item": "Ten przedmiot jest zablokowany przez serwer i nie można go wymienić."
+  "securetrade.error_blacklisted_item": "Ten przedmiot jest zablokowany przez serwer i nie można go wymienić.",
+  "securetrade.history.error": "History error: %s",
+  "securetrade.history.xp_amount": "%s XP"
 }
+

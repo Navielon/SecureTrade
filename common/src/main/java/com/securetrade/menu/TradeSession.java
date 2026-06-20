@@ -5,6 +5,7 @@ import com.securetrade.TradeLogger;
 import com.securetrade.TradeHistoryManager;
 import com.securetrade.TradeItemValidator;
 import com.securetrade.TradeMessages;
+import com.securetrade.TradeRules;
 import com.securetrade.SecureTradeSounds;
 import com.securetrade.XPMath;
 import net.minecraft.core.Registry;
@@ -87,6 +88,11 @@ public class TradeSession {
     }
 
     public void setLocked(ServerPlayer player, boolean locked) {
+        if (locked && (TradeItemValidator.containsBlacklistedItems(inventory1) || TradeItemValidator.containsBlacklistedItems(inventory2))) {
+            Services.PLATFORM.sendBlacklistWarning(player);
+            return;
+        }
+
         if (player == player1) {
             if (player1Locked == locked) {
                 return;
@@ -121,8 +127,12 @@ public class TradeSession {
             return;
         }
 
-        // Distance Check: maxDist <= 0 means infinite range (no distance/dimension restriction).
-        // Dimension restrictions are handled separately via allowedDimensions/blockedDimensions config.
+        if (!TradeRules.isDimensionAllowed(player1.level.dimension().location().toString()) ||
+            !TradeRules.isDimensionAllowed(player2.level.dimension().location().toString())) {
+            cancelTrade();
+            return;
+        }
+
         double maxDist = Services.PLATFORM.getMaxTradeDistance();
         if (maxDist > 0) {
             if (!player1.level.dimension().equals(player2.level.dimension()) ||

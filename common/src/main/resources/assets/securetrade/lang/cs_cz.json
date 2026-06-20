@@ -1,4 +1,4 @@
-{
+﻿{
   "securetrade.cannot_trade_self": "Nemůžeš obchodovat sám se sebou.",
   "securetrade.request_sent": "Žádost o obchod odeslána hráči %s.",
   "securetrade.accept_button": "[Přijmout]",
@@ -44,5 +44,8 @@
   "securetrade.gui.confirmed": "Potvrzeno",
   "securetrade.trade_completed_overlay": "Obchod s hráčem %s dokončen",
   "securetrade.gui.trade_with": "Obchod s hráčem %s",
-  "securetrade.error_blacklisted_item": "Tento předmět je serverem zakázán a nelze jej obchodovat."
+  "securetrade.error_blacklisted_item": "Tento předmět je serverem zakázán a nelze jej obchodovat.",
+  "securetrade.history.error": "History error: %s",
+  "securetrade.history.xp_amount": "%s XP"
 }
+

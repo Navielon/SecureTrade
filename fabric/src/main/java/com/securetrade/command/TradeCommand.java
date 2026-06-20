@@ -6,6 +6,8 @@ import com.securetrade.platform.Services;
 import com.securetrade.menu.TradeMenu;
 import com.securetrade.TradeHistoryManager;
 import com.securetrade.TradeMessages;
+import com.securetrade.TradeRules;
+import com.securetrade.SecureTradeSounds;
 import net.minecraft.util.Formatting;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.command.CommandManager;
@@ -15,6 +17,7 @@ import net.minecraft.text.Text;
 import net.minecraft.text.HoverEvent;
 import net.minecraft.text.Style;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.sound.SoundCategory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -96,11 +99,11 @@ public class TradeCommand {
         String senderDim = sender.world.getRegistryKey().getValue().toString();
         String targetDim = target.world.getRegistryKey().getValue().toString();
 
-        if (!isDimensionAllowed(senderDim)) {
+        if (!TradeRules.isDimensionAllowed(senderDim)) {
             TradeMessages.error(sender, TradeMessages.trans("securetrade.error_blocked_dimension_self"));
             return 0;
         }
-        if (!isDimensionAllowed(targetDim)) {
+        if (!TradeRules.isDimensionAllowed(targetDim)) {
             TradeMessages.error(sender, TradeMessages.trans("securetrade.error_blocked_dimension_target"));
             return 0;
         }
@@ -175,6 +178,7 @@ public class TradeCommand {
         pendingRequests.put(target.getUuid(), new TradeRequest(sender.getUuid(), expireAt));
 
         TradeMessages.info(sender, TradeMessages.trans("securetrade.request_sent", TradeMessages.playerName(target)));
+        sender.playSound(SecureTradeSounds.TRADE_REQUEST_SENT, SoundCategory.MASTER, 0.8f, 1.0f);
 
         Text acceptText = TradeMessages.trans("securetrade.accept_button")
                 .setStyle(Style.EMPTY.withColor(Formatting.GREEN).withBold(true)
@@ -235,11 +239,11 @@ public class TradeCommand {
         String targetDim = target.world.getRegistryKey().getValue().toString();
         String senderDim = sender.world.getRegistryKey().getValue().toString();
 
-        if (!isDimensionAllowed(targetDim)) {
+        if (!TradeRules.isDimensionAllowed(targetDim)) {
             TradeMessages.error(target, TradeMessages.trans("securetrade.error_blocked_dimension_self"));
             return 0;
         }
-        if (!isDimensionAllowed(senderDim)) {
+        if (!TradeRules.isDimensionAllowed(senderDim)) {
             TradeMessages.error(target, TradeMessages.trans("securetrade.error_blocked_dimension_target"));
             return 0;
         }
@@ -302,19 +306,6 @@ public class TradeCommand {
         TradeMessages.warning(target, TradeMessages.trans("securetrade.trade_denied"));
 
         return 1;
-    }
-
-    private static boolean isDimensionAllowed(String dimensionId) {
-        java.util.List<String> allowed = Services.PLATFORM.getAllowedDimensions();
-        java.util.List<String> blocked = Services.PLATFORM.getBlockedDimensions();
-
-        if (allowed != null && !allowed.isEmpty()) {
-            return allowed.contains(dimensionId);
-        }
-        if (blocked != null && !blocked.isEmpty()) {
-            return !blocked.contains(dimensionId);
-        }
-        return true;
     }
 
     private static int showHistory(ServerCommandSource source) throws CommandSyntaxException {

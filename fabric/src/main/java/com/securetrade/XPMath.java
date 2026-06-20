@@ -46,9 +46,7 @@ public class XPMath {
 
     public static void setPlayerXP(ServerPlayerEntity player, long totalXp) {
         long clampedXp = Math.max(0L, totalXp);
-        long delta = clampedXp - getPlayerXP(player);
-        long newTotal = Math.max(0L, (long) player.totalExperience + delta);
-        player.totalExperience = (int) Math.min(Integer.MAX_VALUE, newTotal);
+        player.totalExperience = (int) Math.min(Integer.MAX_VALUE, clampedXp);
         player.experienceLevel = getLevelForXp(clampedXp);
         long xpForCurrentLevel = getXpForLevels(player.experienceLevel);
         long xpForNextLevel = getXpForLevels(player.experienceLevel + 1);

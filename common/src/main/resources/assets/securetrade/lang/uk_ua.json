@@ -44,5 +44,7 @@
   "securetrade.gui.confirmed": "Підтверджено",
   "securetrade.trade_completed_overlay": "Обмін із %s завершено",
   "securetrade.gui.trade_with": "Обмін із %s",
-  "securetrade.error_blacklisted_item": "Цей предмет заборонено сервером для обміну."
+  "securetrade.error_blacklisted_item": "Цей предмет заборонено сервером для обміну.",
+  "securetrade.history.error": "History error: %s",
+  "securetrade.history.xp_amount": "%s XP"
 }

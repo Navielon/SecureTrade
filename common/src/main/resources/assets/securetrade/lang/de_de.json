@@ -44,5 +44,7 @@
   "securetrade.gui.confirmed": "Bestätigt",
   "securetrade.trade_completed_overlay": "Handel mit %s abgeschlossen",
   "securetrade.gui.trade_with": "Handel mit %s",
-  "securetrade.error_blacklisted_item": "Dieser Gegenstand ist auf dem Server gesperrt und kann nicht gehandelt werden."
+  "securetrade.error_blacklisted_item": "Dieser Gegenstand ist auf dem Server gesperrt und kann nicht gehandelt werden.",
+  "securetrade.history.error": "History error: %s",
+  "securetrade.history.xp_amount": "%s XP"
 }

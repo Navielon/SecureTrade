@@ -44,5 +44,7 @@
   "securetrade.gui.confirmed": "تم التأكيد",
   "securetrade.trade_completed_overlay": "اكتملت المبادلة مع %s",
   "securetrade.gui.trade_with": "مبادلة مع %s",
-  "securetrade.error_blacklisted_item": "هذا العنصر محظور من الخادم ولا يمكن مبادلته."
+  "securetrade.error_blacklisted_item": "هذا العنصر محظور من الخادم ولا يمكن مبادلته.",
+  "securetrade.history.error": "History error: %s",
+  "securetrade.history.xp_amount": "%s XP"
 }

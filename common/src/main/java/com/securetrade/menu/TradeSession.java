@@ -5,6 +5,7 @@ import com.securetrade.TradeLogger;
 import com.securetrade.TradeHistoryManager;
 import com.securetrade.TradeItemValidator;
 import com.securetrade.TradeMessages;
+import com.securetrade.TradeRules;
 import com.securetrade.SecureTradeSounds;
 import com.securetrade.XPMath;
 import net.minecraft.util.registry.Registry;
@@ -87,6 +88,11 @@ public class TradeSession {
     }
 
     public void setLocked(ServerPlayerEntity player, boolean locked) {
+        if (locked && (TradeItemValidator.containsBlacklistedItems(inventory1) || TradeItemValidator.containsBlacklistedItems(inventory2))) {
+            Services.PLATFORM.sendBlacklistWarning(player);
+            return;
+        }
+
         if (player == player1) {
             if (player1Locked == locked) {
                 return;
@@ -117,6 +123,12 @@ public class TradeSession {
         if (isCancelled || isFinished) return;
 
         if (!isPlayerOnline(player1) || !isPlayerOnline(player2)) {
+            cancelTrade();
+            return;
+        }
+
+        if (!TradeRules.isDimensionAllowed(player1.level.dimension().location().toString()) ||
+            !TradeRules.isDimensionAllowed(player2.level.dimension().location().toString())) {
             cancelTrade();
             return;
         }

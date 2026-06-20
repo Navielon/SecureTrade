@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -139,7 +140,7 @@ public class FabricTradeConfig {
                     "# Maximum number of trade history entries to keep\n" +
                     "maxHistoryEntries = 5\n";
 
-            Files.writeString(CONFIG_PATH, defaultConfig);
+            Files.write(CONFIG_PATH, defaultConfig.getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
             LOGGER.error("Failed to write default securetrade-server.toml", e);
         }

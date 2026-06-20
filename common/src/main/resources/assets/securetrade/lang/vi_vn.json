@@ -1,4 +1,4 @@
-{
+﻿{
   "securetrade.cannot_trade_self": "Bạn không thể giao dịch với chính mình.",
   "securetrade.request_sent": "Đã gửi yêu cầu giao dịch tới %s.",
   "securetrade.accept_button": "[Chấp nhận]",
@@ -44,5 +44,8 @@
   "securetrade.gui.confirmed": "Đã xác nhận",
   "securetrade.trade_completed_overlay": "Đã hoàn tất trao đổi với %s",
   "securetrade.gui.trade_with": "Trao đổi với %s",
-  "securetrade.error_blacklisted_item": "Vật phẩm này bị máy chủ chặn và không thể trao đổi."
+  "securetrade.error_blacklisted_item": "Vật phẩm này bị máy chủ chặn và không thể trao đổi.",
+  "securetrade.history.error": "History error: %s",
+  "securetrade.history.xp_amount": "%s XP"
 }
+

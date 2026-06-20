@@ -1,4 +1,4 @@
-{
+﻿{
   "securetrade.cannot_trade_self": "Nem kereskedhetsz saját magaddal.",
   "securetrade.request_sent": "Kereskedési kérés elküldve neki: %s.",
   "securetrade.accept_button": "[Elfogad]",
@@ -44,5 +44,8 @@
   "securetrade.gui.confirmed": "Megerősítve",
   "securetrade.trade_completed_overlay": "Csere befejezve ezzel a játékossal: %s",
   "securetrade.gui.trade_with": "Csere ezzel a játékossal: %s",
-  "securetrade.error_blacklisted_item": "Ezt a tárgyat a szerver letiltotta, ezért nem cserélhető."
+  "securetrade.error_blacklisted_item": "Ezt a tárgyat a szerver letiltotta, ezért nem cserélhető.",
+  "securetrade.history.error": "History error: %s",
+  "securetrade.history.xp_amount": "%s XP"
 }
+

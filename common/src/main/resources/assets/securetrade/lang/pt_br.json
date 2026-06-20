@@ -1,4 +1,4 @@
-{
+﻿{
   "securetrade.cannot_trade_self": "Você não pode trocar consigo mesmo.",
   "securetrade.request_sent": "Pedido de troca enviado para %s.",
   "securetrade.accept_button": "[Aceitar]",
@@ -44,5 +44,8 @@
   "securetrade.gui.confirmed": "Confirmado",
   "securetrade.trade_completed_overlay": "Troca com %s concluída",
   "securetrade.gui.trade_with": "Troca com %s",
-  "securetrade.error_blacklisted_item": "Este item está bloqueado pelo servidor e não pode ser trocado."
+  "securetrade.error_blacklisted_item": "Este item está bloqueado pelo servidor e não pode ser trocado.",
+  "securetrade.history.error": "History error: %s",
+  "securetrade.history.xp_amount": "%s XP"
 }
+

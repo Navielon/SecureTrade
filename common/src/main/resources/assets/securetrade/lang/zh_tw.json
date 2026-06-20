@@ -44,5 +44,7 @@
   "securetrade.gui.confirmed": "已確認",
   "securetrade.trade_completed_overlay": "與 %s 的交易已完成",
   "securetrade.gui.trade_with": "與 %s 交易",
-  "securetrade.error_blacklisted_item": "此物品已被伺服器禁用，無法交易。"
+  "securetrade.error_blacklisted_item": "此物品已被伺服器禁用，無法交易。",
+  "securetrade.history.error": "History error: %s",
+  "securetrade.history.xp_amount": "%s XP"
 }

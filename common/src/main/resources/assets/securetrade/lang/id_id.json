@@ -44,5 +44,7 @@
   "securetrade.gui.confirmed": "Dikonfirmasi",
   "securetrade.trade_completed_overlay": "Pertukaran dengan %s selesai",
   "securetrade.gui.trade_with": "Pertukaran dengan %s",
-  "securetrade.error_blacklisted_item": "Item ini diblokir oleh server dan tidak dapat diperdagangkan."
+  "securetrade.error_blacklisted_item": "Item ini diblokir oleh server dan tidak dapat diperdagangkan.",
+  "securetrade.history.error": "History error: %s",
+  "securetrade.history.xp_amount": "%s XP"
 }

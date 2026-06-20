@@ -1,5 +1,5 @@
 plugins {
-    id 'net.fabricmc.fabric-loom' version '1.16-SNAPSHOT'
+    id 'net.fabricmc.fabric-loom' version '1.17.11'
 }
 
 dependencies {
@@ -19,11 +19,13 @@ loom {
     runs {
         client {
             client()
-            runDir "run"
+            runDir "run/client1"
+            programArg "--username"
+            programArg "Dev"
         }
         client2 {
             client()
-            runDir "run"
+            runDir "run/client2"
             programArg "--username"
             programArg "DevTwoMaxName123"
         }

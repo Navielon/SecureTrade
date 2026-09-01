@@ -46,5 +46,17 @@
   "securetrade.gui.trade_with": "%s ile takas",
   "securetrade.error_blacklisted_item": "Bu eşya sunucu tarafından engellendi ve takas edilemez.",
   "securetrade.history.error": "History error: %s",
-  "securetrade.history.xp_amount": "%s XP"
+  "securetrade.history.xp_amount": "%s XP",
+  "securetrade.error_inventory_full": "Envanterinde teklif edilen eşyalar için yeterli alan yok.",
+  "securetrade.error_target_dnd": "Bu oyuncu takas isteklerini kabul etmiyor.",
+  "securetrade.error_player_blocked_self": "Takas isteği göndermeden önce bu oyuncunun engelini kaldır.",
+  "securetrade.error_player_unavailable": "Bu oyuncu senden gelen takas isteklerini kabul etmiyor.",
+  "securetrade.dnd.enabled": "Takas istekleri artık devre dışı.",
+  "securetrade.dnd.disabled": "Takas istekleri artık etkin.",
+  "securetrade.block.cannot_self": "Kendini engelleyemezsin.",
+  "securetrade.block.added": "%s artık sana takas isteği gönderemez.",
+  "securetrade.block.removed": "%s sana yeniden takas isteği gönderebilir.",
+  "securetrade.block.not_blocked": "%s takas engel listende değil.",
+  "securetrade.block.list_title": "Takas için engellenen oyuncular:",
+  "securetrade.block.list_empty": "Takas engel listen boş."
 }

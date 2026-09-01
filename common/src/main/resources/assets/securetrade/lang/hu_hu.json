@@ -46,5 +46,17 @@
   "securetrade.gui.trade_with": "Csere ezzel a játékossal: %s",
   "securetrade.error_blacklisted_item": "Ezt a tárgyat a szerver letiltotta, ezért nem cserélhető.",
   "securetrade.history.error": "History error: %s",
-  "securetrade.history.xp_amount": "%s XP"
+  "securetrade.history.xp_amount": "%s XP",
+  "securetrade.error_inventory_full": "Nincs elég hely az eszköztáradban a felajánlott tárgyaknak.",
+  "securetrade.error_target_dnd": "Ez a játékos nem fogad kereskedési kérelmeket.",
+  "securetrade.error_player_blocked_self": "Oldd fel ezt a játékost, mielőtt kereskedési kérelmet küldesz.",
+  "securetrade.error_player_unavailable": "Ez a játékos nem fogad tőled kereskedési kérelmeket.",
+  "securetrade.dnd.enabled": "A kereskedési kérelmek mostantól le vannak tiltva.",
+  "securetrade.dnd.disabled": "A kereskedési kérelmek mostantól engedélyezve vannak.",
+  "securetrade.block.cannot_self": "Nem tilthatod le saját magadat.",
+  "securetrade.block.added": "%s többé nem küldhet neked kereskedési kérelmeket.",
+  "securetrade.block.removed": "%s ismét küldhet neked kereskedési kérelmeket.",
+  "securetrade.block.not_blocked": "%s nincs a kereskedési tiltólistádon.",
+  "securetrade.block.list_title": "Kereskedésből letiltott játékosok:",
+  "securetrade.block.list_empty": "A kereskedési tiltólistád üres."
 }

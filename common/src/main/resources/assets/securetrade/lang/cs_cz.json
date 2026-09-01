@@ -46,5 +46,17 @@
   "securetrade.gui.trade_with": "Obchod s hráčem %s",
   "securetrade.error_blacklisted_item": "Tento předmět je serverem zakázán a nelze jej obchodovat.",
   "securetrade.history.error": "History error: %s",
-  "securetrade.history.xp_amount": "%s XP"
+  "securetrade.history.xp_amount": "%s XP",
+  "securetrade.error_inventory_full": "V inventáři nemáte dostatek místa pro nabízené předměty.",
+  "securetrade.error_target_dnd": "Tento hráč nepřijímá žádosti o obchod.",
+  "securetrade.error_player_blocked_self": "Než odešlete žádost o obchod, odblokujte tohoto hráče.",
+  "securetrade.error_player_unavailable": "Tento hráč od vás nepřijímá žádosti o obchod.",
+  "securetrade.dnd.enabled": "Žádosti o obchod jsou nyní vypnuté.",
+  "securetrade.dnd.disabled": "Žádosti o obchod jsou nyní zapnuté.",
+  "securetrade.block.cannot_self": "Nemůžete zablokovat sami sebe.",
+  "securetrade.block.added": "Hráč %s vám již nemůže posílat žádosti o obchod.",
+  "securetrade.block.removed": "Hráč %s vám může znovu posílat žádosti o obchod.",
+  "securetrade.block.not_blocked": "Hráč %s není na vašem seznamu blokovaných obchodů.",
+  "securetrade.block.list_title": "Hráči zablokovaní pro obchod:",
+  "securetrade.block.list_empty": "Váš seznam blokovaných obchodů je prázdný."
 }

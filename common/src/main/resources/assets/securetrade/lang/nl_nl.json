@@ -46,5 +46,17 @@
   "securetrade.gui.trade_with": "Ruil met %s",
   "securetrade.error_blacklisted_item": "Dit item is door de server geblokkeerd en kan niet worden geruild.",
   "securetrade.history.error": "History error: %s",
-  "securetrade.history.xp_amount": "%s XP"
+  "securetrade.history.xp_amount": "%s XP",
+  "securetrade.error_inventory_full": "Je inventaris heeft niet genoeg ruimte voor de aangeboden voorwerpen.",
+  "securetrade.error_target_dnd": "Deze speler accepteert geen handelsverzoeken.",
+  "securetrade.error_player_blocked_self": "Deblokkeer deze speler voordat je een handelsverzoek verstuurt.",
+  "securetrade.error_player_unavailable": "Deze speler accepteert geen handelsverzoeken van jou.",
+  "securetrade.dnd.enabled": "Handelsverzoeken zijn nu uitgeschakeld.",
+  "securetrade.dnd.disabled": "Handelsverzoeken zijn nu ingeschakeld.",
+  "securetrade.block.cannot_self": "Je kunt jezelf niet blokkeren.",
+  "securetrade.block.added": "%s kan je geen handelsverzoeken meer sturen.",
+  "securetrade.block.removed": "%s kan je weer handelsverzoeken sturen.",
+  "securetrade.block.not_blocked": "%s staat niet op je handelsblokkeerlijst.",
+  "securetrade.block.list_title": "Voor handel geblokkeerde spelers:",
+  "securetrade.block.list_empty": "Je handelsblokkeerlijst is leeg."
 }

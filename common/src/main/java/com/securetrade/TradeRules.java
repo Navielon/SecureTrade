@@ -15,11 +15,13 @@ public final class TradeRules {
         if (allowed != null && !allowed.isEmpty()) {
             return allowed.contains(dimensionId);
         }
-
         if (blocked != null && !blocked.isEmpty()) {
             return !blocked.contains(dimensionId);
         }
-
         return true;
+    }
+
+    public static boolean canTradeAcrossDimensions() {
+        return Services.PLATFORM.allowCrossDimensionTrades();
     }
 }

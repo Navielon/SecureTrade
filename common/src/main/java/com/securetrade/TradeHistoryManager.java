@@ -3,6 +3,7 @@ package com.securetrade;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import com.mojang.logging.LogUtils;
 import com.securetrade.platform.Services;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Registry;
@@ -18,19 +19,28 @@ import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import org.slf4j.Logger;
 
 import java.io.Reader;
 import java.io.Writer;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class TradeHistoryManager {
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static final Logger LOGGER = LogUtils.getLogger();
+    private static final Object EXECUTOR_LOCK = new Object();
+    private static ExecutorService executor = createExecutor();
 
     public static class TradeEntry {
         public long timestamp;
@@ -62,9 +72,6 @@ public class TradeHistoryManager {
         try {
             MinecraftServer server = p1.getServer();
             if (server == null) return;
-            
-            Path historyFile = server.getWorldPath(LevelResource.ROOT).resolve("securetrade-history.json");
-            List<TradeEntry> history = loadHistory(historyFile);
 
             TradeEntry entry = new TradeEntry();
             entry.timestamp = System.currentTimeMillis();
@@ -77,16 +84,11 @@ public class TradeHistoryManager {
             entry.senderXP = p1XP;
             entry.targetXP = p2XP;
 
-            history.add(0, entry);
-
+            Path historyFile = server.getWorldPath(LevelResource.ROOT).resolve("securetrade-history.json");
             int limit = Math.max(100, Services.PLATFORM.getMaxHistoryEntries() * 10);
-            while (history.size() > limit) {
-                history.remove(history.size() - 1);
-            }
-
-            saveHistory(historyFile, history);
+            submit(() -> appendEntry(historyFile, entry, limit));
         } catch (Exception e) {
-            TradeLogger.log("Failed to record trade history: " + e.getMessage());
+            LOGGER.error("Failed to snapshot trade history entry", e);
         }
     }
 
@@ -107,39 +109,90 @@ public class TradeHistoryManager {
         return list;
     }
 
-    private static List<TradeEntry> loadHistory(Path path) {
+    private static List<TradeEntry> readHistory(Path path) throws Exception {
         if (!Files.exists(path)) {
             return new ArrayList<>();
         }
         try (Reader reader = Files.newBufferedReader(path, java.nio.charset.StandardCharsets.UTF_8)) {
             List<TradeEntry> list = GSON.fromJson(reader, new TypeToken<ArrayList<TradeEntry>>(){}.getType());
             return list != null ? list : new ArrayList<>();
-        } catch (Exception e) {
-            TradeLogger.log("Failed to load trade history: " + e.getMessage());
-            return new ArrayList<>();
         }
     }
 
-    private static void saveHistory(Path path, List<TradeEntry> history) {
+    private static void appendEntry(Path path, TradeEntry entry, int limit) {
+        List<TradeEntry> history;
         try {
-            if (!Files.exists(path.getParent())) {
-                Files.createDirectories(path.getParent());
-            }
-            try (Writer writer = Files.newBufferedWriter(path, java.nio.charset.StandardCharsets.UTF_8)) {
+            history = readHistory(path);
+        } catch (Exception e) {
+            LOGGER.error("Failed to read trade history; preserving the damaged file", e);
+            backupCorruptHistory(path);
+            history = new ArrayList<>();
+        }
+
+        history.add(0, entry);
+        while (history.size() > limit) {
+            history.remove(history.size() - 1);
+        }
+        saveHistoryAtomically(path, history);
+    }
+
+    private static void saveHistoryAtomically(Path path, List<TradeEntry> history) {
+        Path temporary = path.resolveSibling(path.getFileName() + ".tmp");
+        try {
+            Files.createDirectories(path.getParent());
+            try (Writer writer = Files.newBufferedWriter(temporary, java.nio.charset.StandardCharsets.UTF_8)) {
                 GSON.toJson(history, writer);
             }
+            try {
+                Files.move(temporary, path, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            } catch (AtomicMoveNotSupportedException ignored) {
+                Files.move(temporary, path, StandardCopyOption.REPLACE_EXISTING);
+            }
         } catch (Exception e) {
-            TradeLogger.log("Failed to save trade history: " + e.getMessage());
+            LOGGER.error("Failed to save trade history", e);
+            try {
+                Files.deleteIfExists(temporary);
+            } catch (Exception cleanupError) {
+                LOGGER.debug("Failed to remove temporary trade history file", cleanupError);
+            }
+        }
+    }
+
+    private static void backupCorruptHistory(Path path) {
+        if (!Files.exists(path)) {
+            return;
+        }
+        Path backup = path.resolveSibling(path.getFileName() + ".corrupt-" + System.currentTimeMillis());
+        try {
+            Files.move(path, backup, StandardCopyOption.REPLACE_EXISTING);
+        } catch (Exception e) {
+            LOGGER.error("Failed to preserve damaged trade history at {}", backup, e);
         }
     }
 
     public static void showHistory(ServerPlayer player) {
+        MinecraftServer server = player.getServer();
+        if (server == null) return;
+
+        Path historyFile = server.getWorldPath(LevelResource.ROOT).resolve("securetrade-history.json");
+        int maxEntries = Services.PLATFORM.getMaxHistoryEntries();
+        submit(() -> {
+            try {
+                List<TradeEntry> history = readHistory(historyFile);
+                server.execute(() -> sendHistory(player, history, maxEntries));
+            } catch (Exception e) {
+                LOGGER.error("Failed to load trade history", e);
+                server.execute(() -> TradeMessages.sendRaw(player,
+                        TradeMessages.trans("securetrade.history.error", e.getMessage()).withStyle(ChatFormatting.RED)
+                ));
+            }
+        });
+    }
+
+    private static void sendHistory(ServerPlayer player, List<TradeEntry> history, int maxEntries) {
         try {
             MinecraftServer server = player.getServer();
             if (server == null) return;
-
-            Path historyFile = server.getWorldPath(LevelResource.ROOT).resolve("securetrade-history.json");
-            List<TradeEntry> history = loadHistory(historyFile);
 
             String playerUuid = player.getUUID().toString();
             List<TradeEntry> playerHistory = new ArrayList<>();
@@ -149,7 +202,6 @@ public class TradeHistoryManager {
                 }
             }
 
-            int maxEntries = Services.PLATFORM.getMaxHistoryEntries();
             int toShow = Math.min(maxEntries, playerHistory.size());
 
             if (toShow == 0) {
@@ -179,7 +231,46 @@ public class TradeHistoryManager {
                 TradeMessages.sendRaw(player, TradeMessages.trans("securetrade.history.received", receivedComponent).withStyle(ChatFormatting.GREEN));
             }
         } catch (Exception e) {
+            LOGGER.error("Failed to render trade history", e);
             TradeMessages.sendRaw(player, TradeMessages.trans("securetrade.history.error", e.getMessage()).withStyle(ChatFormatting.RED));
+        }
+    }
+
+    private static ExecutorService createExecutor() {
+        return Executors.newSingleThreadExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "SecureTrade-History");
+            thread.setDaemon(true);
+            return thread;
+        });
+    }
+
+    private static void submit(Runnable task) {
+        synchronized (EXECUTOR_LOCK) {
+            if (executor == null || executor.isShutdown() || executor.isTerminated()) {
+                executor = createExecutor();
+            }
+            executor.execute(task);
+        }
+    }
+
+    public static void shutdown() {
+        ExecutorService toShutdown;
+        synchronized (EXECUTOR_LOCK) {
+            toShutdown = executor;
+            executor = null;
+        }
+        if (toShutdown == null) {
+            return;
+        }
+
+        toShutdown.shutdown();
+        try {
+            if (!toShutdown.awaitTermination(5, TimeUnit.SECONDS)) {
+                toShutdown.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            toShutdown.shutdownNow();
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -301,4 +392,3 @@ public class TradeHistoryManager {
     }
 
 }
-

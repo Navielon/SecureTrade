@@ -46,5 +46,17 @@
   "securetrade.gui.trade_with": "%s と取引",
   "securetrade.error_blacklisted_item": "このアイテムはサーバーで禁止されているため、取引できません。",
   "securetrade.history.error": "History error: %s",
-  "securetrade.history.xp_amount": "%s XP"
+  "securetrade.history.xp_amount": "%s XP",
+  "securetrade.error_inventory_full": "提示されたアイテムを受け取るためのインベントリ空き容量が不足しています。",
+  "securetrade.error_target_dnd": "このプレイヤーは取引リクエストを受け付けていません。",
+  "securetrade.error_player_blocked_self": "取引リクエストを送る前に、このプレイヤーのブロックを解除してください。",
+  "securetrade.error_player_unavailable": "このプレイヤーはあなたからの取引リクエストを受け付けていません。",
+  "securetrade.dnd.enabled": "取引リクエストを無効にしました。",
+  "securetrade.dnd.disabled": "取引リクエストを有効にしました。",
+  "securetrade.block.cannot_self": "自分自身をブロックすることはできません。",
+  "securetrade.block.added": "%s からの取引リクエストをブロックしました。",
+  "securetrade.block.removed": "%s からの取引リクエストを再び受け付けます。",
+  "securetrade.block.not_blocked": "%s は取引ブロックリストに登録されていません。",
+  "securetrade.block.list_title": "取引をブロックしているプレイヤー:",
+  "securetrade.block.list_empty": "取引ブロックリストは空です。"
 }

@@ -46,5 +46,17 @@
   "securetrade.gui.trade_with": "Byte med %s",
   "securetrade.error_blacklisted_item": "Det här föremålet är blockerat av servern och kan inte bytas.",
   "securetrade.history.error": "History error: %s",
-  "securetrade.history.xp_amount": "%s XP"
+  "securetrade.history.xp_amount": "%s XP",
+  "securetrade.error_inventory_full": "Ditt förråd har inte tillräckligt med plats för de erbjudna föremålen.",
+  "securetrade.error_target_dnd": "Den här spelaren tar inte emot handelsförfrågningar.",
+  "securetrade.error_player_blocked_self": "Avblockera spelaren innan du skickar en handelsförfrågan.",
+  "securetrade.error_player_unavailable": "Den här spelaren tar inte emot handelsförfrågningar från dig.",
+  "securetrade.dnd.enabled": "Handelsförfrågningar är nu avstängda.",
+  "securetrade.dnd.disabled": "Handelsförfrågningar är nu aktiverade.",
+  "securetrade.block.cannot_self": "Du kan inte blockera dig själv.",
+  "securetrade.block.added": "%s kan inte längre skicka handelsförfrågningar till dig.",
+  "securetrade.block.removed": "%s kan återigen skicka handelsförfrågningar till dig.",
+  "securetrade.block.not_blocked": "%s finns inte på din blockeringslista för handel.",
+  "securetrade.block.list_title": "Spelare blockerade från handel:",
+  "securetrade.block.list_empty": "Din blockeringslista för handel är tom."
 }

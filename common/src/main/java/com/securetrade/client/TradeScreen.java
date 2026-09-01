@@ -225,7 +225,7 @@ public class TradeScreen extends AbstractContainerScreen<TradeMenu> {
             drawScaledCenteredText(graphics, String.valueOf(this.menu.countdownSeconds), cx, cy - 8, 2.0f, 0xFF55FF55, false);
         }
 
-        drawBlacklistWarning(graphics, x, y);
+        drawTradeWarning(graphics, x, y);
     }
 
     private void drawReadyButton(GuiGraphicsExtractor graphics, int x, int y) {
@@ -256,8 +256,8 @@ public class TradeScreen extends AbstractContainerScreen<TradeMenu> {
         drawCenteredButtonText(graphics, otherMsg, x + RIGHT_READY_X + READY_W / 2, y + RIGHT_READY_Y + (READY_H - 8) / 2, otherTextColor, false);
     }
 
-    private void drawBlacklistWarning(GuiGraphicsExtractor graphics, int x, int y) {
-        long remainingMillis = this.menu.getBlacklistWarningRemainingMillis();
+    private void drawTradeWarning(GuiGraphicsExtractor graphics, int x, int y) {
+        long remainingMillis = this.menu.getWarningRemainingMillis();
         if (remainingMillis <= 0) {
             return;
         }
@@ -266,7 +266,7 @@ public class TradeScreen extends AbstractContainerScreen<TradeMenu> {
         int alpha = Math.round(0xE8 * fade);
         int centerX = x + this.imageWidth / 2;
         List<FormattedCharSequence> lines = this.font.split(
-                Component.translatable("securetrade.error_blacklisted_item"),
+                Component.translatable(this.menu.getWarningTranslationKey()),
                 214
         );
         int textWidth = lines.stream().mapToInt(this.font::width).max().orElse(0);

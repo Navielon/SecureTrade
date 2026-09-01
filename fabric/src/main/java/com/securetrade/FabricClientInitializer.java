@@ -4,6 +4,7 @@ import com.securetrade.client.TradeScreen;
 import com.securetrade.menu.TradeMenu;
 import com.securetrade.menu.TradeMenuType;
 import com.securetrade.network.TradeBlacklistWarningPacket;
+import com.securetrade.network.TradeInventoryWarningPacket;
 import com.securetrade.network.TradeStateSyncPacket;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -26,6 +27,14 @@ public class FabricClientInitializer implements ClientModInitializer {
             context.client().execute(() -> {
                 if (context.client().player != null && context.client().player.containerMenu instanceof TradeMenu tradeMenu) {
                     tradeMenu.showBlacklistWarning();
+                }
+            });
+        });
+
+        ClientPlayNetworking.registerGlobalReceiver(TradeInventoryWarningPacket.TYPE, (payload, context) -> {
+            context.client().execute(() -> {
+                if (context.client().player != null && context.client().player.containerMenu instanceof TradeMenu tradeMenu) {
+                    tradeMenu.showInventoryWarning();
                 }
             });
         });

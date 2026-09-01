@@ -22,6 +22,11 @@ public class TradeNetwork {
                 TradeBlacklistWarningPacket.STREAM_CODEC,
                 TradeNetwork::handleBlacklistWarningPacket
         );
+        registrar.playToClient(
+                TradeInventoryWarningPacket.TYPE,
+                TradeInventoryWarningPacket.STREAM_CODEC,
+                TradeNetwork::handleInventoryWarningPacket
+        );
         registrar.playToServer(
                 TradeXPChangePacket.TYPE,
                 TradeXPChangePacket.STREAM_CODEC,
@@ -61,6 +66,15 @@ public class TradeNetwork {
             Player player = context.player();
             if (player.containerMenu instanceof TradeMenu tradeMenu) {
                 tradeMenu.showBlacklistWarning();
+            }
+        });
+    }
+
+    private static void handleInventoryWarningPacket(TradeInventoryWarningPacket payload, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            Player player = context.player();
+            if (player.containerMenu instanceof TradeMenu tradeMenu) {
+                tradeMenu.showInventoryWarning();
             }
         });
     }

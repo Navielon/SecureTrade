@@ -20,4 +20,8 @@ public final class TradeRules {
         }
         return true;
     }
+
+    public static boolean canTradeAcrossDimensions() {
+        return Services.PLATFORM.allowCrossDimensionTrades();
+    }
 }

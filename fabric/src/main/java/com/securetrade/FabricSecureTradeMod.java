@@ -11,6 +11,7 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.MenuType;
@@ -21,6 +22,7 @@ public class FabricSecureTradeMod implements ModInitializer {
     public static final ResourceLocation TRADE_XP_CHANGE_ID = new ResourceLocation(MODID, "trade_xp_change");
     public static final ResourceLocation TRADE_STATE_SYNC_ID = new ResourceLocation(MODID, "trade_state_sync");
     public static final ResourceLocation TRADE_BLACKLIST_WARNING_ID = new ResourceLocation(MODID, "trade_blacklist_warning");
+    public static final ResourceLocation TRADE_INVENTORY_WARNING_ID = new ResourceLocation(MODID, "trade_inventory_warning");
     private int cleanupTicks = 0;
 
     @Override
@@ -67,9 +69,15 @@ public class FabricSecureTradeMod implements ModInitializer {
             }
         });
 
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) ->
+                TradeSessionManager.cancelForPlayer(handler.getPlayer())
+        );
+
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             TradeSessionManager.cancelAllAndClear();
             TradeCommand.clearAll();
+            TradeHistoryManager.shutdown();
+            TradePreferencesManager.clear();
             TradeLogger.shutdown();
         });
     }

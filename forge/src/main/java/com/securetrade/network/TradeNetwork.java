@@ -64,6 +64,17 @@ public class TradeNetwork {
                     }
                 })
                 .add();
+
+        CHANNEL.messageBuilder(TradeInventoryWarningPacket.class, id++, NetworkDirection.PLAY_TO_CLIENT)
+                .decoder(TradeInventoryWarningPacket::new)
+                .encoder(TradeInventoryWarningPacket::write)
+                .consumerMainThread((msg, ctx) -> {
+                    Minecraft mc = Minecraft.getInstance();
+                    if (mc.player != null && mc.player.containerMenu instanceof TradeMenu tradeMenu) {
+                        tradeMenu.showInventoryWarning();
+                    }
+                })
+                .add();
     }
 
     public static void sendToServer(Object message) {

@@ -46,6 +46,18 @@
   "securetrade.gui.trade_with": "Échange avec %s",
   "securetrade.error_blacklisted_item": "Cet objet est bloqué par le serveur et ne peut pas être échangé.",
   "securetrade.history.error": "History error: %s",
-  "securetrade.history.xp_amount": "%s XP"
+  "securetrade.history.xp_amount": "%s XP",
+  "securetrade.error_inventory_full": "Votre inventaire ne contient pas assez de place pour les objets proposés.",
+  "securetrade.error_target_dnd": "Ce joueur n'accepte pas les demandes d'échange.",
+  "securetrade.error_player_blocked_self": "Débloquez ce joueur avant d'envoyer une demande d'échange.",
+  "securetrade.error_player_unavailable": "Ce joueur n'accepte pas vos demandes d'échange.",
+  "securetrade.dnd.enabled": "Les demandes d'échange sont maintenant désactivées.",
+  "securetrade.dnd.disabled": "Les demandes d'échange sont maintenant activées.",
+  "securetrade.block.cannot_self": "Vous ne pouvez pas vous bloquer vous-même.",
+  "securetrade.block.added": "%s ne peut plus vous envoyer de demandes d'échange.",
+  "securetrade.block.removed": "%s peut de nouveau vous envoyer des demandes d'échange.",
+  "securetrade.block.not_blocked": "%s ne figure pas dans votre liste de blocage des échanges.",
+  "securetrade.block.list_title": "Joueurs bloqués pour les échanges :",
+  "securetrade.block.list_empty": "Votre liste de blocage des échanges est vide."
 }
 

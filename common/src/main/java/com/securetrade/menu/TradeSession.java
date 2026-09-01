@@ -4,6 +4,7 @@ import com.securetrade.platform.Services;
 import com.securetrade.TradeLogger;
 import com.securetrade.TradeHistoryManager;
 import com.securetrade.TradeItemValidator;
+import com.securetrade.TradeInventoryCapacity;
 import com.securetrade.TradeMessages;
 import com.securetrade.TradeRules;
 import com.securetrade.SecureTradeSounds;
@@ -34,6 +35,8 @@ public class TradeSession {
     private int countdownTicks = -1;
     private long pendingPlayer1XP = -1;
     private long pendingPlayer2XP = -1;
+    private long player1LastLockTick = Long.MIN_VALUE;
+    private long player2LastLockTick = Long.MIN_VALUE;
     private final List<ItemStack> inventory1Snapshot = new ArrayList<>();
     private final List<ItemStack> inventory2Snapshot = new ArrayList<>();
 
@@ -88,8 +91,15 @@ public class TradeSession {
     }
 
     public void setLocked(ServerPlayer player, boolean locked) {
+        if (player != player1 && player != player2) {
+            return;
+        }
         if (locked && (TradeItemValidator.containsBlacklistedItems(inventory1) || TradeItemValidator.containsBlacklistedItems(inventory2))) {
             Services.PLATFORM.sendBlacklistWarning(player);
+            return;
+        }
+        if (locked && !canFitIncomingOffer(player)) {
+            Services.PLATFORM.sendInventoryWarning(player);
             return;
         }
 
@@ -97,14 +107,22 @@ public class TradeSession {
             if (player1Locked == locked) {
                 return;
             }
+            long tick = player.level.getGameTime();
+            if (player1LastLockTick == tick) {
+                return;
+            }
+            player1LastLockTick = tick;
             player1Locked = locked;
         } else if (player == player2) {
             if (player2Locked == locked) {
                 return;
             }
+            long tick = player.level.getGameTime();
+            if (player2LastLockTick == tick) {
+                return;
+            }
+            player2LastLockTick = tick;
             player2Locked = locked;
-        } else {
-            return;
         }
 
         if (player1Locked && player2Locked) {
@@ -134,12 +152,11 @@ public class TradeSession {
         }
 
         double maxDist = Services.PLATFORM.getMaxTradeDistance();
-        if (maxDist > 0) {
-            if (!player1.level.dimension().equals(player2.level.dimension()) ||
-                player1.distanceToSqr(player2) > maxDist * maxDist) {
-                cancelTrade();
-                return;
-            }
+        boolean sameDimension = player1.level.dimension().equals(player2.level.dimension());
+        if ((!sameDimension && (!TradeRules.canTradeAcrossDimensions() || maxDist > 0)) ||
+            (sameDimension && maxDist > 0 && player1.distanceToSqr(player2) > maxDist * maxDist)) {
+            cancelTrade();
+            return;
         }
 
         boolean xpChanged = false;
@@ -227,6 +244,11 @@ public class TradeSession {
             cancelTrade();
             return;
         }
+        if (!TradeInventoryCapacity.canFit(player1.getInventory(), inventory2) ||
+            !TradeInventoryCapacity.canFit(player2.getInventory(), inventory1)) {
+            cancelTrade();
+            return;
+        }
 
         TradeHistoryManager.recordTrade(player1, player2, inventory1, inventory2, player1XP, player2XP);
 
@@ -270,28 +292,21 @@ public class TradeSession {
         player2.closeContainer();
     }
 
-    /**
-     * Transfers items safely even if the recipient disconnected.
-     */
     private void transferItems(SimpleContainer from, ServerPlayer to) {
         for (int i = 0; i < from.getContainerSize(); i++) {
             ItemStack stack = from.getItem(i);
             if (!stack.isEmpty()) {
-                if (isPlayerOnline(to)) {
-                    if (!to.getInventory().add(stack)) {
-                        to.drop(stack, false);
-                    }
-                } else {
-                    // Drop items at the last known position if the player disconnected.
-                    to.level.addFreshEntity(
-                        new net.minecraft.world.entity.item.ItemEntity(
-                            to.level, to.getX(), to.getY(), to.getZ(), stack
-                        )
-                    );
+                if (!to.getInventory().add(stack)) {
+                    to.drop(stack, false);
                 }
                 from.setItem(i, ItemStack.EMPTY);
             }
         }
+    }
+
+    private boolean canFitIncomingOffer(ServerPlayer player) {
+        SimpleContainer incoming = player == player1 ? inventory2 : inventory1;
+        return TradeInventoryCapacity.canFit(player.getInventory(), incoming);
     }
 
     private static boolean isPlayerOnline(ServerPlayer player) {

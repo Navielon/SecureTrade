@@ -7,6 +7,7 @@ public class TradeConfig {
 
     public static final ForgeConfigSpec.IntValue REQUEST_TIMEOUT_SECONDS;
     public static final ForgeConfigSpec.DoubleValue MAX_TRADE_DISTANCE;
+    public static final ForgeConfigSpec.BooleanValue ALLOW_CROSS_DIMENSION_TRADES;
     public static final ForgeConfigSpec.BooleanValue ENABLE_TRADE_LOGGING;
     public static final ForgeConfigSpec.IntValue COUNTDOWN_SECONDS;
     public static final ForgeConfigSpec.IntValue TRADE_COOLDOWN_SECONDS;
@@ -27,6 +28,10 @@ public class TradeConfig {
         MAX_TRADE_DISTANCE = builder
                 .comment("Maximum distance in blocks allowed between players to trade (-1 for infinite)")
                 .defineInRange("maxTradeDistance", -1.0, -1.0, 10000.0);
+
+        ALLOW_CROSS_DIMENSION_TRADES = builder
+                .comment("Allow trades between players in different dimensions when no distance limit prevents it")
+                .define("allowCrossDimensionTrades", true);
 
         ENABLE_TRADE_LOGGING = builder
                 .comment("Enable detailed transaction logging in logs/securetrade.log")

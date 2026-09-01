@@ -29,5 +29,12 @@ public class FabricClientInitializer implements ClientModInitializer {
                         tradeMenu.showBlacklistWarning();
                     }
                 }));
+
+        ClientPlayNetworking.registerGlobalReceiver(FabricSecureTradeMod.TRADE_INVENTORY_WARNING_ID,
+                (client, handler, buf, responseSender) -> client.execute(() -> {
+                    if (client.player != null && client.player.containerMenu instanceof TradeMenu tradeMenu) {
+                        tradeMenu.showInventoryWarning();
+                    }
+                }));
     }
 }

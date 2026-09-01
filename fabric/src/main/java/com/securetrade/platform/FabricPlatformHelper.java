@@ -4,6 +4,7 @@ import com.securetrade.FabricSecureTradeMod;
 import com.securetrade.FabricTradeConfig;
 import com.securetrade.network.TradeBlacklistWarningPacket;
 import com.securetrade.network.TradeLockPacket;
+import com.securetrade.network.TradeInventoryWarningPacket;
 import com.securetrade.network.TradeStateSyncPacket;
 import com.securetrade.network.TradeXPChangePacket;
 import java.util.List;
@@ -44,6 +45,13 @@ public class FabricPlatformHelper implements IPlatformHelper {
     }
 
     @Override
+    public void sendInventoryWarning(ServerPlayer player) {
+        FriendlyByteBuf buf = PacketByteBufs.create();
+        new TradeInventoryWarningPacket().write(buf);
+        ServerPlayNetworking.send(player, FabricSecureTradeMod.TRADE_INVENTORY_WARNING_ID, buf);
+    }
+
+    @Override
     public boolean containsPlatformContainerItems(ItemStack stack, List<String> blacklist, int depth) {
         return false;
     }
@@ -51,6 +59,11 @@ public class FabricPlatformHelper implements IPlatformHelper {
     @Override
     public double getMaxTradeDistance() {
         return FabricTradeConfig.maxTradeDistance;
+    }
+
+    @Override
+    public boolean allowCrossDimensionTrades() {
+        return FabricTradeConfig.allowCrossDimensionTrades;
     }
 
     @Override
@@ -75,17 +88,17 @@ public class FabricPlatformHelper implements IPlatformHelper {
 
     @Override
     public java.util.List<String> getBlacklistedItems() {
-        return FabricTradeConfig.blacklistedItems;
+        return java.util.List.copyOf(FabricTradeConfig.blacklistedItems);
     }
 
     @Override
     public java.util.List<String> getAllowedDimensions() {
-        return FabricTradeConfig.allowedDimensions;
+        return java.util.List.copyOf(FabricTradeConfig.allowedDimensions);
     }
 
     @Override
     public java.util.List<String> getBlockedDimensions() {
-        return FabricTradeConfig.blockedDimensions;
+        return java.util.List.copyOf(FabricTradeConfig.blockedDimensions);
     }
 
     @Override

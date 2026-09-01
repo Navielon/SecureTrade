@@ -13,9 +13,12 @@ public interface IPlatformHelper {
 
     void sendBlacklistWarning(ServerPlayer player);
 
+    void sendInventoryWarning(ServerPlayer player);
+
     boolean containsPlatformContainerItems(ItemStack stack, List<String> blacklist, int depth);
 
     double getMaxTradeDistance();
+    boolean allowCrossDimensionTrades();
     int getRequestTimeoutSeconds();
     int getTradeCooldownSeconds();
     int getCountdownSeconds();

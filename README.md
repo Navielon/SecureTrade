@@ -5,7 +5,7 @@
 </p>
 
 ![Loader](https://img.shields.io/badge/Loader-Fabric%20%7C%20Forge%20%7C%20NeoForge-orange.svg)
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.16.5%20--%201.21.1%20%7C%2026.1.x-brightgreen.svg)](https://minecraft.net/)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.16.5%20--%201.21.1%20%7C%2026.x-brightgreen.svg)](https://minecraft.net/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 **Secure Trade** adds a direct player-to-player trade menu for multiplayer worlds, co-op servers, and modpacks.
@@ -40,8 +40,11 @@ If either player changes their offer after confirming, the ready state is reset 
 - Custom trade sounds for requests, countdown, blocked items, and successful trades.
 - Automatic readiness reset when items or XP change.
 - Optional distance limit for servers that want local-only trading.
+- Independent control over cross-dimension trading.
 - Optional dimension allowlist or blocklist.
-- Optional item blacklist, including protected items inside supported containers.
+- Optional item blacklist, including datapack tags and protected items inside supported containers.
+- Persistent do-not-disturb mode and per-player trade blocking.
+- Inventory-space validation before either player confirms.
 - One active trade or pending request per player.
 - Request cooldowns to reduce spam.
 - Trade history command for checking recent exchanges.
@@ -55,6 +58,7 @@ Secure Trade is maintained across multiple Minecraft versions.
 
 | Minecraft | Loaders |
 | --- | --- |
+| 26.2 | Fabric, NeoForge |
 | 26.1.x | Fabric, NeoForge |
 | 1.21.1 | Fabric, NeoForge |
 | 1.20.1 | Fabric, Forge |
@@ -72,6 +76,10 @@ Use the file that matches your Minecraft version and mod loader.
 | `/trade accept` | Accepts the current pending trade request. |
 | `/trade deny` | Denies the current pending trade request. |
 | `/trade history` | Shows recent trades for the player, including items and XP. |
+| `/trade dnd` | Enables or disables incoming trade requests. |
+| `/trade block <player>` | Blocks a player from sending you trade requests. |
+| `/trade unblock <player>` | Removes a player from your trade block list. |
+| `/trade blocked` | Shows your trade block list. |
 
 ## For Server Owners
 
@@ -88,6 +96,7 @@ config/securetrade-server.toml
 | `requestTimeoutSeconds` | `60` | Seconds before an unanswered trade request expires. |
 | `tradeCooldownSeconds` | `10` | Seconds before a player can send another request to the same target. |
 | `maxTradeDistance` | `-1.0` | Maximum distance in blocks. Use `-1.0` for no distance limit. If positive, players must be in the same dimension and within range. |
+| `allowCrossDimensionTrades` | `true` | Allows trading across dimensions when no positive distance limit prevents it. |
 | `countdownSeconds` | `3` | Seconds to wait after both players confirm their offers. |
 | `enableTradeLogging` | `true` | Writes completed trades to `logs/securetrade.log`. |
 | `blacklistedItems` | `["minecraft:bedrock"]` | Item IDs that cannot be traded. |
@@ -95,11 +104,14 @@ config/securetrade-server.toml
 | `blockedDimensions` | `[]` | Dimension IDs where trading is blocked. Ignored if `allowedDimensions` is not empty. |
 | `maxHistoryEntries` | `5` | Number of recent trade history entries shown by `/trade history`. |
 
+Modpacks can also add items to the `#securetrade:untradeable` item tag through a datapack. Tagged items follow the same recursive container checks as IDs listed in `blacklistedItems`.
+
 ## Safety Notes
 
 - Both players must confirm before a trade completes.
 - Changing items or XP after confirming resets readiness.
 - Blacklisted items are blocked before they enter the trade grid.
+- A player cannot confirm while their inventory lacks space for the current incoming offer.
 - If a player disconnects during a trade, offered items are returned or dropped at the player's last known position.
 - Completed trades can be written to a lightweight async log file.
 

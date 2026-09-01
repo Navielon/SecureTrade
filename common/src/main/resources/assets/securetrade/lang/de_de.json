@@ -46,6 +46,18 @@
   "securetrade.gui.trade_with": "Handel mit %s",
   "securetrade.error_blacklisted_item": "Dieser Gegenstand ist auf dem Server gesperrt und kann nicht gehandelt werden.",
   "securetrade.history.error": "History error: %s",
-  "securetrade.history.xp_amount": "%s XP"
+  "securetrade.history.xp_amount": "%s XP",
+  "securetrade.error_inventory_full": "Dein Inventar bietet nicht genug Platz für die angebotenen Gegenstände.",
+  "securetrade.error_target_dnd": "Dieser Spieler nimmt derzeit keine Handelsanfragen an.",
+  "securetrade.error_player_blocked_self": "Entsperre diesen Spieler, bevor du eine Handelsanfrage sendest.",
+  "securetrade.error_player_unavailable": "Dieser Spieler nimmt keine Handelsanfragen von dir an.",
+  "securetrade.dnd.enabled": "Handelsanfragen sind jetzt deaktiviert.",
+  "securetrade.dnd.disabled": "Handelsanfragen sind jetzt aktiviert.",
+  "securetrade.block.cannot_self": "Du kannst dich nicht selbst blockieren.",
+  "securetrade.block.added": "%s kann dir keine Handelsanfragen mehr senden.",
+  "securetrade.block.removed": "%s kann dir wieder Handelsanfragen senden.",
+  "securetrade.block.not_blocked": "%s steht nicht auf deiner Handels-Blockliste.",
+  "securetrade.block.list_title": "Für den Handel blockierte Spieler:",
+  "securetrade.block.list_empty": "Deine Handels-Blockliste ist leer."
 }
 

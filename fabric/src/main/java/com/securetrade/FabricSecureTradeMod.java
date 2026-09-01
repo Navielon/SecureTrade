@@ -6,6 +6,7 @@ import com.securetrade.menu.TradeMenuType;
 import com.securetrade.menu.TradeSessionManager;
 import com.securetrade.network.TradeBlacklistWarningPacket;
 import com.securetrade.network.TradeLockPacket;
+import com.securetrade.network.TradeInventoryWarningPacket;
 import com.securetrade.network.TradeStateSyncPacket;
 import com.securetrade.network.TradeXPChangePacket;
 import net.fabricmc.api.ModInitializer;
@@ -13,6 +14,7 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -43,6 +45,7 @@ public class FabricSecureTradeMod implements ModInitializer {
         PayloadTypeRegistry.playC2S().register(TradeXPChangePacket.TYPE, TradeXPChangePacket.STREAM_CODEC);
         PayloadTypeRegistry.playS2C().register(TradeStateSyncPacket.TYPE, TradeStateSyncPacket.STREAM_CODEC);
         PayloadTypeRegistry.playS2C().register(TradeBlacklistWarningPacket.TYPE, TradeBlacklistWarningPacket.STREAM_CODEC);
+        PayloadTypeRegistry.playS2C().register(TradeInventoryWarningPacket.TYPE, TradeInventoryWarningPacket.STREAM_CODEC);
 
         ServerPlayNetworking.registerGlobalReceiver(TradeLockPacket.TYPE, (payload, context) -> {
             context.server().execute(() -> {
@@ -60,6 +63,10 @@ public class FabricSecureTradeMod implements ModInitializer {
             });
         });
 
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) ->
+                TradeSessionManager.cancelForPlayer(handler.getPlayer())
+        );
+
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             TradeSessionManager.tick();
             cleanupTicks++;
@@ -72,6 +79,8 @@ public class FabricSecureTradeMod implements ModInitializer {
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             TradeSessionManager.cancelAllAndClear();
             TradeCommand.clearAll();
+            TradeHistoryManager.shutdown();
+            TradePreferencesManager.clear();
             TradeLogger.shutdown();
         });
     }

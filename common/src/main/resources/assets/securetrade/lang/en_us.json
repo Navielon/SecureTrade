@@ -46,6 +46,18 @@
   "securetrade.gui.trade_with": "Trade with %s",
   "securetrade.error_blacklisted_item": "This item is blocked by the server and cannot be traded.",
   "securetrade.history.error": "History error: %s",
-  "securetrade.history.xp_amount": "%s XP"
+  "securetrade.history.xp_amount": "%s XP",
+  "securetrade.error_inventory_full": "You do not have enough inventory space for the offered items.",
+  "securetrade.error_target_dnd": "This player is not accepting trade requests.",
+  "securetrade.error_player_blocked_self": "Unblock this player before sending a trade request.",
+  "securetrade.error_player_unavailable": "This player is not accepting trade requests from you.",
+  "securetrade.dnd.enabled": "Trade requests are now disabled.",
+  "securetrade.dnd.disabled": "Trade requests are now enabled.",
+  "securetrade.block.cannot_self": "You cannot block yourself.",
+  "securetrade.block.added": "%s has been blocked from sending you trade requests.",
+  "securetrade.block.removed": "%s can send you trade requests again.",
+  "securetrade.block.not_blocked": "%s is not on your trade block list.",
+  "securetrade.block.list_title": "Blocked trade players:",
+  "securetrade.block.list_empty": "Your trade block list is empty."
 }
 

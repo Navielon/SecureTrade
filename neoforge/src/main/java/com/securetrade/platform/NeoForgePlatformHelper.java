@@ -4,6 +4,7 @@ import com.securetrade.TradeConfig;
 import com.securetrade.TradeItemValidator;
 import com.securetrade.network.TradeBlacklistWarningPacket;
 import com.securetrade.network.TradeLockPacket;
+import com.securetrade.network.TradeInventoryWarningPacket;
 import com.securetrade.network.TradeStateSyncPacket;
 import com.securetrade.network.TradeXPChangePacket;
 import java.lang.reflect.Field;
@@ -33,6 +34,11 @@ public class NeoForgePlatformHelper implements IPlatformHelper {
     @Override
     public void sendBlacklistWarning(ServerPlayer player) {
         PacketDistributor.sendToPlayer(player, new TradeBlacklistWarningPacket());
+    }
+
+    @Override
+    public void sendInventoryWarning(ServerPlayer player) {
+        PacketDistributor.sendToPlayer(player, new TradeInventoryWarningPacket());
     }
 
     @Override
@@ -105,6 +111,11 @@ public class NeoForgePlatformHelper implements IPlatformHelper {
     @Override
     public java.util.List<String> getBlacklistedItems() {
         return java.util.List.copyOf(TradeConfig.BLACKLISTED_ITEMS.get());
+    }
+
+    @Override
+    public boolean allowCrossDimensionTrades() {
+        return TradeConfig.ALLOW_CROSS_DIMENSION_TRADES.get();
     }
 
     @Override

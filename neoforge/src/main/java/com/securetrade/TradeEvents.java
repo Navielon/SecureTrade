@@ -5,6 +5,7 @@ import com.securetrade.command.TradeCommand;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 @EventBusSubscriber(modid = SecureTradeMod.MODID)
@@ -25,6 +26,15 @@ public class TradeEvents {
     public static void onServerStopping(ServerStoppingEvent event) {
         TradeSessionManager.cancelAllAndClear();
         TradeCommand.clearAll();
+        TradeHistoryManager.shutdown();
+        TradePreferencesManager.clear();
         TradeLogger.shutdown();
+    }
+
+    @SubscribeEvent
+    public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
+        if (event.getEntity() instanceof net.minecraft.server.level.ServerPlayer player) {
+            TradeSessionManager.cancelForPlayer(player);
+        }
     }
 }

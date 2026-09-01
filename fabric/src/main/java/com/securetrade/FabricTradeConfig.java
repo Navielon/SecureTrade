@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import net.minecraft.resources.Identifier;
 
 public class FabricTradeConfig {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -15,6 +16,7 @@ public class FabricTradeConfig {
 
     public static int requestTimeoutSeconds = 60;
     public static double maxTradeDistance = -1.0;
+    public static boolean allowCrossDimensionTrades = true;
     public static boolean enableTradeLogging = true;
     public static int countdownSeconds = 3;
     public static int tradeCooldownSeconds = 10;
@@ -23,7 +25,8 @@ public class FabricTradeConfig {
     public static java.util.List<String> blockedDimensions = new java.util.ArrayList<>();
     public static int maxHistoryEntries = 5;
 
-    public static void load() {
+    public static synchronized void load() {
+        resetDefaults();
         try {
             if (!Files.exists(CONFIG_PATH)) {
                 writeDefaultConfig();
@@ -50,6 +53,9 @@ public class FabricTradeConfig {
                             case "maxTradeDistance":
                                 maxTradeDistance = Math.max(-1.0, Math.min(10000.0, Double.parseDouble(val)));
                                 break;
+                            case "allowCrossDimensionTrades":
+                                allowCrossDimensionTrades = Boolean.parseBoolean(val);
+                                break;
                             case "enableTradeLogging":
                                 enableTradeLogging = Boolean.parseBoolean(val);
                                 break;
@@ -60,13 +66,13 @@ public class FabricTradeConfig {
                                 tradeCooldownSeconds = Math.max(0, Math.min(3600, Integer.parseInt(val)));
                                 break;
                             case "blacklistedItems":
-                                blacklistedItems = parseList(val);
+                                blacklistedItems = parseIdentifierList(val, key);
                                 break;
                             case "allowedDimensions":
-                                allowedDimensions = parseList(val);
+                                allowedDimensions = parseIdentifierList(val, key);
                                 break;
                             case "blockedDimensions":
-                                blockedDimensions = parseList(val);
+                                blockedDimensions = parseIdentifierList(val, key);
                                 break;
                             case "maxHistoryEntries":
                                 maxHistoryEntries = Math.max(1, Math.min(100, Integer.parseInt(val)));
@@ -82,7 +88,20 @@ public class FabricTradeConfig {
         }
     }
 
-    private static java.util.List<String> parseList(String val) {
+    private static void resetDefaults() {
+        requestTimeoutSeconds = 60;
+        maxTradeDistance = -1.0;
+        allowCrossDimensionTrades = true;
+        enableTradeLogging = true;
+        countdownSeconds = 3;
+        tradeCooldownSeconds = 10;
+        blacklistedItems = new java.util.ArrayList<>(java.util.List.of("minecraft:bedrock"));
+        allowedDimensions = new java.util.ArrayList<>();
+        blockedDimensions = new java.util.ArrayList<>();
+        maxHistoryEntries = 5;
+    }
+
+    private static java.util.List<String> parseIdentifierList(String val, String key) {
         java.util.List<String> list = new java.util.ArrayList<>();
         val = val.trim();
         if (val.startsWith("[") && val.endsWith("]")) {
@@ -95,7 +114,11 @@ public class FabricTradeConfig {
                         item = item.substring(1, item.length() - 1);
                     }
                     if (!item.isEmpty()) {
-                        list.add(item);
+                        if (Identifier.tryParse(item) != null) {
+                            list.add(item);
+                        } else {
+                            LOGGER.warn("Ignoring invalid identifier '{}' in {}", item, key);
+                        }
                     }
                 }
             }
@@ -116,6 +139,9 @@ public class FabricTradeConfig {
                     "\n" +
                     "# Maximum distance in blocks allowed between players to trade (-1 for infinite)\n" +
                     "maxTradeDistance = -1.0\n" +
+                    "\n" +
+                    "# Allow trades between players in different dimensions when no distance limit prevents it\n" +
+                    "allowCrossDimensionTrades = true\n" +
                     "\n" +
                     "# Enable detailed transaction logging in logs/securetrade.log\n" +
                     "enableTradeLogging = true\n" +

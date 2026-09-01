@@ -26,3 +26,59 @@ subprojects {
         }
     }
 }
+
+def verifyResources = tasks.register('verifyResources') {
+    group = 'verification'
+    description = 'Checks localization parity and required shared assets.'
+
+    doLast {
+        def assets = file('common/src/main/resources/assets/securetrade')
+        def languageDirectory = new File(assets, 'lang')
+        def englishFile = new File(languageDirectory, 'en_us.json')
+        if (!englishFile.isFile()) {
+            throw new GradleException("Missing baseline localization: ${englishFile}")
+        }
+
+        def parser = new groovy.json.JsonSlurper()
+        def english = parser.parse(englishFile)
+        def placeholderPattern = ~/%(?:\d+\$)?[a-zA-Z%]/
+
+        languageDirectory.eachFileMatch(~/.*\.json/) { languageFile ->
+            def localized = parser.parse(languageFile)
+            if (localized.keySet() != english.keySet()) {
+                def missing = english.keySet() - localized.keySet()
+                def extra = localized.keySet() - english.keySet()
+                throw new GradleException("${languageFile.name}: localization keys differ; missing=${missing}, extra=${extra}")
+            }
+
+            english.each { key, value ->
+                def expected = (value =~ placeholderPattern).collect { it[0] }
+                def actual = (localized[key] =~ placeholderPattern).collect { it[0] }
+                if (expected != actual) {
+                    throw new GradleException("${languageFile.name}: placeholders differ for ${key}; expected=${expected}, actual=${actual}")
+                }
+            }
+        }
+
+        [
+                'textures/gui/trade.png',
+                'sounds.json',
+                'sounds/trade_item_add.ogg',
+                'sounds/trade_item_blocked.ogg',
+                'sounds/trade_cancel.ogg',
+                'sounds/trade_countdown_tick.ogg',
+                'sounds/trade_request_sent.ogg',
+                'sounds/trade_success.ogg'
+        ].each { relativePath ->
+            if (!new File(assets, relativePath).isFile()) {
+                throw new GradleException("Missing required asset: ${relativePath}")
+            }
+        }
+    }
+}
+
+subprojects {
+    tasks.matching { it.name == 'check' }.configureEach {
+        dependsOn verifyResources
+    }
+}

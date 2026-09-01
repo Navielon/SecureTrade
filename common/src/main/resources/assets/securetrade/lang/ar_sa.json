@@ -46,6 +46,18 @@
   "securetrade.gui.trade_with": "مبادلة مع %s",
   "securetrade.error_blacklisted_item": "هذا العنصر محظور من الخادم ولا يمكن مبادلته.",
   "securetrade.history.error": "History error: %s",
-  "securetrade.history.xp_amount": "%s XP"
+  "securetrade.history.xp_amount": "%s XP",
+  "securetrade.error_inventory_full": "لا توجد مساحة كافية في مخزونك للعناصر المعروضة.",
+  "securetrade.error_target_dnd": "هذا اللاعب لا يقبل طلبات المقايضة.",
+  "securetrade.error_player_blocked_self": "أزل حظر هذا اللاعب قبل إرسال طلب مقايضة.",
+  "securetrade.error_player_unavailable": "هذا اللاعب لا يقبل طلبات المقايضة منك.",
+  "securetrade.dnd.enabled": "تم تعطيل طلبات المقايضة.",
+  "securetrade.dnd.disabled": "تم تفعيل طلبات المقايضة.",
+  "securetrade.block.cannot_self": "لا يمكنك حظر نفسك.",
+  "securetrade.block.added": "تم حظر %s من إرسال طلبات المقايضة إليك.",
+  "securetrade.block.removed": "يمكن لـ %s إرسال طلبات المقايضة إليك مجددًا.",
+  "securetrade.block.not_blocked": "%s ليس في قائمة حظر المقايضة لديك.",
+  "securetrade.block.list_title": "اللاعبون المحظورون من المقايضة:",
+  "securetrade.block.list_empty": "قائمة حظر المقايضة فارغة."
 }
 

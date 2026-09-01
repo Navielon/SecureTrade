@@ -46,6 +46,18 @@
   "securetrade.gui.trade_with": "Обмін із %s",
   "securetrade.error_blacklisted_item": "Цей предмет заборонено сервером для обміну.",
   "securetrade.history.error": "History error: %s",
-  "securetrade.history.xp_amount": "%s XP"
+  "securetrade.history.xp_amount": "%s XP",
+  "securetrade.error_inventory_full": "У вашому інвентарі недостатньо місця для запропонованих предметів.",
+  "securetrade.error_target_dnd": "Цей гравець зараз не приймає запити на обмін.",
+  "securetrade.error_player_blocked_self": "Розблокуйте цього гравця перед надсиланням запиту на обмін.",
+  "securetrade.error_player_unavailable": "Цей гравець не приймає від вас запити на обмін.",
+  "securetrade.dnd.enabled": "Вхідні запити на обмін вимкнено.",
+  "securetrade.dnd.disabled": "Вхідні запити на обмін увімкнено.",
+  "securetrade.block.cannot_self": "Не можна заблокувати самого себе.",
+  "securetrade.block.added": "%s більше не зможе надсилати вам запити на обмін.",
+  "securetrade.block.removed": "%s знову зможе надсилати вам запити на обмін.",
+  "securetrade.block.not_blocked": "%s відсутній у вашому списку блокування обмінів.",
+  "securetrade.block.list_title": "Заблоковані для обміну гравці:",
+  "securetrade.block.list_empty": "Ваш список блокування обмінів порожній."
 }
 

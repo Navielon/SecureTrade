@@ -2,6 +2,7 @@ package com.securetrade.menu;
 
 import com.securetrade.TradeItemValidator;
 import com.securetrade.SecureTradeSounds;
+import com.securetrade.command.TradeRequestManager;
 import com.securetrade.platform.Services;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -27,7 +28,8 @@ public class TradeMenu extends AbstractContainerMenu {
     public long otherXP = 0;
     public long otherTotalXP = 0;
     public String partnerName = "";
-    private long blacklistWarningUntilMillis = 0L;
+    private long warningUntilMillis = 0L;
+    private String warningTranslationKey = "";
 
     private final Container myContainer;
     private final Container otherContainer;
@@ -240,7 +242,16 @@ public class TradeMenu extends AbstractContainerMenu {
     }
 
     public void showBlacklistWarning() {
-        this.blacklistWarningUntilMillis = System.currentTimeMillis() + 2200L;
+        showWarning("securetrade.error_blacklisted_item");
+    }
+
+    public void showInventoryWarning() {
+        showWarning("securetrade.error_inventory_full");
+    }
+
+    private void showWarning(String translationKey) {
+        this.warningTranslationKey = translationKey;
+        this.warningUntilMillis = System.currentTimeMillis() + 2200L;
     }
 
     private boolean shouldPlayLocalItemAddSound(int slotId, ItemStack attemptedStack, ContainerInput clickType, Player player) {
@@ -282,11 +293,16 @@ public class TradeMenu extends AbstractContainerMenu {
         player.playSound(SecureTradeSounds.TRADE_ITEM_BLOCKED, 0.85f, 1.0f);
     }
 
-    public long getBlacklistWarningRemainingMillis() {
-        return Math.max(0L, this.blacklistWarningUntilMillis - System.currentTimeMillis());
+    public long getWarningRemainingMillis() {
+        return Math.max(0L, this.warningUntilMillis - System.currentTimeMillis());
+    }
+
+    public String getWarningTranslationKey() {
+        return this.warningTranslationKey;
     }
 
     public static void openTrade(ServerPlayer player1, ServerPlayer player2) {
+        TradeRequestManager.clearFor(player1.getUUID(), player2.getUUID());
         TradeSession session = new TradeSession(player1, player2);
         
         player1.openMenu(new MenuProvider() {

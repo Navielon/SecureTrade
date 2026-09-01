@@ -46,6 +46,18 @@
   "securetrade.gui.trade_with": "Wymiana z graczem %s",
   "securetrade.error_blacklisted_item": "Ten przedmiot jest zablokowany przez serwer i nie można go wymienić.",
   "securetrade.history.error": "History error: %s",
-  "securetrade.history.xp_amount": "%s XP"
+  "securetrade.history.xp_amount": "%s XP",
+  "securetrade.error_inventory_full": "Nie masz wystarczająco dużo miejsca w ekwipunku na oferowane przedmioty.",
+  "securetrade.error_target_dnd": "Ten gracz nie przyjmuje próśb o handel.",
+  "securetrade.error_player_blocked_self": "Odblokuj tego gracza przed wysłaniem prośby o handel.",
+  "securetrade.error_player_unavailable": "Ten gracz nie przyjmuje od ciebie próśb o handel.",
+  "securetrade.dnd.enabled": "Prośby o handel są teraz wyłączone.",
+  "securetrade.dnd.disabled": "Prośby o handel są teraz włączone.",
+  "securetrade.block.cannot_self": "Nie możesz zablokować samego siebie.",
+  "securetrade.block.added": "%s nie może już wysyłać ci próśb o handel.",
+  "securetrade.block.removed": "%s może ponownie wysyłać ci prośby o handel.",
+  "securetrade.block.not_blocked": "%s nie znajduje się na twojej liście blokad handlu.",
+  "securetrade.block.list_title": "Gracze zablokowani w handlu:",
+  "securetrade.block.list_empty": "Twoja lista blokad handlu jest pusta."
 }
 

@@ -5,31 +5,34 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.util.registry.Registry;
+import net.minecraft.util.Identifier;
+import net.minecraft.tag.Tag;
+import net.minecraft.item.Item;
+import net.fabricmc.fabric.api.tag.TagRegistry;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 
 public final class TradeItemValidator {
     private static final int MAX_NESTED_DEPTH = 8;
+    public static final Tag<Item> UNTRADEABLE_TAG =
+            TagRegistry.item(new Identifier("securetrade", "untradeable"));
 
     private TradeItemValidator() {
     }
 
     public static boolean containsBlacklistedItem(ItemStack stack) {
         List<String> blacklist = Services.PLATFORM.getBlacklistedItems();
-        if (blacklist == null || blacklist.isEmpty()) {
-            return false;
-        }
+        if (blacklist == null) blacklist = java.util.Collections.emptyList();
         return containsBlacklistedItem(stack, blacklist, 0);
     }
 
     public static boolean containsBlacklistedItems(Inventory container) {
         List<String> blacklist = Services.PLATFORM.getBlacklistedItems();
-        if (blacklist == null || blacklist.isEmpty()) {
-            return false;
-        }
+        if (blacklist == null) blacklist = java.util.Collections.emptyList();
 
         for (int i = 0; i < container.size(); i++) {
             if (containsBlacklistedItem(container.getStack(i), blacklist, 0)) {
@@ -45,7 +48,7 @@ public final class TradeItemValidator {
         }
 
         String itemId = Registry.ITEM.getId(stack.getItem()).toString();
-        if (blacklist.contains(itemId)) {
+        if (UNTRADEABLE_TAG.contains(stack.getItem()) || blacklist.contains(itemId)) {
             return true;
         }
 
@@ -53,29 +56,9 @@ public final class TradeItemValidator {
             return true;
         }
 
-        // 1.20.1: read container contents from NBT (BlockEntityTag.Items for shulkers etc.)
         NbtCompound tag = stack.getTag();
-        if (tag != null) {
-            NbtCompound blockEntityTag = tag.getCompound("BlockEntityTag");
-            if (blockEntityTag.contains("Items")) {
-                NbtList items = blockEntityTag.getList("Items", 10); // 10 = TAG_COMPOUND
-                for (int i = 0; i < items.size(); i++) {
-                    ItemStack nestedStack = ItemStack.fromNbt(items.getCompound(i));
-                    if (containsBlacklistedItem(nestedStack, blacklist, depth + 1)) {
-                        return true;
-                    }
-                }
-            }
-            // Fallback: top-level Items list (some mods/containers)
-            if (tag.contains("Items")) {
-                NbtList items = tag.getList("Items", 10);
-                for (int i = 0; i < items.size(); i++) {
-                    ItemStack nestedStack = ItemStack.fromNbt(items.getCompound(i));
-                    if (containsBlacklistedItem(nestedStack, blacklist, depth + 1)) {
-                        return true;
-                    }
-                }
-            }
+        if (tag != null && containsNestedNbtItems(tag, blacklist, depth + 1)) {
+            return true;
         }
 
         if (Services.PLATFORM.containsPlatformContainerItems(stack, blacklist, depth + 1)) {
@@ -86,6 +69,36 @@ public final class TradeItemValidator {
             return true;
         }
 
+        return false;
+    }
+
+    private static boolean containsNestedNbtItems(NbtElement tag, List<String> blacklist, int depth) {
+        if (tag == null || depth > MAX_NESTED_DEPTH) {
+            return false;
+        }
+        if (tag instanceof NbtCompound) {
+            NbtCompound compound = (NbtCompound) tag;
+            if (compound.contains("id", 8) && compound.contains("Count", 99)) {
+                ItemStack nestedStack = ItemStack.fromNbt(compound);
+                if (!nestedStack.isEmpty() && containsBlacklistedItem(nestedStack, blacklist, depth)) {
+                    return true;
+                }
+            }
+            for (String key : compound.getKeys()) {
+                if (containsNestedNbtItems(compound.get(key), blacklist, depth + 1)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        if (tag instanceof NbtList) {
+            NbtList list = (NbtList) tag;
+            for (int index = 0; index < list.size(); index++) {
+                if (containsNestedNbtItems(list.get(index), blacklist, depth + 1)) {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 

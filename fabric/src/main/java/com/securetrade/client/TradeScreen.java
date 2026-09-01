@@ -275,11 +275,11 @@ public class TradeScreen extends HandledScreen<TradeMenu> {
             drawScaledCenteredText(matrices, String.valueOf(this.handler.countdownSeconds), cx, cy - 8, 2.0f, 0x55FF55, false);
         }
 
-        drawBlacklistWarning(matrices, x, y);
+        drawTradeWarning(matrices, x, y);
     }
 
-    private void drawBlacklistWarning(MatrixStack matrices, int x, int y) {
-        long remainingMillis = this.handler.getBlacklistWarningRemainingMillis();
+    private void drawTradeWarning(MatrixStack matrices, int x, int y) {
+        long remainingMillis = this.handler.getWarningRemainingMillis();
         if (remainingMillis <= 0) {
             return;
         }
@@ -287,7 +287,7 @@ public class TradeScreen extends HandledScreen<TradeMenu> {
         float fade = Math.min(1.0f, remainingMillis / 350.0f);
         int alpha = Math.round(0xE8 * fade);
         int centerX = x + this.backgroundWidth / 2;
-        List<OrderedText> lines = this.textRenderer.wrapLines(TradeMessages.trans("securetrade.error_blacklisted_item"), 214);
+        List<OrderedText> lines = this.textRenderer.wrapLines(TradeMessages.trans(this.handler.getWarningTranslationKey()), 214);
         int textWidth = lines.stream().mapToInt(this.textRenderer::getWidth).max().orElse(0);
         int panelWidth = Math.min(238, textWidth + 16);
         int panelHeight = lines.size() * 9 + 10;

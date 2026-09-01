@@ -46,5 +46,17 @@
   "securetrade.gui.trade_with": "Pertukaran dengan %s",
   "securetrade.error_blacklisted_item": "Item ini diblokir oleh server dan tidak dapat diperdagangkan.",
   "securetrade.history.error": "History error: %s",
-  "securetrade.history.xp_amount": "%s XP"
+  "securetrade.history.xp_amount": "%s XP",
+  "securetrade.error_inventory_full": "Inventarismu tidak memiliki cukup ruang untuk item yang ditawarkan.",
+  "securetrade.error_target_dnd": "Pemain ini tidak menerima permintaan barter.",
+  "securetrade.error_player_blocked_self": "Buka blokir pemain ini sebelum mengirim permintaan barter.",
+  "securetrade.error_player_unavailable": "Pemain ini tidak menerima permintaan barter darimu.",
+  "securetrade.dnd.enabled": "Permintaan barter sekarang dinonaktifkan.",
+  "securetrade.dnd.disabled": "Permintaan barter sekarang diaktifkan.",
+  "securetrade.block.cannot_self": "Kamu tidak dapat memblokir dirimu sendiri.",
+  "securetrade.block.added": "%s tidak dapat lagi mengirim permintaan barter kepadamu.",
+  "securetrade.block.removed": "%s dapat kembali mengirim permintaan barter kepadamu.",
+  "securetrade.block.not_blocked": "%s tidak ada dalam daftar blokir barter milikmu.",
+  "securetrade.block.list_title": "Pemain yang diblokir dari barter:",
+  "securetrade.block.list_empty": "Daftar blokir bartermu kosong."
 }

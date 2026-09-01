@@ -46,5 +46,17 @@
   "securetrade.gui.trade_with": "Vaihto pelaajan %s kanssa",
   "securetrade.error_blacklisted_item": "Palvelin on estänyt tämän esineen, eikä sitä voi vaihtaa.",
   "securetrade.history.error": "History error: %s",
-  "securetrade.history.xp_amount": "%s XP"
+  "securetrade.history.xp_amount": "%s XP",
+  "securetrade.error_inventory_full": "Tavaraluettelossasi ei ole riittävästi tilaa tarjotuille esineille.",
+  "securetrade.error_target_dnd": "Tämä pelaaja ei ota vastaan vaihtopyyntöjä.",
+  "securetrade.error_player_blocked_self": "Poista tämän pelaajan esto ennen vaihtopyynnön lähettämistä.",
+  "securetrade.error_player_unavailable": "Tämä pelaaja ei ota vastaan vaihtopyyntöjä sinulta.",
+  "securetrade.dnd.enabled": "Vaihtopyynnöt ovat nyt pois käytöstä.",
+  "securetrade.dnd.disabled": "Vaihtopyynnöt ovat nyt käytössä.",
+  "securetrade.block.cannot_self": "Et voi estää itseäsi.",
+  "securetrade.block.added": "%s ei voi enää lähettää sinulle vaihtopyyntöjä.",
+  "securetrade.block.removed": "%s voi jälleen lähettää sinulle vaihtopyyntöjä.",
+  "securetrade.block.not_blocked": "%s ei ole vaihtoestolistallasi.",
+  "securetrade.block.list_title": "Vaihtoja varten estetyt pelaajat:",
+  "securetrade.block.list_empty": "Vaihtoestolistasi on tyhjä."
 }

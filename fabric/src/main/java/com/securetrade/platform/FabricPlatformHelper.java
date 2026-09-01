@@ -3,10 +3,12 @@ package com.securetrade.platform;
 import com.securetrade.FabricSecureTradeMod;
 import com.securetrade.FabricTradeConfig;
 import com.securetrade.network.TradeBlacklistWarningPacket;
+import com.securetrade.network.TradeInventoryWarningPacket;
 import com.securetrade.network.TradeLockPacket;
 import com.securetrade.network.TradeStateSyncPacket;
 import com.securetrade.network.TradeXPChangePacket;
 import java.util.List;
+import java.util.ArrayList;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -44,6 +46,13 @@ public class FabricPlatformHelper implements IPlatformHelper {
     }
 
     @Override
+    public void sendInventoryWarning(ServerPlayerEntity player) {
+        PacketByteBuf buf = PacketByteBufs.create();
+        new TradeInventoryWarningPacket().write(buf);
+        ServerPlayNetworking.send(player, FabricSecureTradeMod.TRADE_INVENTORY_WARNING_ID, buf);
+    }
+
+    @Override
     public boolean containsPlatformContainerItems(ItemStack stack, List<String> blacklist, int depth) {
         return false;
     }
@@ -51,6 +60,11 @@ public class FabricPlatformHelper implements IPlatformHelper {
     @Override
     public double getMaxTradeDistance() {
         return FabricTradeConfig.maxTradeDistance;
+    }
+
+    @Override
+    public boolean allowCrossDimensionTrades() {
+        return FabricTradeConfig.allowCrossDimensionTrades;
     }
 
     @Override
@@ -75,17 +89,17 @@ public class FabricPlatformHelper implements IPlatformHelper {
 
     @Override
     public java.util.List<String> getBlacklistedItems() {
-        return FabricTradeConfig.blacklistedItems;
+        return new ArrayList<>(FabricTradeConfig.blacklistedItems);
     }
 
     @Override
     public java.util.List<String> getAllowedDimensions() {
-        return FabricTradeConfig.allowedDimensions;
+        return new ArrayList<>(FabricTradeConfig.allowedDimensions);
     }
 
     @Override
     public java.util.List<String> getBlockedDimensions() {
-        return FabricTradeConfig.blockedDimensions;
+        return new ArrayList<>(FabricTradeConfig.blockedDimensions);
     }
 
     @Override

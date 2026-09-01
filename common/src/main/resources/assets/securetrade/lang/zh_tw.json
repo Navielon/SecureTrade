@@ -46,5 +46,17 @@
   "securetrade.gui.trade_with": "與 %s 交易",
   "securetrade.error_blacklisted_item": "此物品已被伺服器禁用，無法交易。",
   "securetrade.history.error": "History error: %s",
-  "securetrade.history.xp_amount": "%s XP"
+  "securetrade.history.xp_amount": "%s XP",
+  "securetrade.error_inventory_full": "你的物品欄沒有足夠空間容納對方提供的物品。",
+  "securetrade.error_target_dnd": "該玩家目前不接受交易請求。",
+  "securetrade.error_player_blocked_self": "傳送交易請求前，請先解除封鎖該玩家。",
+  "securetrade.error_player_unavailable": "該玩家不接受你的交易請求。",
+  "securetrade.dnd.enabled": "已關閉交易請求。",
+  "securetrade.dnd.disabled": "已開啟交易請求。",
+  "securetrade.block.cannot_self": "你不能封鎖自己。",
+  "securetrade.block.added": "已封鎖 %s 的交易請求。",
+  "securetrade.block.removed": "%s 現在可以再次向你傳送交易請求。",
+  "securetrade.block.not_blocked": "%s 不在你的交易封鎖清單中。",
+  "securetrade.block.list_title": "已封鎖交易的玩家：",
+  "securetrade.block.list_empty": "你的交易封鎖清單是空的。"
 }

@@ -23,14 +23,21 @@ import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class TradeHistoryManager {
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static final Object EXECUTOR_LOCK = new Object();
+    private static ExecutorService executor = createExecutor();
 
     public static class TradeEntry {
         public long timestamp;
@@ -62,9 +69,6 @@ public class TradeHistoryManager {
         try {
             MinecraftServer server = p1.getServer();
             if (server == null) return;
-            
-            Path historyFile = server.getSavePath(WorldSavePath.ROOT).resolve("securetrade-history.json");
-            List<TradeEntry> history = loadHistory(historyFile);
 
             TradeEntry entry = new TradeEntry();
             entry.timestamp = System.currentTimeMillis();
@@ -77,17 +81,21 @@ public class TradeHistoryManager {
             entry.senderXP = p1XP;
             entry.targetXP = p2XP;
 
-            history.add(0, entry); // Add to the beginning of the list
-
+            Path historyFile = server.getSavePath(WorldSavePath.ROOT).resolve("securetrade-history.json");
             int limit = Math.max(100, Services.PLATFORM.getMaxHistoryEntries() * 10);
-            while (history.size() > limit) {
-                history.remove(history.size() - 1);
-            }
-
-            saveHistory(historyFile, history);
+            submit(() -> appendEntry(historyFile, entry, limit));
         } catch (Exception e) {
             TradeLogger.log("Failed to record trade history: " + e.getMessage());
         }
+    }
+
+    private static void appendEntry(Path historyFile, TradeEntry entry, int limit) {
+        List<TradeEntry> history = loadHistory(historyFile);
+        history.add(0, entry);
+        while (history.size() > limit) {
+            history.remove(history.size() - 1);
+        }
+        saveHistory(historyFile, history);
     }
 
     private static List<ItemInfo> getItemsList(net.minecraft.inventory.SimpleInventory container) {
@@ -116,40 +124,54 @@ public class TradeHistoryManager {
             return list != null ? list : new ArrayList<>();
         } catch (Exception e) {
             TradeLogger.log("Failed to load trade history: " + e.getMessage());
+            backupCorruptHistory(path);
             return new ArrayList<>();
         }
     }
 
     private static void saveHistory(Path path, List<TradeEntry> history) {
+        Path temporary = path.resolveSibling(path.getFileName().toString() + ".tmp");
         try {
             if (!Files.exists(path.getParent())) {
                 Files.createDirectories(path.getParent());
             }
-            try (Writer writer = Files.newBufferedWriter(path, java.nio.charset.StandardCharsets.UTF_8)) {
+            try (Writer writer = Files.newBufferedWriter(temporary, java.nio.charset.StandardCharsets.UTF_8)) {
                 GSON.toJson(history, writer);
+            }
+            try {
+                Files.move(temporary, path, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            } catch (AtomicMoveNotSupportedException ignored) {
+                Files.move(temporary, path, StandardCopyOption.REPLACE_EXISTING);
             }
         } catch (Exception e) {
             TradeLogger.log("Failed to save trade history: " + e.getMessage());
+            try {
+                Files.deleteIfExists(temporary);
+            } catch (Exception ignored) {
+            }
         }
     }
 
     public static void showHistory(ServerPlayerEntity player) {
-        try {
-            MinecraftServer server = player.getServer();
-            if (server == null) return;
-
-            Path historyFile = server.getSavePath(WorldSavePath.ROOT).resolve("securetrade-history.json");
+        MinecraftServer server = player.getServer();
+        if (server == null) return;
+        Path historyFile = server.getSavePath(WorldSavePath.ROOT).resolve("securetrade-history.json");
+        String playerUuid = player.getUuid().toString();
+        int maxEntries = Services.PLATFORM.getMaxHistoryEntries();
+        submit(() -> {
             List<TradeEntry> history = loadHistory(historyFile);
-
-            String playerUuid = player.getUuid().toString();
             List<TradeEntry> playerHistory = new ArrayList<>();
             for (TradeEntry entry : history) {
                 if (playerUuid.equals(entry.senderUuid) || playerUuid.equals(entry.targetUuid)) {
                     playerHistory.add(entry);
                 }
             }
+            server.execute(() -> renderHistory(player, playerUuid, playerHistory, maxEntries));
+        });
+    }
 
-            int maxEntries = Services.PLATFORM.getMaxHistoryEntries();
+    private static void renderHistory(ServerPlayerEntity player, String playerUuid, List<TradeEntry> playerHistory, int maxEntries) {
+        try {
             int toShow = Math.min(maxEntries, playerHistory.size());
 
             if (toShow == 0) {
@@ -183,6 +205,49 @@ public class TradeHistoryManager {
             }
         } catch (Exception e) {
             TradeMessages.sendRaw(player, TradeMessages.trans("securetrade.history.error", e.getMessage()).formatted(Formatting.RED));
+        }
+    }
+
+    private static void submit(Runnable task) {
+        synchronized (EXECUTOR_LOCK) {
+            executor.submit(task);
+        }
+    }
+
+    private static ExecutorService createExecutor() {
+        return Executors.newSingleThreadExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "SecureTrade-History");
+            thread.setDaemon(true);
+            return thread;
+        });
+    }
+
+    private static void backupCorruptHistory(Path path) {
+        if (!Files.exists(path)) {
+            return;
+        }
+        try {
+            Path backup = path.resolveSibling(path.getFileName().toString() + ".corrupt-" + System.currentTimeMillis());
+            Files.move(path, backup, StandardCopyOption.REPLACE_EXISTING);
+        } catch (Exception backupError) {
+            TradeLogger.log("Failed to back up corrupt trade history: " + backupError.getMessage());
+        }
+    }
+
+    public static void shutdown() {
+        ExecutorService toShutdown;
+        synchronized (EXECUTOR_LOCK) {
+            toShutdown = executor;
+            executor = createExecutor();
+        }
+        toShutdown.shutdown();
+        try {
+            if (!toShutdown.awaitTermination(5, TimeUnit.SECONDS)) {
+                toShutdown.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            toShutdown.shutdownNow();
+            Thread.currentThread().interrupt();
         }
     }
 

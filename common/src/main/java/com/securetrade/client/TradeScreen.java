@@ -280,11 +280,11 @@ public class TradeScreen extends ContainerScreen<TradeMenu> {
             drawScaledCenteredText(poseStack, String.valueOf(this.menu.countdownSeconds), cx, cy - 8, 2.0f, 0x55FF55, false);
         }
 
-        drawBlacklistWarning(poseStack, x, y);
+        drawTradeWarning(poseStack, x, y);
     }
 
-    private void drawBlacklistWarning(MatrixStack poseStack, int x, int y) {
-        long remainingMillis = this.menu.getBlacklistWarningRemainingMillis();
+    private void drawTradeWarning(MatrixStack poseStack, int x, int y) {
+        long remainingMillis = this.menu.getWarningRemainingMillis();
         if (remainingMillis <= 0) {
             return;
         }
@@ -293,7 +293,7 @@ public class TradeScreen extends ContainerScreen<TradeMenu> {
         int alpha = Math.round(0xE8 * fade);
         int centerX = x + this.imageWidth / 2;
         List<IReorderingProcessor> lines = this.font.split(
-                TradeMessages.trans("securetrade.error_blacklisted_item"),
+                TradeMessages.trans(this.menu.getWarningTranslationKey()),
                 214
         );
         int textWidth = lines.stream().mapToInt(this.font::width).max().orElse(0);

@@ -46,5 +46,17 @@
   "securetrade.gui.trade_with": "Trao đổi với %s",
   "securetrade.error_blacklisted_item": "Vật phẩm này bị máy chủ chặn và không thể trao đổi.",
   "securetrade.history.error": "History error: %s",
-  "securetrade.history.xp_amount": "%s XP"
+  "securetrade.history.xp_amount": "%s XP",
+  "securetrade.error_inventory_full": "Túi đồ của bạn không đủ chỗ cho các vật phẩm được đề nghị.",
+  "securetrade.error_target_dnd": "Người chơi này không nhận yêu cầu giao dịch.",
+  "securetrade.error_player_blocked_self": "Hãy bỏ chặn người chơi này trước khi gửi yêu cầu giao dịch.",
+  "securetrade.error_player_unavailable": "Người chơi này không nhận yêu cầu giao dịch từ bạn.",
+  "securetrade.dnd.enabled": "Yêu cầu giao dịch hiện đã bị tắt.",
+  "securetrade.dnd.disabled": "Yêu cầu giao dịch hiện đã được bật.",
+  "securetrade.block.cannot_self": "Bạn không thể tự chặn chính mình.",
+  "securetrade.block.added": "%s không thể gửi yêu cầu giao dịch cho bạn nữa.",
+  "securetrade.block.removed": "%s có thể gửi lại yêu cầu giao dịch cho bạn.",
+  "securetrade.block.not_blocked": "%s không có trong danh sách chặn giao dịch của bạn.",
+  "securetrade.block.list_title": "Người chơi bị chặn giao dịch:",
+  "securetrade.block.list_empty": "Danh sách chặn giao dịch của bạn đang trống."
 }

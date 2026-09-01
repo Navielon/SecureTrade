@@ -48,6 +48,12 @@ public class TradeNetwork {
                 TradeBlacklistWarningPacket::new,
                 TradeNetwork::handleBlacklistWarning,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+
+        CHANNEL.registerMessage(id++, TradeInventoryWarningPacket.class,
+                TradeInventoryWarningPacket::write,
+                TradeInventoryWarningPacket::new,
+                TradeNetwork::handleInventoryWarning,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
     }
 
     private static void handleLock(TradeLockPacket msg, Supplier<NetworkEvent.Context> contextSupplier) {
@@ -93,6 +99,18 @@ public class TradeNetwork {
             if (mc.player != null && mc.player.containerMenu instanceof TradeMenu) {
                 TradeMenu tradeMenu = (TradeMenu) mc.player.containerMenu;
                 tradeMenu.showBlacklistWarning();
+            }
+        });
+        context.setPacketHandled(true);
+    }
+
+    private static void handleInventoryWarning(TradeInventoryWarningPacket msg, Supplier<NetworkEvent.Context> contextSupplier) {
+        NetworkEvent.Context context = contextSupplier.get();
+        context.enqueueWork(() -> {
+            Minecraft mc = Minecraft.getInstance();
+            if (mc.player != null && mc.player.containerMenu instanceof TradeMenu) {
+                TradeMenu tradeMenu = (TradeMenu) mc.player.containerMenu;
+                tradeMenu.showInventoryWarning();
             }
         });
         context.setPacketHandled(true);

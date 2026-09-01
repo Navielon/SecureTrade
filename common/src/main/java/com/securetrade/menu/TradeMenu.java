@@ -3,6 +3,7 @@ package com.securetrade.menu;
 import com.securetrade.TradeItemValidator;
 import com.securetrade.SecureTradeSounds;
 import com.securetrade.TradeMessages;
+import com.securetrade.command.TradeRequestManager;
 import com.securetrade.platform.Services;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -28,7 +29,8 @@ public class TradeMenu extends Container {
     public long otherXP = 0;
     public long otherTotalXP = 0;
     public String partnerName = "";
-    private long blacklistWarningUntilMillis = 0L;
+    private long warningUntilMillis = 0L;
+    private String warningTranslationKey = "";
 
     private final IInventory myContainer;
     private final IInventory otherContainer;
@@ -243,7 +245,16 @@ public class TradeMenu extends Container {
     }
 
     public void showBlacklistWarning() {
-        this.blacklistWarningUntilMillis = System.currentTimeMillis() + 2200L;
+        showWarning("securetrade.error_blacklisted_item");
+    }
+
+    public void showInventoryWarning() {
+        showWarning("securetrade.error_inventory_full");
+    }
+
+    private void showWarning(String translationKey) {
+        this.warningTranslationKey = translationKey;
+        this.warningUntilMillis = System.currentTimeMillis() + 2200L;
     }
 
     private boolean shouldPlayLocalItemAddSound(int slotId, ItemStack attemptedStack, ClickType clickType, PlayerEntity player) {
@@ -286,11 +297,16 @@ public class TradeMenu extends Container {
         player.playSound(SecureTradeSounds.TRADE_ITEM_BLOCKED, 0.85f, 1.0f);
     }
 
-    public long getBlacklistWarningRemainingMillis() {
-        return Math.max(0L, this.blacklistWarningUntilMillis - System.currentTimeMillis());
+    public long getWarningRemainingMillis() {
+        return Math.max(0L, this.warningUntilMillis - System.currentTimeMillis());
+    }
+
+    public String getWarningTranslationKey() {
+        return this.warningTranslationKey;
     }
 
     public static void openTrade(ServerPlayerEntity player1, ServerPlayerEntity player2) {
+        TradeRequestManager.clearFor(player1.getUUID(), player2.getUUID());
         TradeSession session = new TradeSession(player1, player2);
         
         player1.openMenu(new INamedContainerProvider() {

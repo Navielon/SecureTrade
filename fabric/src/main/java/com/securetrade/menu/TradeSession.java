@@ -3,6 +3,7 @@ package com.securetrade.menu;
 import com.securetrade.SecureTradeSounds;
 import com.securetrade.TradeHistoryManager;
 import com.securetrade.TradeItemValidator;
+import com.securetrade.TradeInventoryCapacity;
 import com.securetrade.TradeLogger;
 import com.securetrade.TradeMessages;
 import com.securetrade.TradeRules;
@@ -10,11 +11,9 @@ import com.securetrade.XPMath;
 import com.securetrade.platform.Services;
 import java.util.ArrayList;
 import java.util.List;
-import net.minecraft.entity.ItemEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.Formatting;
@@ -36,6 +35,8 @@ public class TradeSession {
     private int countdownTicks = -1;
     private long pendingPlayer1XP = -1;
     private long pendingPlayer2XP = -1;
+    private long player1LastLockTick = Long.MIN_VALUE;
+    private long player2LastLockTick = Long.MIN_VALUE;
     private final List<ItemStack> inventory1Snapshot = new ArrayList<>();
     private final List<ItemStack> inventory2Snapshot = new ArrayList<>();
 
@@ -90,8 +91,15 @@ public class TradeSession {
     }
 
     public void setLocked(ServerPlayerEntity player, boolean locked) {
+        if (player != player1 && player != player2) {
+            return;
+        }
         if (locked && (TradeItemValidator.containsBlacklistedItems(inventory1) || TradeItemValidator.containsBlacklistedItems(inventory2))) {
             Services.PLATFORM.sendBlacklistWarning(player);
+            return;
+        }
+        if (locked && !canFitIncomingOffer(player)) {
+            Services.PLATFORM.sendInventoryWarning(player);
             return;
         }
 
@@ -99,11 +107,21 @@ public class TradeSession {
             if (player1Locked == locked) {
                 return;
             }
+            long tick = player.world.getTime();
+            if (player1LastLockTick == tick) {
+                return;
+            }
+            player1LastLockTick = tick;
             player1Locked = locked;
         } else if (player == player2) {
             if (player2Locked == locked) {
                 return;
             }
+            long tick = player.world.getTime();
+            if (player2LastLockTick == tick) {
+                return;
+            }
+            player2LastLockTick = tick;
             player2Locked = locked;
         } else {
             return;
@@ -134,12 +152,11 @@ public class TradeSession {
         }
 
         double maxDist = Services.PLATFORM.getMaxTradeDistance();
-        if (maxDist > 0) {
-            if (!player1.world.getRegistryKey().equals(player2.world.getRegistryKey()) ||
-                player1.squaredDistanceTo(player2) > maxDist * maxDist) {
-                cancelTrade();
-                return;
-            }
+        boolean sameDimension = player1.world.getRegistryKey().equals(player2.world.getRegistryKey());
+        if ((!sameDimension && (!TradeRules.canTradeAcrossDimensions() || maxDist > 0)) ||
+            (sameDimension && maxDist > 0 && player1.squaredDistanceTo(player2) > maxDist * maxDist)) {
+            cancelTrade();
+            return;
         }
 
         boolean xpChanged = false;
@@ -229,6 +246,11 @@ public class TradeSession {
             cancelTrade();
             return;
         }
+        if (!TradeInventoryCapacity.canFit(player1.inventory, inventory2) ||
+            !TradeInventoryCapacity.canFit(player2.inventory, inventory1)) {
+            cancelTrade();
+            return;
+        }
 
         TradeHistoryManager.recordTrade(player1, player2, inventory1, inventory2, player1XP, player2XP);
 
@@ -268,18 +290,17 @@ public class TradeSession {
         for (int i = 0; i < from.size(); i++) {
             ItemStack stack = from.getStack(i);
             if (!stack.isEmpty()) {
-                if (isPlayerOnline(to)) {
-                    if (!to.inventory.insertStack(stack)) {
-                        to.dropItem(stack, false, false);
-                    }
-                } else {
-                    ((ServerWorld) to.world).spawnEntity(
-                        new ItemEntity(to.world, to.getX(), to.getY(), to.getZ(), stack)
-                    );
+                if (!to.inventory.insertStack(stack)) {
+                    to.dropItem(stack, false, false);
                 }
                 from.setStack(i, ItemStack.EMPTY);
             }
         }
+    }
+
+    private boolean canFitIncomingOffer(ServerPlayerEntity player) {
+        SimpleInventory incoming = player == player1 ? inventory2 : inventory1;
+        return TradeInventoryCapacity.canFit(player.inventory, incoming);
     }
 
     private static boolean isPlayerOnline(ServerPlayerEntity player) {

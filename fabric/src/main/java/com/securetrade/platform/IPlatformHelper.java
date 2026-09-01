@@ -17,11 +17,14 @@ public interface IPlatformHelper {
     // Server-to-Client: Tell the client that a blocked item was rejected.
     void sendBlacklistWarning(ServerPlayerEntity player);
 
+    void sendInventoryWarning(ServerPlayerEntity player);
+
     // Loader-specific nested item storage checks, such as Forge item handler capabilities.
     boolean containsPlatformContainerItems(ItemStack stack, List<String> blacklist, int depth);
 
     // Config Getters
     double getMaxTradeDistance();
+    boolean allowCrossDimensionTrades();
     int getRequestTimeoutSeconds();
     int getTradeCooldownSeconds();
     int getCountdownSeconds();

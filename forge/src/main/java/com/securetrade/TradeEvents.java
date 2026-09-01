@@ -6,6 +6,8 @@ import net.minecraftforge.fml.event.server.FMLServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraft.entity.player.ServerPlayerEntity;
 
 @Mod.EventBusSubscriber(modid = SecureTradeMod.MODID)
 public class TradeEvents {
@@ -26,6 +28,15 @@ public class TradeEvents {
     public static void onServerStopping(FMLServerStoppingEvent event) {
         TradeSessionManager.cancelAllAndClear();
         TradeCommand.clearAll();
+        TradePreferencesManager.clear();
+        TradeHistoryManager.shutdown();
         TradeLogger.shutdown();
+    }
+
+    @SubscribeEvent
+    public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
+        if (event.getPlayer() instanceof ServerPlayerEntity) {
+            TradeSessionManager.cancelForPlayer((ServerPlayerEntity) event.getPlayer());
+        }
     }
 }

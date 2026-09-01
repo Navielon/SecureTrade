@@ -3,6 +3,7 @@ package com.securetrade.platform;
 import com.securetrade.TradeConfig;
 import com.securetrade.TradeItemValidator;
 import com.securetrade.network.TradeBlacklistWarningPacket;
+import com.securetrade.network.TradeInventoryWarningPacket;
 import com.securetrade.network.TradeLockPacket;
 import com.securetrade.network.TradeNetwork;
 import com.securetrade.network.TradeStateSyncPacket;
@@ -36,6 +37,11 @@ public class ForgePlatformHelper implements IPlatformHelper {
     }
 
     @Override
+    public void sendInventoryWarning(ServerPlayerEntity player) {
+        TradeNetwork.sendToPlayer(player, new TradeInventoryWarningPacket());
+    }
+
+    @Override
     public boolean containsPlatformContainerItems(ItemStack stack, List<String> blacklist, int depth) {
         try {
             Class<?> forgeCapabilitiesClass = Class.forName("net.minecraftforge.items.CapabilityItemHandler");
@@ -65,6 +71,11 @@ public class ForgePlatformHelper implements IPlatformHelper {
     @Override
     public double getMaxTradeDistance() {
         return TradeConfig.MAX_TRADE_DISTANCE.get();
+    }
+
+    @Override
+    public boolean allowCrossDimensionTrades() {
+        return TradeConfig.ALLOW_CROSS_DIMENSION_TRADES.get();
     }
 
     @Override

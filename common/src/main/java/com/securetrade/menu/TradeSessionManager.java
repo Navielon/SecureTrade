@@ -2,6 +2,7 @@ package com.securetrade.menu;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.entity.player.ServerPlayerEntity;
 
 public class TradeSessionManager {
     private static final List<TradeSession> activeSessions = new ArrayList<>();
@@ -29,5 +30,14 @@ public class TradeSessionManager {
             session.cancelTrade();
         }
         activeSessions.clear();
+    }
+
+    public static synchronized void cancelForPlayer(ServerPlayerEntity player) {
+        List<TradeSession> copy = new ArrayList<>(activeSessions);
+        for (TradeSession session : copy) {
+            if (session.player1 == player || session.player2 == player) {
+                session.cancelTrade();
+            }
+        }
     }
 }

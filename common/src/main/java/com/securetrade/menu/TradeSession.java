@@ -13,6 +13,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Prediction;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
 
@@ -301,7 +302,7 @@ public class TradeSession {
             ItemStack stack = from.getItem(i);
             if (!stack.isEmpty()) {
                 if (!to.getInventory().add(stack)) {
-                    to.drop(stack, false);
+                    to.drop(stack, false, Prediction.SERVER_ONLY);
                 }
                 from.setItem(i, ItemStack.EMPTY);
             }

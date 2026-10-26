@@ -58,6 +58,7 @@ Secure Trade is maintained across multiple Minecraft versions.
 
 | Minecraft | Loaders |
 | --- | --- |
+| 26.3 | Fabric, NeoForge |
 | 26.2 | Fabric, NeoForge |
 | 26.1.x | Fabric, NeoForge |
 | 1.21.1 | Fabric, NeoForge |

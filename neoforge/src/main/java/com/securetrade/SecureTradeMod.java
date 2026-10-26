@@ -41,7 +41,7 @@ public class SecureTradeMod {
             SOUNDS.register("trade_success", () -> SecureTradeSounds.TRADE_SUCCESS);
 
     public SecureTradeMod(IEventBus modEventBus, net.neoforged.fml.ModContainer container) {
-        container.registerConfig(net.neoforged.fml.config.ModConfig.Type.SERVER, TradeConfig.SPEC);
+        container.registerConfig(net.neoforged.fml.config.ModConfig.Type.SYNCED, TradeConfig.SPEC, "securetrade-server.toml");
 
         MENUS.register(modEventBus);
         SOUNDS.register(modEventBus);

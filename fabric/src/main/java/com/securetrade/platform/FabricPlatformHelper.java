@@ -92,4 +92,9 @@ public class FabricPlatformHelper implements IPlatformHelper {
     public int getMaxHistoryEntries() {
         return FabricTradeConfig.maxHistoryEntries;
     }
+
+    @Override
+    public String getChatPrefix() {
+        return FabricTradeConfig.chatPrefix;
+    }
 }

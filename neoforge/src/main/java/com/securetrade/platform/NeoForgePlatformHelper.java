@@ -133,4 +133,9 @@ public class NeoForgePlatformHelper implements IPlatformHelper {
     public int getMaxHistoryEntries() {
         return TradeConfig.MAX_HISTORY_ENTRIES.get();
     }
+
+    @Override
+    public String getChatPrefix() {
+        return TradeConfig.CHAT_PREFIX.get();
+    }
 }

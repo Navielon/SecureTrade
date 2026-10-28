@@ -27,4 +27,5 @@ public interface IPlatformHelper {
     java.util.List<String> getAllowedDimensions();
     java.util.List<String> getBlockedDimensions();
     int getMaxHistoryEntries();
+    String getChatPrefix();
 }

@@ -1,5 +1,6 @@
 package com.securetrade.client;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import com.securetrade.XPMath;
 import com.securetrade.menu.TradeMenu;
 import com.securetrade.platform.Services;
@@ -225,7 +226,6 @@ public class TradeScreen extends AbstractContainerScreen<TradeMenu> {
             drawScaledCenteredText(graphics, String.valueOf(this.menu.countdownSeconds), cx, cy - 8, 2.0f, 0xFF55FF55, false);
         }
 
-        drawTradeWarning(graphics, x, y);
     }
 
     private void drawReadyButton(GuiGraphicsExtractor graphics, int x, int y) {
@@ -254,6 +254,19 @@ public class TradeScreen extends AbstractContainerScreen<TradeMenu> {
         }
         int otherTextColor = this.menu.otherLock || this.menu.countdownSeconds > 0 ? 0xFFF2F2F2 : 0xFFD0D0D0;
         drawCenteredButtonText(graphics, otherMsg, x + RIGHT_READY_X + READY_W / 2, y + RIGHT_READY_Y + (READY_H - 8) / 2, otherTextColor, false);
+    }
+
+    /**
+     * The carried item is drawn on a stratum of its own, above everything in extractContents, so the
+     * warning goes on the next stratum to stay readable when the blocked item is still on the cursor.
+     */
+    @Override
+    public void extractCarriedItem(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        super.extractCarriedItem(graphics, mouseX, mouseY);
+        if (this.menu.getWarningRemainingMillis() > 0) {
+            graphics.nextStratum();
+            drawTradeWarning(graphics, (this.width - this.imageWidth) / 2, (this.height - this.imageHeight) / 2);
+        }
     }
 
     private void drawTradeWarning(GuiGraphicsExtractor graphics, int x, int y) {
@@ -429,7 +442,7 @@ public class TradeScreen extends AbstractContainerScreen<TradeMenu> {
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         double mouseX = event.x();
         double mouseY = event.y();
-        if (event.button() == 0 && this.menu.countdownSeconds <= 0) {
+        if (event.button() == InputConstants.MOUSE_BUTTON_LEFT && this.menu.countdownSeconds <= 0) {
             int x = (this.width - this.imageWidth) / 2;
             int y = (this.height - this.imageHeight) / 2;
 
@@ -495,7 +508,7 @@ public class TradeScreen extends AbstractContainerScreen<TradeMenu> {
 
     @Override
     public boolean mouseReleased(MouseButtonEvent event) {
-        if (event.button() == 0) {
+        if (event.button() == InputConstants.MOUSE_BUTTON_LEFT) {
             this.isDraggingSlider = false;
         }
         return super.mouseReleased(event);
@@ -503,7 +516,7 @@ public class TradeScreen extends AbstractContainerScreen<TradeMenu> {
 
     @Override
     public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
-        if (this.isDraggingSlider && event.button() == 0 && this.menu.countdownSeconds <= 0) {
+        if (this.isDraggingSlider && event.button() == InputConstants.MOUSE_BUTTON_LEFT && this.menu.countdownSeconds <= 0) {
             updateXPFromSlider(event.x());
             return true;
         }

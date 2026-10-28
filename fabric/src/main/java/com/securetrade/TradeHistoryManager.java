@@ -251,7 +251,7 @@ public class TradeHistoryManager {
         }
     }
 
-    private static Text formatItemsAndXP(List<ItemInfo> items, long xp) {
+    public static Text formatItemsAndXP(List<ItemInfo> items, long xp) {
         boolean hasItems = items != null && !items.isEmpty();
         if (!hasItems && xp <= 0) {
             return TradeMessages.trans("securetrade.history.nothing").formatted(Formatting.GRAY);

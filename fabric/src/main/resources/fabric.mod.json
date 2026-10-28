@@ -22,6 +22,9 @@
       "com.securetrade.FabricClientInitializer"
     ]
   },
+  "mixins": [
+    "securetrade.fabric.mixins.json"
+  ],
   "depends": {
     "fabricloader": ">=0.14.25",
     "minecraft": "${minecraft_version}",

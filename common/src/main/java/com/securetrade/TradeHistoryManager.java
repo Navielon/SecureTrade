@@ -248,7 +248,7 @@ public class TradeHistoryManager {
         }
     }
 
-    private static ITextComponent formatItemsAndXP(List<ItemInfo> items, long xp) {
+    public static ITextComponent formatItemsAndXP(List<ItemInfo> items, long xp) {
         boolean hasItems = items != null && !items.isEmpty();
         if (!hasItems && xp <= 0) {
             return TradeMessages.trans("securetrade.history.nothing").withStyle(TextFormatting.GRAY);

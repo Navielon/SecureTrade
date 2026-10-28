@@ -8,11 +8,13 @@ import com.securetrade.network.TradeLockPacket;
 import com.securetrade.network.TradeNetwork;
 import com.securetrade.network.TradeStateSyncPacket;
 import com.securetrade.network.TradeXPChangePacket;
+import com.securetrade.mixin.PlayerListInvoker;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.item.ItemStack;
 
 public class ForgePlatformHelper implements IPlatformHelper {
@@ -116,6 +118,16 @@ public class ForgePlatformHelper implements IPlatformHelper {
     @Override
     public int getMaxHistoryEntries() {
         return TradeConfig.MAX_HISTORY_ENTRIES.get();
+    }
+
+    @Override
+    public String getChatPrefix() {
+        return TradeConfig.CHAT_PREFIX.get();
+    }
+
+    @Override
+    public void savePlayerData(MinecraftServer server, ServerPlayerEntity player) {
+        ((PlayerListInvoker) server.getPlayerList()).securetrade$save(player);
     }
 }
 

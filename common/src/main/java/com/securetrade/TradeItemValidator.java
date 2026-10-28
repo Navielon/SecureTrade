@@ -17,8 +17,7 @@ import net.minecraft.item.Item;
 
 public final class TradeItemValidator {
     private static final int MAX_NESTED_DEPTH = 8;
-    public static final ITag.INamedTag<Item> UNTRADEABLE_TAG =
-            ItemTags.createOptional(new ResourceLocation("securetrade", "untradeable"));
+    private static final ResourceLocation UNTRADEABLE_TAG = new ResourceLocation("securetrade", "untradeable");
 
     private TradeItemValidator() {
     }
@@ -41,13 +40,23 @@ public final class TradeItemValidator {
         return false;
     }
 
+    /**
+     * Looks the tag up in the current tag collection instead of holding a named tag: Forge 1.16.5
+     * binds named tags only when data packs load, and this class is first used later, so a held tag
+     * would stay unbound and throw until the next /reload.
+     */
+    private static boolean isUntradeable(Item item) {
+        ITag<Item> tag = ItemTags.getAllTags().getTag(UNTRADEABLE_TAG);
+        return tag != null && tag.contains(item);
+    }
+
     public static boolean containsBlacklistedItem(ItemStack stack, List<String> blacklist, int depth) {
         if (stack.isEmpty()) {
             return false;
         }
 
         String itemId = Registry.ITEM.getKey(stack.getItem()).toString();
-        if (stack.getItem().is(UNTRADEABLE_TAG) || blacklist.contains(itemId)) {
+        if (isUntradeable(stack.getItem()) || blacklist.contains(itemId)) {
             return true;
         }
 

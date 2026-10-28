@@ -10,6 +10,7 @@ import com.securetrade.TradeMessages;
 import com.securetrade.TradePreferencesManager;
 import com.securetrade.TradeRules;
 import com.securetrade.SecureTradeSounds;
+import com.securetrade.escrow.TradeEscrow;
 import net.minecraft.util.Formatting;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.command.CommandManager;
@@ -51,6 +52,7 @@ public class TradeCommand {
                         .executes(context -> showBlockedPlayers(context.getSource())))
                 .then(CommandManager.literal("blocklist")
                         .executes(context -> showBlockedPlayers(context.getSource())))
+                .then(EscrowAdminCommand.build())
         );
     }
 
@@ -59,6 +61,10 @@ public class TradeCommand {
 
         if (sender.getUuid().equals(target.getUuid())) {
             TradeMessages.error(sender, TradeMessages.trans("securetrade.cannot_trade_self"));
+            return 0;
+        }
+        if (!TradeEscrow.canTrade(sender) || !TradeEscrow.canTrade(target)) {
+            TradeMessages.error(sender, TradeMessages.trans("securetrade.escrow.unavailable"));
             return 0;
         }
 
@@ -168,6 +174,10 @@ public class TradeCommand {
             TradeMessages.error(target, TradeMessages.trans("securetrade.error_already_trading"));
             return 0;
         }
+        if (!TradeEscrow.canTrade(target)) {
+            TradeMessages.error(target, TradeMessages.trans("securetrade.escrow.unavailable"));
+            return 0;
+        }
 
         long now = System.currentTimeMillis();
         long cooldownMillis = Services.PLATFORM.getTradeCooldownSeconds() * 1000L;
@@ -180,6 +190,10 @@ public class TradeCommand {
         ServerPlayerEntity sender = target.server.getPlayerManager().getPlayer(request.senderId());
         if (sender == null) {
             TradeMessages.error(target, TradeMessages.trans("securetrade.sender_offline"));
+            return 0;
+        }
+        if (!TradeEscrow.canTrade(sender)) {
+            TradeMessages.error(target, TradeMessages.trans("securetrade.escrow.unavailable"));
             return 0;
         }
 

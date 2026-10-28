@@ -8,8 +8,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.HashSet;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import net.minecraft.util.Identifier;
 
 public class FabricTradeConfig {
@@ -26,6 +29,9 @@ public class FabricTradeConfig {
     public static java.util.List<String> allowedDimensions = new java.util.ArrayList<>();
     public static java.util.List<String> blockedDimensions = new java.util.ArrayList<>();
     public static int maxHistoryEntries = 5;
+    public static String chatPrefix = "Secure Trade";
+
+    private static final String CHAT_PREFIX_OPTION = "\n# Prefix shown before Secure Trade chat messages (empty to show no prefix)\nchatPrefix = \"Secure Trade\"\n";
 
     public static synchronized void load() {
         resetDefaults();
@@ -36,6 +42,7 @@ public class FabricTradeConfig {
             }
 
             List<String> lines = Files.readAllLines(CONFIG_PATH);
+            Set<String> presentKeys = new HashSet<>();
             for (String line : lines) {
                 line = line.trim();
                 if (line.isEmpty() || line.startsWith("#") || line.startsWith("[")) {
@@ -46,6 +53,7 @@ public class FabricTradeConfig {
                 if (parts.length == 2) {
                     String key = parts[0].trim();
                     String val = parts[1].trim();
+                    presentKeys.add(key);
 
                     try {
                         switch (key) {
@@ -79,15 +87,29 @@ public class FabricTradeConfig {
                             case "maxHistoryEntries":
                                 maxHistoryEntries = Math.max(1, Math.min(100, Integer.parseInt(val)));
                                 break;
+                            case "chatPrefix":
+                                chatPrefix = parseChatPrefix(val);
+                                break;
                         }
                     } catch (Exception e) {
                         LOGGER.error("Failed to parse config value for key: " + key + ", value: " + val, e);
                     }
                 }
             }
+            // Options added by newer versions are appended to an existing file, so server owners can see them.
+            if (!presentKeys.contains("chatPrefix")) {
+                Files.write(CONFIG_PATH, CHAT_PREFIX_OPTION.getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+            }
         } catch (IOException e) {
             LOGGER.error("Failed to load securetrade-server.toml", e);
         }
+    }
+
+    private static String parseChatPrefix(String val) {
+        if (val.length() >= 2 && ((val.startsWith("\"") && val.endsWith("\"")) || (val.startsWith("'") && val.endsWith("'")))) {
+            val = val.substring(1, val.length() - 1);
+        }
+        return val.length() > 32 ? val.substring(0, 32) : val;
     }
 
     private static void resetDefaults() {
@@ -101,6 +123,7 @@ public class FabricTradeConfig {
         allowedDimensions = new java.util.ArrayList<>();
         blockedDimensions = new java.util.ArrayList<>();
         maxHistoryEntries = 5;
+        chatPrefix = "Secure Trade";
     }
 
     private static java.util.List<String> parseIdentifierList(String val, String key) {
@@ -165,7 +188,8 @@ public class FabricTradeConfig {
                     "blockedDimensions = []\n" +
                     "\n" +
                     "# Maximum number of trade history entries to keep\n" +
-                    "maxHistoryEntries = 5\n";
+                    "maxHistoryEntries = 5\n" +
+                    CHAT_PREFIX_OPTION;
 
             Files.write(CONFIG_PATH, defaultConfig.getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {

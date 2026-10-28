@@ -1,5 +1,6 @@
 package com.securetrade;
 
+import com.securetrade.platform.Services;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Util;
 import net.minecraft.text.Text;
@@ -52,10 +53,13 @@ public final class TradeMessages {
         MutableText mutable = message instanceof MutableText
                 ? (MutableText) message
                 : message.copy();
-        return empty()
-                .append(text("Secure Trade").formatted(Formatting.GOLD, Formatting.BOLD))
-                .append(text(" | ").formatted(Formatting.DARK_GRAY))
-                .append(mutable.formatted(color));
+        String prefix = Services.PLATFORM.getChatPrefix();
+        MutableText formatted = empty();
+        if (prefix != null && !prefix.trim().isEmpty()) {
+            formatted.append(text(prefix).formatted(Formatting.GOLD, Formatting.BOLD))
+                    .append(text(" | ").formatted(Formatting.DARK_GRAY));
+        }
+        return formatted.append(mutable.formatted(color));
     }
 
     public static void sendRaw(ServerPlayerEntity player, Text message) {

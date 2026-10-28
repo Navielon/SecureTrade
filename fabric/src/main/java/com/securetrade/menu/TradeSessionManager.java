@@ -1,7 +1,9 @@
 package com.securetrade.menu;
 
+import com.securetrade.escrow.PlayerEscrowData;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 public class TradeSessionManager {
@@ -34,6 +36,16 @@ public class TradeSessionManager {
             session.cancelTrade();
         }
         activeSessions.clear();
+    }
+
+    public static synchronized PlayerEscrowData.Offer escrowOffer(UUID playerId) {
+        for (TradeSession session : activeSessions) {
+            PlayerEscrowData.Offer offer = session.escrowOffer(playerId);
+            if (offer != null) {
+                return offer;
+            }
+        }
+        return null;
     }
 
     public static synchronized void cancelForPlayer(ServerPlayerEntity player) {

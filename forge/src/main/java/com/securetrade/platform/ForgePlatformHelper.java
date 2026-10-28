@@ -12,6 +12,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
+import com.securetrade.mixin.PlayerListInvoker;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
@@ -111,5 +113,15 @@ public class ForgePlatformHelper implements IPlatformHelper {
     @Override
     public int getMaxHistoryEntries() {
         return TradeConfig.MAX_HISTORY_ENTRIES.get();
+    }
+
+    @Override
+    public String getChatPrefix() {
+        return TradeConfig.CHAT_PREFIX.get();
+    }
+
+    @Override
+    public void savePlayerData(MinecraftServer server, ServerPlayer player) {
+        ((PlayerListInvoker) server.getPlayerList()).securetrade$save(player);
     }
 }

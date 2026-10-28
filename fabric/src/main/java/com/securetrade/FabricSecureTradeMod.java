@@ -1,6 +1,7 @@
 package com.securetrade;
 
 import com.securetrade.command.TradeCommand;
+import com.securetrade.escrow.TradeEscrow;
 import com.securetrade.menu.TradeMenu;
 import com.securetrade.menu.TradeMenuType;
 import com.securetrade.menu.TradeSessionManager;
@@ -71,9 +72,16 @@ public class FabricSecureTradeMod implements ModInitializer {
             }
         });
 
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) ->
+                TradeEscrow.onPlayerJoin(handler.getPlayer())
+        );
+
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) ->
                 TradeSessionManager.cancelForPlayer(handler.getPlayer())
         );
+
+        ServerLifecycleEvents.SERVER_STARTED.register(TradeEscrow::onServerStarted);
+        ServerLifecycleEvents.SERVER_STOPPED.register(server -> TradeEscrow.onServerStopped());
 
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             TradeSessionManager.cancelAllAndClear();

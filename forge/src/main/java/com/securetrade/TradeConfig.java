@@ -15,6 +15,7 @@ public class TradeConfig {
     public static final ForgeConfigSpec.ConfigValue<java.util.List<? extends String>> ALLOWED_DIMENSIONS;
     public static final ForgeConfigSpec.ConfigValue<java.util.List<? extends String>> BLOCKED_DIMENSIONS;
     public static final ForgeConfigSpec.IntValue MAX_HISTORY_ENTRIES;
+    public static final ForgeConfigSpec.ConfigValue<String> CHAT_PREFIX;
 
     static {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
@@ -60,6 +61,10 @@ public class TradeConfig {
         MAX_HISTORY_ENTRIES = builder
                 .comment("Maximum number of trade history entries to keep")
                 .defineInRange("maxHistoryEntries", 5, 1, 100);
+
+        CHAT_PREFIX = builder
+                .comment("Prefix shown before Secure Trade chat messages (empty to show no prefix)")
+                .define("chatPrefix", "Secure Trade", o -> o instanceof String value && value.length() <= 32);
 
         builder.pop();
         SPEC = builder.build();

@@ -9,6 +9,9 @@ import com.securetrade.TradeMessages;
 import com.securetrade.TradeRules;
 import com.securetrade.SecureTradeSounds;
 import com.securetrade.XPMath;
+import com.securetrade.escrow.EscrowRecord;
+import com.securetrade.escrow.PlayerEscrowData;
+import com.securetrade.escrow.TradeEscrow;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -18,8 +21,10 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class TradeSession {
+    public final UUID transactionId = UUID.randomUUID();
     public final ServerPlayer player1;
     public final ServerPlayer player2;
     public final SimpleContainer inventory1;
@@ -31,6 +36,7 @@ public class TradeSession {
     public long player2XP = 0;
     private boolean isCancelled = false;
     private boolean isFinished = false;
+    private boolean prepared = false;
 
     private int countdownTicks = -1;
     private long pendingPlayer1XP = -1;
@@ -250,7 +256,20 @@ public class TradeSession {
             return;
         }
 
-        TradeHistoryManager.recordTrade(player1, player2, inventory1, inventory2, player1XP, player2XP);
+        EscrowRecord escrow = TradeEscrow.prepare(this);
+        if (escrow == null) {
+            cancelTrade();
+            return;
+        }
+        if (!TradeEscrow.beginCommit(escrow, player1, player2)) {
+            cancelTrade();
+            TradeEscrow.abort(escrow, player1, player2);
+            return;
+        }
+
+        // From here on the trade is committed: after a crash, recovery completes it instead of refunding.
+        SimpleContainer offered1 = copyOf(inventory1);
+        SimpleContainer offered2 = copyOf(inventory2);
 
         StringBuilder logMsg = new StringBuilder();
         logMsg.append("Trade completed between ")
@@ -266,6 +285,15 @@ public class TradeSession {
 
         transferItems(inventory2, player1);
         transferItems(inventory1, player2);
+        XPMath.setPlayerXP(player1, p1Xp - player1XP + player2XP);
+        XPMath.setPlayerXP(player2, p2Xp - player2XP + player1XP);
+        TradeEscrow.markDelivered(player1, escrow);
+        TradeEscrow.markDelivered(player2, escrow);
+
+        isFinished = true;
+        TradeSessionManager.unregister(this);
+        TradeEscrow.complete(escrow, player1, player2);
+        TradeHistoryManager.recordTrade(player1, player2, offered1, offered2, player1XP, player2XP);
 
         TradeMessages.success(player1, Component.translatable("securetrade.trade_successful"));
         TradeMessages.success(player2, Component.translatable("securetrade.trade_successful"));
@@ -283,13 +311,37 @@ public class TradeSession {
 
         playNotifySound(SecureTradeSounds.TRADE_SUCCESS, 1.0f, 1.0f);
 
-        XPMath.setPlayerXP(player1, p1Xp - player1XP + player2XP);
-        XPMath.setPlayerXP(player2, p2Xp - player2XP + player1XP);
-
-        isFinished = true;
-        TradeSessionManager.unregister(this);
         player1.closeContainer();
         player2.closeContainer();
+    }
+
+    private static SimpleContainer copyOf(SimpleContainer container) {
+        SimpleContainer copy = new SimpleContainer(container.getContainerSize());
+        for (int i = 0; i < container.getContainerSize(); i++) {
+            copy.setItem(i, container.getItem(i).copy());
+        }
+        return copy;
+    }
+
+    public void setPrepared(boolean prepared) {
+        this.prepared = prepared;
+    }
+
+    /**
+     * The player's current offer as it must be saved with their data, or null if this session
+     * does not hold anything for them anymore.
+     */
+    public PlayerEscrowData.Offer escrowOffer(UUID playerId) {
+        if (isCancelled || isFinished) {
+            return null;
+        }
+        if (player1.getUUID().equals(playerId)) {
+            return PlayerEscrowData.Offer.of(transactionId, prepared, player1XP, inventory1);
+        }
+        if (player2.getUUID().equals(playerId)) {
+            return PlayerEscrowData.Offer.of(transactionId, prepared, player2XP, inventory2);
+        }
+        return null;
     }
 
     private void transferItems(SimpleContainer from, ServerPlayer to) {

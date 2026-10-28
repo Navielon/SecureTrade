@@ -7,7 +7,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import net.minecraft.resources.ResourceLocation;
 
 public class FabricTradeConfig {
@@ -24,6 +27,24 @@ public class FabricTradeConfig {
     public static java.util.List<String> allowedDimensions = new java.util.ArrayList<>();
     public static java.util.List<String> blockedDimensions = new java.util.ArrayList<>();
     public static int maxHistoryEntries = 5;
+    public static String chatPrefix = "Secure Trade";
+
+    private record Option(String key, String comment, String defaultValue) {
+    }
+
+    private static final List<Option> OPTIONS = List.of(
+            new Option("requestTimeoutSeconds", "Time in seconds before a trade request expires", "60"),
+            new Option("maxTradeDistance", "Maximum distance in blocks allowed between players to trade (-1 for infinite)", "-1.0"),
+            new Option("allowCrossDimensionTrades", "Allow trades between players in different dimensions when no distance limit prevents it", "true"),
+            new Option("enableTradeLogging", "Enable detailed transaction logging in logs/securetrade.log", "true"),
+            new Option("countdownSeconds", "Seconds to wait before executing the trade after both players are ready", "3"),
+            new Option("tradeCooldownSeconds", "Cooldown in seconds before a player can send another trade request to the same player", "10"),
+            new Option("blacklistedItems", "List of item IDs that cannot be traded", "[\"minecraft:bedrock\"]"),
+            new Option("allowedDimensions", "List of dimension IDs where trading is allowed (leave empty to allow all)", "[]"),
+            new Option("blockedDimensions", "List of dimension IDs where trading is blocked (leave empty to block none)", "[]"),
+            new Option("maxHistoryEntries", "Maximum number of trade history entries to keep", "5"),
+            new Option("chatPrefix", "Prefix shown before Secure Trade chat messages (empty to show no prefix)", "\"Secure Trade\"")
+    );
 
     public static synchronized void load() {
         resetDefaults();
@@ -34,6 +55,7 @@ public class FabricTradeConfig {
             }
 
             List<String> lines = Files.readAllLines(CONFIG_PATH);
+            Set<String> presentKeys = new HashSet<>();
             for (String line : lines) {
                 line = line.trim();
                 if (line.isEmpty() || line.startsWith("#") || line.startsWith("[")) {
@@ -44,6 +66,7 @@ public class FabricTradeConfig {
                 if (parts.length == 2) {
                     String key = parts[0].trim();
                     String val = parts[1].trim();
+                    presentKeys.add(key);
 
                     try {
                         switch (key) {
@@ -77,12 +100,16 @@ public class FabricTradeConfig {
                             case "maxHistoryEntries":
                                 maxHistoryEntries = Math.max(1, Math.min(100, Integer.parseInt(val)));
                                 break;
+                            case "chatPrefix":
+                                chatPrefix = parseChatPrefix(val);
+                                break;
                         }
                     } catch (Exception e) {
                         LOGGER.error("Failed to parse config value for key: " + key + ", value: " + val, e);
                     }
                 }
             }
+            appendMissingOptions(presentKeys);
         } catch (IOException e) {
             LOGGER.error("Failed to load securetrade-server.toml", e);
         }
@@ -99,6 +126,7 @@ public class FabricTradeConfig {
         allowedDimensions = new java.util.ArrayList<>();
         blockedDimensions = new java.util.ArrayList<>();
         maxHistoryEntries = 5;
+        chatPrefix = "Secure Trade";
     }
 
     private static java.util.List<String> parseIdentifierList(String val, String key) {
@@ -126,47 +154,51 @@ public class FabricTradeConfig {
         return list;
     }
 
+    private static String parseChatPrefix(String val) {
+        if (val.length() >= 2 && ((val.startsWith("\"") && val.endsWith("\"")) || (val.startsWith("'") && val.endsWith("'")))) {
+            val = val.substring(1, val.length() - 1);
+        }
+        return val.length() > 32 ? val.substring(0, 32) : val;
+    }
+
     private static void writeDefaultConfig() {
         try {
             if (!Files.exists(CONFIG_PATH.getParent())) {
                 Files.createDirectories(CONFIG_PATH.getParent());
             }
 
-            String defaultConfig = "# Secure Trade Configuration\n" +
-                    "[general]\n" +
-                    "# Time in seconds before a trade request expires\n" +
-                    "requestTimeoutSeconds = 60\n" +
-                    "\n" +
-                    "# Maximum distance in blocks allowed between players to trade (-1 for infinite)\n" +
-                    "maxTradeDistance = -1.0\n" +
-                    "\n" +
-                    "# Allow trades between players in different dimensions when no distance limit prevents it\n" +
-                    "allowCrossDimensionTrades = true\n" +
-                    "\n" +
-                    "# Enable detailed transaction logging in logs/securetrade.log\n" +
-                    "enableTradeLogging = true\n" +
-                    "\n" +
-                    "# Seconds to wait before executing the trade after both players are ready\n" +
-                    "countdownSeconds = 3\n" +
-                    "\n" +
-                    "# Cooldown in seconds before a player can send another trade request to the same player\n" +
-                    "tradeCooldownSeconds = 10\n" +
-                    "\n" +
-                    "# List of item IDs that cannot be traded\n" +
-                    "blacklistedItems = [\"minecraft:bedrock\"]\n" +
-                    "\n" +
-                    "# List of dimension IDs where trading is allowed (leave empty to allow all)\n" +
-                    "allowedDimensions = []\n" +
-                    "\n" +
-                    "# List of dimension IDs where trading is blocked (leave empty to block none)\n" +
-                    "blockedDimensions = []\n" +
-                    "\n" +
-                    "# Maximum number of trade history entries to keep\n" +
-                    "maxHistoryEntries = 5\n";
+            StringBuilder defaultConfig = new StringBuilder("# Secure Trade Configuration\n[general]\n");
+            for (Option option : OPTIONS) {
+                defaultConfig.append(formatOption(option));
+            }
 
-            Files.writeString(CONFIG_PATH, defaultConfig);
+            Files.writeString(CONFIG_PATH, defaultConfig.toString());
         } catch (IOException e) {
             LOGGER.error("Failed to write default securetrade-server.toml", e);
         }
+    }
+
+    /**
+     * Options added by newer versions are appended to an existing file, so server owners can see them.
+     */
+    private static void appendMissingOptions(Set<String> presentKeys) {
+        StringBuilder missing = new StringBuilder();
+        for (Option option : OPTIONS) {
+            if (!presentKeys.contains(option.key())) {
+                missing.append(formatOption(option));
+            }
+        }
+        if (missing.isEmpty()) {
+            return;
+        }
+        try {
+            Files.writeString(CONFIG_PATH, missing.toString(), StandardOpenOption.APPEND);
+        } catch (IOException e) {
+            LOGGER.error("Failed to add new options to securetrade-server.toml", e);
+        }
+    }
+
+    private static String formatOption(Option option) {
+        return "\n# " + option.comment() + "\n" + option.key() + " = " + option.defaultValue() + "\n";
     }
 }

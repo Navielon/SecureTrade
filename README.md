@@ -50,6 +50,7 @@ If either player changes their offer after confirming, the ready state is reset 
 - Trade history command for checking recent exchanges.
 - Optional async transaction logging to `logs/securetrade.log`.
 - Disconnect-safe item return or drop handling.
+- Crash-safe escrow: a server crash, killed process or power loss never loses or duplicates offered items and XP.
 - Localization for 23 languages.
 
 ## Supported Loaders And Versions
@@ -82,6 +83,16 @@ Use the file that matches your Minecraft version and mod loader.
 | `/trade unblock <player>` | Removes a player from your trade block list. |
 | `/trade blocked` | Shows your trade block list. |
 
+Administrator commands (permission level 3) for trades that could not be restored automatically:
+
+| Command | Description |
+| --- | --- |
+| `/trade admin quarantine` | Lists quarantined trades. |
+| `/trade admin info <id>` | Shows both offers, the reason and the state of each side. |
+| `/trade admin refund <id>` | Returns each side its own offer. |
+| `/trade admin complete <id>` | Gives each side the other side's offer. |
+| `/trade admin dismiss <id> confirm` | Closes the record without giving items, after a manual check. |
+
 ## For Server Owners
 
 Secure Trade is designed as a lightweight server utility. It can stay permissive for co-op play, or be restricted for stricter multiplayer servers.
@@ -104,6 +115,7 @@ config/securetrade-server.toml
 | `allowedDimensions` | `[]` | Dimension IDs where trading is allowed. Leave empty to allow all dimensions unless blocked. |
 | `blockedDimensions` | `[]` | Dimension IDs where trading is blocked. Ignored if `allowedDimensions` is not empty. |
 | `maxHistoryEntries` | `5` | Number of recent trade history entries shown by `/trade history`. |
+| `chatPrefix` | `"Secure Trade"` | Prefix before Secure Trade chat messages. Set any text, for example `"Trade"`, or `""` to show no prefix. |
 
 Modpacks can also add items to the `#securetrade:untradeable` item tag through a datapack. Tagged items follow the same recursive container checks as IDs listed in `blacklistedItems`.
 
@@ -115,6 +127,8 @@ Modpacks can also add items to the `#securetrade:untradeable` item tag through a
 - A player cannot confirm while their inventory lacks space for the current incoming offer.
 - If a player disconnects during a trade, offered items are returned or dropped at the player's last known position.
 - Completed trades can be written to a lightweight async log file.
+- Offered items are stored in the player's own save data and every trade is journaled in `<world>/securetrade/`. After a crash, an open trade is returned to its owners and a confirmed trade is completed when each player logs in, including players who were offline.
+- A trade whose saved state is ambiguous is never guessed: it is quarantined, inventories are left untouched, and administrators are notified.
 
 ## Support
 

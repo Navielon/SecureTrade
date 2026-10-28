@@ -1,5 +1,6 @@
 plugins {
     id 'net.minecraftforge.gradle' version '5.1.77'
+    id 'org.spongepowered.mixin' version '0.7.38'
 }
 
 minecraft {
@@ -9,6 +10,8 @@ minecraft {
         client {
             workingDirectory project.file('run/client')
             property 'forge.logging.console.level', 'debug'
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
             mods {
                 "${mod_id}" {
                     source sourceSets.main
@@ -24,6 +27,8 @@ minecraft {
         server {
             workingDirectory project.file('run/server')
             property 'forge.logging.console.level', 'debug'
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
             args '--nogui'
             mods {
                 "${mod_id}" {
@@ -35,8 +40,21 @@ minecraft {
     }
 }
 
+// The mixins target Minecraft methods by name; the refmap maps them to the SRG names Forge uses at runtime.
+mixin {
+    add sourceSets.main, "securetrade.refmap.json"
+    config "securetrade.forge.mixins.json"
+}
+
+// The mixin processor writes the refmap next to the compiler's temporary files, which the build cache
+// does not restore with the classes; declared as an output, a cached build keeps it.
+tasks.named('compileJava', JavaCompile) {
+    outputs.file(layout.buildDirectory.file('tmp/compileJava/securetrade.refmap.json'))
+}
+
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
     implementation project(':common')
 }
 

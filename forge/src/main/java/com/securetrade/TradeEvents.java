@@ -2,6 +2,9 @@ package com.securetrade;
 
 import com.securetrade.menu.TradeSessionManager;
 import com.securetrade.command.TradeCommand;
+import com.securetrade.escrow.TradeEscrow;
+import net.minecraftforge.event.server.ServerStartedEvent;
+import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -21,6 +24,23 @@ public class TradeEvents {
         if (cleanupTicks >= 1200) {
             cleanupTicks = 0;
             TradeCommand.pruneExpired();
+        }
+    }
+
+    @SubscribeEvent
+    public static void onServerStarted(ServerStartedEvent event) {
+        TradeEscrow.onServerStarted(event.getServer());
+    }
+
+    @SubscribeEvent
+    public static void onServerStopped(ServerStoppedEvent event) {
+        TradeEscrow.onServerStopped();
+    }
+
+    @SubscribeEvent
+    public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            TradeEscrow.onPlayerJoin(player);
         }
     }
 

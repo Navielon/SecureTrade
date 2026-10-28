@@ -20,3 +20,9 @@ tasks.named('test', Test) {
 tasks.matching { it.name == 'reobfJar' }.configureEach {
     enabled = false
 }
+
+// The common JAR is not a release artifact; reobfuscating it in place would leave Forge names in the
+// JAR that the Fabric dev runs load.
+tasks.matching { it.name == 'reobfJar' }.configureEach {
+    enabled = false
+}

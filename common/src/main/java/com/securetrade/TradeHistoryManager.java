@@ -274,7 +274,7 @@ public class TradeHistoryManager {
         }
     }
 
-    private static Component formatItemsAndXP(List<ItemInfo> items, long xp) {
+    public static Component formatItemsAndXP(List<ItemInfo> items, long xp) {
         boolean hasItems = items != null && !items.isEmpty();
         if (!hasItems && xp <= 0) {
             return TradeMessages.trans("securetrade.history.nothing").withStyle(ChatFormatting.GRAY);

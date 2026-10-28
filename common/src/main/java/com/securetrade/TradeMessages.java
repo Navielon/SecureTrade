@@ -1,5 +1,6 @@
 package com.securetrade;
 
+import com.securetrade.platform.Services;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.network.chat.Component;
@@ -49,10 +50,13 @@ public final class TradeMessages {
     }
 
     public static MutableComponent format(Component message, ChatFormatting color) {
-        return empty()
-                .append(text("Secure Trade").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD))
-                .append(text(" | ").withStyle(ChatFormatting.DARK_GRAY))
-                .append(message.copy().withStyle(color));
+        String prefix = Services.PLATFORM.getChatPrefix();
+        MutableComponent formatted = empty();
+        if (prefix != null && !prefix.isBlank()) {
+            formatted.append(text(prefix).withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD))
+                    .append(text(" | ").withStyle(ChatFormatting.DARK_GRAY));
+        }
+        return formatted.append(message.copy().withStyle(color));
     }
 
     public static void sendRaw(ServerPlayer player, Component message) {

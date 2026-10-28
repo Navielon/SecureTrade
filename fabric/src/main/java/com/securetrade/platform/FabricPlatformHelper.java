@@ -9,6 +9,8 @@ import com.securetrade.network.TradeXPChangePacket;
 import java.util.List;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import com.securetrade.mixin.PlayerListInvoker;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
@@ -91,5 +93,15 @@ public class FabricPlatformHelper implements IPlatformHelper {
     @Override
     public int getMaxHistoryEntries() {
         return FabricTradeConfig.maxHistoryEntries;
+    }
+
+    @Override
+    public String getChatPrefix() {
+        return FabricTradeConfig.chatPrefix;
+    }
+
+    @Override
+    public void savePlayerData(MinecraftServer server, ServerPlayer player) {
+        ((PlayerListInvoker) server.getPlayerList()).securetrade$save(player);
     }
 }

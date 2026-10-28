@@ -9,6 +9,7 @@ import com.securetrade.TradeMessages;
 import com.securetrade.TradePreferencesManager;
 import com.securetrade.TradeRules;
 import com.securetrade.SecureTradeSounds;
+import com.securetrade.escrow.TradeEscrow;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -57,6 +58,7 @@ public class TradeCommand {
                         .executes(context -> showBlockedPlayers(context.getSource())))
                 .then(Commands.literal("blocklist")
                         .executes(context -> showBlockedPlayers(context.getSource())))
+                .then(EscrowAdminCommand.build())
         );
     }
 
@@ -66,6 +68,10 @@ public class TradeCommand {
 
         if (sender.getUUID().equals(target.getUUID())) {
             TradeMessages.error(sender, Component.translatable("securetrade.cannot_trade_self"));
+            return 0;
+        }
+        if (!TradeEscrow.canTrade(sender) || !TradeEscrow.canTrade(target)) {
+            TradeMessages.error(sender, Component.translatable("securetrade.escrow.unavailable"));
             return 0;
         }
 
@@ -180,6 +186,10 @@ public class TradeCommand {
             TradeMessages.error(target, Component.translatable("securetrade.error_already_trading"));
             return 0;
         }
+        if (!TradeEscrow.canTrade(target)) {
+            TradeMessages.error(target, Component.translatable("securetrade.escrow.unavailable"));
+            return 0;
+        }
 
         long now = System.currentTimeMillis();
         long cooldownMillis = Services.PLATFORM.getTradeCooldownSeconds() * 1000L;
@@ -195,6 +205,10 @@ public class TradeCommand {
             return 0;
         }
 
+        if (!TradeEscrow.canTrade(sender)) {
+            TradeMessages.error(target, Component.translatable("securetrade.escrow.unavailable"));
+            return 0;
+        }
         if (sender.containerMenu instanceof TradeMenu) {
             TradeMessages.error(target, Component.translatable("securetrade.error_target_already_trading", TradeMessages.playerName(sender)));
             return 0;

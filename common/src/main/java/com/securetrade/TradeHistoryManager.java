@@ -272,7 +272,7 @@ public class TradeHistoryManager {
         }
     }
 
-    private static Component formatItemsAndXP(List<ItemInfo> items, long xp, HolderLookup.Provider registries) {
+    public static Component formatItemsAndXP(List<ItemInfo> items, long xp, HolderLookup.Provider registries) {
         boolean hasItems = items != null && !items.isEmpty();
         if (!hasItems && xp <= 0) {
             return Component.translatable("securetrade.history.nothing").withStyle(ChatFormatting.GRAY);

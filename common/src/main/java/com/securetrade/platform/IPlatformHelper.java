@@ -1,6 +1,7 @@
 package com.securetrade.platform;
 
 import java.util.List;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
@@ -27,4 +28,10 @@ public interface IPlatformHelper {
     java.util.List<String> getAllowedDimensions();
     java.util.List<String> getBlockedDimensions();
     int getMaxHistoryEntries();
+    String getChatPrefix();
+
+    /**
+     * Writes the player's save file now, through the vanilla player list (its save method is not public).
+     */
+    void savePlayerData(MinecraftServer server, ServerPlayer player);
 }
